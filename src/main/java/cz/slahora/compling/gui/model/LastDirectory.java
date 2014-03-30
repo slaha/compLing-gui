@@ -1,4 +1,4 @@
-package cz.slahora.compling.gui.utils;
+package cz.slahora.compling.gui.model;
 
 
 import java.io.File;

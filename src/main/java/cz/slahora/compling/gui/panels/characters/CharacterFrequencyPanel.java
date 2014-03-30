@@ -5,14 +5,14 @@ import cz.slahora.compling.gui.model.CharacterFrequencyModel;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.panels.ResultsPanel;
+import cz.slahora.compling.gui.utils.ChartUtils;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
-import org.apache.commons.lang3.StringUtils;
-import org.jfree.chart.*;
-import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.ChartMouseEvent;
+import org.jfree.chart.ChartMouseListener;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.BarRenderer;
-import org.jfree.chart.renderer.category.StandardBarPainter;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -21,11 +21,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class CharacterFrequencyPanel implements ResultsPanel {
-
-
 
 	private enum ChartType {
 		PIE, XY
@@ -90,7 +91,6 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 			new GridBagConstraintBuilder()
 				.gridxy(0, y++)
 				.fill(GridBagConstraints.BOTH)
-				.anchor(GridBagConstraints.NORTH)
 				.weightx(1)
 				.weighty(1)
 				.build()
@@ -116,8 +116,6 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 		final String[] characters = allCharacters.toArray(new String[allCharacters.size()]);
 		Arrays.sort(characters, CharacterFrequencyModel.CHARACTERS_FIRST_COMPARATOR);
 		final JPanel comboPanel = new JPanel(new GridBagLayout());
-
-
 
 		JButton plusComboButton = new JButton("+");
 		JButton minusComboButton = new JButton("-");
@@ -183,15 +181,7 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 			new GridBagConstraintBuilder().gridxy(0, currentY).fill(GridBagConstraints.BOTH).anchor(GridBagConstraints.NORTH)
 				.weightx(1).weighty(1).build()
 		);
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				panel.invalidate();
-				panel.validate();
-				panel.repaint();
-			}
-		});
-
+		panel.validate();
 	}
 
 	private ChartPanel createPlot(ChartType type) {
@@ -199,28 +189,16 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 		JFreeChart chart;
 		switch (type) {
 			case PIE:
-				chart = ChartFactory.createPieChart(chartTitle, model.getPieDataSet(), true, true, Locale.getDefault());
-				//..remove shadows
-				PiePlot piePlot = (PiePlot) chart.getPlot();
-				piePlot.setShadowPaint(null);
+				chart = ChartUtils.createPieChart(chartTitle, model.getPieDataSet(), true, true, Locale.getDefault());
 				break;
 			case XY:
-				chart = ChartFactory.createBarChart(chartTitle, "Jednotlivé znaky", "Četnost", model.getBarDataSet(), PlotOrientation.VERTICAL, true, true, true);
-				BarRenderer renderer = (BarRenderer) chart.getCategoryPlot().getRenderer();
-				//..black bars without shadow and gradient
-				renderer.setSeriesPaint(0, Color.black);
-				renderer.setShadowVisible(false);
-				renderer.setBarPainter(new StandardBarPainter());
+				chart = ChartUtils.createBarChart(chartTitle, "Jednotlivé znaky", "Četnost", model.getBarDataSet(), PlotOrientation.VERTICAL, true, true, true, true);
 				break;
 			default:
 				throw new IllegalArgumentException("WTF?? ChartType " + type + " not recognized");
 		}
 
-		chart.setBackgroundPaint(Color.white);
-		chart.getPlot().setBackgroundPaint(Color.white);
-
-		final ChartPanel newChartPanel = new ChartPanel(chart, 800, 800, 500, 500, Integer.MAX_VALUE, Integer.MAX_VALUE, false, false, true, true, true, true, true);
-		newChartPanel.setBackground(Color.white);
+		final ChartPanel newChartPanel = ChartUtils.createPanel(chart);
 		newChartPanel.putClientProperty("type", type);
 		newChartPanel.addChartMouseListener(new ChartMouseListener() {
 			@Override
@@ -242,17 +220,9 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 	}
 
 	private ChartPanel createPlot(Set<String> set) {
-		final String chartTitle = "Srovnání zastoupení znaku " + set.toString();
-		JFreeChart chart = ChartFactory.createBarChart(chartTitle, "Četnost", "Texty", model.getBarDataSetFor(set.toArray(new String[set.size()])), PlotOrientation.VERTICAL, true, true, true);
-		BarRenderer renderer = (BarRenderer) chart.getCategoryPlot().getRenderer();
-		//..without shadow and gradient
-		renderer.setShadowVisible(false);
-		renderer.setBarPainter(new StandardBarPainter());
-		chart.setBackgroundPaint(Color.white);
-		chart.getPlot().setBackgroundPaint(Color.white);
-		final ChartPanel newChartPanel = new ChartPanel(chart, 800, 800, 500, 500, Integer.MAX_VALUE, Integer.MAX_VALUE, false, false, true, true, true, true, true);
-		newChartPanel.setBackground(Color.white);
-		return newChartPanel;
+		String chartTitle = "Srovnání zastoupení znaku " + set.toString();
+		JFreeChart chart = ChartUtils.createBarChart(chartTitle, "Četnost", "Texty", model.getBarDataSetFor(set.toArray(new String[set.size()])), PlotOrientation.VERTICAL, false, true, true, true);
+		return ChartUtils.createPanel(chart);
 	}
 
 	private JLabel createIntroLabel() {
@@ -343,13 +313,12 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 		}
 
 		void plus() {
-			JComboBox cmbBox = createCharacterComboBox(characters);
-			comboPanel.add(cmbBox);
+			comboPanel.add(createCharacterComboBox(characters));
 		}
 
 		void minus() {
 			int lastComponent = comboPanel.getComponentCount() - 1;
-			JComboBox cmbBox = (JComboBox) comboPanel.getComponent(lastComponent);//last combo
+			JComboBox cmbBox = (JComboBox) comboPanel.getComponent(lastComponent);//..last combo
 			model.removeComparePlotCategory(cmbBox.getSelectedItem().toString());
 			comboPanel.remove(cmbBox);
 		}

@@ -2,14 +2,14 @@ package cz.slahora.compling.gui.main;
 
 import cz.compling.CompLing;
 import cz.slahora.compling.gui.AppContext;
-import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
-import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
 import cz.slahora.compling.gui.analysis.AnalysisResultReceiver;
 import cz.slahora.compling.gui.analysis.AnalysisResultReceiverImpl;
+import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
+import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
+import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.model.WorkingTexts;
 import cz.slahora.compling.gui.utils.FileChooserUtils;
-import cz.slahora.compling.gui.utils.LastDirectory;
 import cz.slahora.compling.gui.utils.MapUtils;
 import org.apache.commons.io.FileUtils;
 

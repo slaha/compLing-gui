@@ -1,8 +1,8 @@
 package cz.slahora.compling.gui.analysis;
 
+import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.panels.ResultsPanel;
 import cz.slahora.compling.gui.utils.FileChooserUtils;
-import cz.slahora.compling.gui.utils.LastDirectory;
 
 import javax.swing.*;
 import java.awt.*;

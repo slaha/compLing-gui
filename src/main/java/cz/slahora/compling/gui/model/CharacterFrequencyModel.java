@@ -5,6 +5,7 @@ import cz.compling.utils.TrooveUtils;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.procedure.TObjectIntProcedure;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.StrBuilder;
 import org.javatuples.Pair;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -214,7 +215,15 @@ public class CharacterFrequencyModel {
 		private final List<String> notUsedStrings;
 
 		private SelectedCharacters() {
-			this.compareChartPanelStrings = new HashSet<String>();
+			this.compareChartPanelStrings = new HashSet<String>() {
+
+				@Override
+				public String toString() {
+					StrBuilder sb = new StrBuilder();
+					sb.appendWithSeparators(this, ", ");
+					return sb.toString();
+				}
+			};
 			this.notUsedStrings = new ArrayList<String>();
 		}
 
