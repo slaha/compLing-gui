@@ -1,5 +1,7 @@
 package cz.slahora.compling.gui.model;
 
+import cz.compling.CompLing;
+
 import java.util.*;
 
 /**
@@ -41,5 +43,9 @@ public class WorkingTexts {
 
 	public void remove(String id) {
 		texts.remove(id);
+	}
+
+	public CompLing createCompLing(String id) {
+		return texts.get(id).getCompLing();
 	}
 }

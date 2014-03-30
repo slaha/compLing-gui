@@ -54,10 +54,11 @@ public class Run {
 		MainWindowController ctx = new MainWindowControllerImpl(appContext, workingTexts);
 
 		MainWindow mainWindow = new MainWindow(ctx, workingTexts);
-
+		MainWindowMenu mainWindowMenu = new MainWindowMenu(ctx, mainWindow.mainPanel);
+		ctx.setMainPanel(mainWindow.mainPanel);
 
 		JFrame frame = new JFrame("Statistika v lexikální analýze");
-		frame.setJMenuBar(new MainWindowMenu(ctx, mainWindow.mainPanel));
+		frame.setJMenuBar(mainWindowMenu);
 		frame.setContentPane(mainWindow.mainPanel);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 

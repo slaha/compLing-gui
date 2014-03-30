@@ -1,6 +1,8 @@
 package cz.slahora.compling.gui.main;
 
 import cz.slahora.compling.gui.AppContext;
+import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
+import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
 import cz.slahora.compling.gui.model.WorkingText;
 
 import javax.swing.*;
@@ -25,4 +27,26 @@ public interface MainWindowController extends AppContext {
 	WorkingText onTabChange(String id);
 
 	WorkingText newEmptyTab(JComponent parent);
+
+	<T> void  analyse(SingleTextAnalysis<T> singleTextAnalysis);
+
+	<T> void  analyse(MultipleTextsAnalysis<T> multipleTextsAnalysis);
+
+	void registerOnTabChange(OnTabSelected callback);
+
+	void registerTabHolder(TabHolder tabHolder);
+
+	TabPanel getPanel(String id);
+
+	Iterable<? extends TabPanel> getAllPanels();
+
+	String getCurrentPanelId();
+
+	void setMainPanel(JPanel mainPanel);
+
+	void textChanged(String newText);
+
+	public interface OnTabSelected {
+		void onTabSelected(String id);
+	}
 }

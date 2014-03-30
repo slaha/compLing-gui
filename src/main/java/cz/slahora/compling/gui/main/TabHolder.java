@@ -1,5 +1,7 @@
 package cz.slahora.compling.gui.main;
 
+import java.util.List;
+
 /**
  *
  * TODO 
@@ -12,6 +14,8 @@ package cz.slahora.compling.gui.main;
  * </dl>
  */
 public interface TabHolder {
+
+	void onNewTab(List<String> id);
 
 	void onTabClose(String id);
 

@@ -1,5 +1,7 @@
 package cz.slahora.compling.gui.model;
 
+import cz.compling.CompLing;
+
 import java.util.UUID;
 
 /**
@@ -14,8 +16,11 @@ import java.util.UUID;
  * </dl>
  */
 public class WorkingText {
+	private static final String TXT_SUFFIX = ".txt";
+	private static final int TXT_SUFFIX_LENGTH = TXT_SUFFIX.length();
+
 	private final String name;
-	private final String text;
+	private String text;
 	private String id;
 
 	public WorkingText(String name, String text) {
@@ -25,6 +30,10 @@ public class WorkingText {
 	}
 
 	public String getName() {
+		if (name.length() > TXT_SUFFIX_LENGTH && name.endsWith(TXT_SUFFIX)) {
+			return name.substring(0, name.length() - TXT_SUFFIX_LENGTH);
+		}
+
 		return name;
 	}
 
@@ -34,5 +43,13 @@ public class WorkingText {
 
 	public String getId() {
 		return id;
+	}
+
+	public CompLing getCompLing() {
+		return CompLing.getInstance(text);
+	}
+
+	public void setText(String newText) {
+		text = newText;
 	}
 }

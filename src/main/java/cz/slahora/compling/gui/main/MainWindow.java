@@ -5,6 +5,9 @@ import cz.slahora.compling.gui.model.WorkingTexts;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,6 +30,8 @@ public class MainWindow implements ActionListener, TabHolder {
 	private final MainWindowController controller;
 	private final WorkingTexts texts;
 
+	private final DocumentListener documentListener;
+
 	public JPanel mainPanel;
 	private JTextArea textArea;
 	private JButton openFileButton;
@@ -34,12 +39,10 @@ public class MainWindow implements ActionListener, TabHolder {
 	private JLabel nameOfOpenedText;
 	private JPanel tabsPanel;
 
-	private TabPanels tabPanels;
-
 	public MainWindow(MainWindowController mainWindowController, WorkingTexts texts) {
 		this.controller = mainWindowController;
+		this.controller.registerTabHolder(this);
 		this.texts = texts;
-		this.tabPanels = new TabPanels();
 		openFileButton.addActionListener(this);
 		newTabButton.addActionListener(this);
 
@@ -58,6 +61,8 @@ public class MainWindow implements ActionListener, TabHolder {
 			}
 		});
 
+		this.documentListener = new DocumentListener(controller);
+		textArea.getDocument().addDocumentListener(documentListener);
 	}
 
 	private void createUIComponents() {
@@ -71,32 +76,26 @@ public class MainWindow implements ActionListener, TabHolder {
 
 		if (e.getSource() == openFileButton) {
 			java.util.List<WorkingText> workingTexts = controller.openFileUsingDialog(mainPanel);
-			if (!workingTexts.isEmpty()) {
-				for (WorkingText workingText : workingTexts) {
-					tabPanels.addPanel(workingText, this);
-				}
-				refreshTabs();
-			}
+			/*for (WorkingText workingText : workingTexts) {
+				tabPanels.addPanel(workingText, this);
+			}*/
 		} else if (e.getSource() == newTabButton) {
 			WorkingText workingText = controller.newEmptyTab(mainPanel);
-			if (workingText != null) {
+			/*if (workingText != null) {
 				tabPanels.addPanel(workingText, this);
-				refreshTabs();
-			}
+				onNewTab(Collections.singletonList(workingText.getId()));
+			}*/
 		}
 	}
 
 	private void refreshTabs() {
 		tabsPanel.removeAll();
 
-		for (TabPanel panel : tabPanels.getAll()) {
+		for (TabPanel panel : controller.getAllPanels()) {
 			tabsPanel.add(panel);
 		}
 
-		String id = tabPanels.getCurrentId();
-		if (id == null) {
-			id = tabPanels.pickNewCurrent();
-		}
+		String id = controller.getCurrentPanelId();
 		onTabChange(id);
 
 		SwingUtilities.invokeLater(new Runnable() {
@@ -109,28 +108,70 @@ public class MainWindow implements ActionListener, TabHolder {
 	}
 
 	@Override
+	public void onNewTab(java.util.List<String> id) {
+		refreshTabs();
+	}
+
+	@Override
 	public void onTabClose(String id) {
 		controller.removeTab(id);
-		tabPanels.removePanel(id);
-		if (tabPanels.currentId(id)) {
-			tabPanels.pickNewCurrent();
-		}
+
+
 		refreshTabs();
 	}
 
 	@Override
 	public void onTabChange(String id) {
-		WorkingText workingText = null;
-		TabPanel panel = null;
-		if (id != null) {
-			workingText = controller.onTabChange(id);
-			panel = tabPanels.getPanel(id);
-		}
+		WorkingText workingText = controller.onTabChange(id);
+		TabPanel panel = (id == null) ? null : controller.getPanel(id);
 
-		tabPanels.setCurrent(panel);
+		documentListener.suppress(true);
 		textArea.setText(workingText == null ? "" : workingText.getText());
 		textArea.setEnabled(workingText != null);
 		textArea.setCaretPosition(0);
 		nameOfOpenedText.setText(workingText == null ? "" : workingText.getName());
+		textArea.getDocument().addDocumentListener(documentListener);
+		documentListener.suppress(false);
+	}
+
+	private static class DocumentListener implements javax.swing.event.DocumentListener {
+
+		private final MainWindowController controller;
+		private boolean suppressed;
+
+		private DocumentListener(MainWindowController controller) {
+			this.controller = controller;
+		}
+
+		public void suppress(boolean suppress) {
+			this.suppressed = suppress;
+		}
+
+		@Override
+		public void insertUpdate(DocumentEvent e) {
+			textChanged(e);
+		}
+
+		@Override
+		public void removeUpdate(DocumentEvent e) {
+			textChanged(e);
+		}
+
+		@Override
+		public void changedUpdate(DocumentEvent e) {
+			textChanged(e);
+		}
+
+		private void textChanged(DocumentEvent e) {
+			if (!suppressed) {
+				Document document = e.getDocument();
+				try {
+					String newText = document.getText(0, document.getLength());
+					controller.textChanged(newText);
+				} catch (BadLocationException ex) {
+					ex.printStackTrace();
+				}
+			}
+		}
 	}
 }

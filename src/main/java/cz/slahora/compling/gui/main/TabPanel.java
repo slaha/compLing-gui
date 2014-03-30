@@ -1,5 +1,7 @@
 package cz.slahora.compling.gui.main;
 
+import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
+
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
@@ -129,21 +131,21 @@ public class TabPanel extends JPanel {
 		setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
 		setMinimumSize(new Dimension(120, 25));
 
-		GridBagConstraints labelConstraints = new GridBagConstraints();
-		labelConstraints.fill = GridBagConstraints.HORIZONTAL;
-		labelConstraints.anchor = GridBagConstraints.LINE_START;
-		labelConstraints.gridx = 0;
-		labelConstraints.gridy = 0;
-		labelConstraints.weightx = 1;
-		labelConstraints.insets = new Insets(0, 3, 0, 3);
-		add(nameLabel, labelConstraints);
+		GridBagConstraintBuilder labelConstraints = new GridBagConstraintBuilder()
+			.fill(GridBagConstraints.HORIZONTAL)
+			.anchor(GridBagConstraints.LINE_START)
+			.gridx(0)
+			.gridy(0)
+			.weightx(1)
+			.insets(new Insets(0, 3, 0, 3));
+		add(nameLabel, labelConstraints.build());
 
-		GridBagConstraints buttonConstraints = new GridBagConstraints();
-		buttonConstraints.anchor = GridBagConstraints.LINE_END;
-		buttonConstraints.gridx = 1;
-		buttonConstraints.gridy = 0;
-		buttonConstraints.insets = new Insets(0, 3, 0, 3);
-		add(closeButton, buttonConstraints);
+		GridBagConstraintBuilder buttonConstraints = new GridBagConstraintBuilder()
+			.anchor(GridBagConstraints.LINE_END)
+			.gridx(1)
+			.gridy(0)
+			.insets(new Insets(0, 3, 0, 3));
+		add(closeButton, buttonConstraints.build());
 
 		setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
 		addMouseListener(MOUSE_ADAPTER);

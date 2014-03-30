@@ -11,8 +11,28 @@
     <dependencies>
         <dependency>
             <groupId>cz.compling</groupId>
-            <artifactId>compling</artifactId>
+            <artifactId>compLing</artifactId>
             <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+            <version>5.0.6</version>
+        </dependency>
+        <dependency>
+            <groupId>jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.0.13</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.trove4j</groupId>
+            <artifactId>trove4j</artifactId>
+            <version>3.0.3</version>
         </dependency>
         <dependency>
             <groupId>jgoodies</groupId>
@@ -45,21 +65,23 @@
     </dependencies>
 
 
-    <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>ideauidesigner-maven-plugin</artifactId>
-        <executions>
-            <execution>
-                <goals>
-                    <goal>javac2</goal>
-                </goals>
-            </execution>
-        </executions>
+    <!--<>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>ideauidesigner-maven-plugin</artifactId>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>javac2</goal>
+                    </goals>
+                </execution>
+            </executions>
 
-        <configuration>
-            <fork>true</fork>
-            <debug>true</debug>
-            <failOnError>true</failOnError>
-        </configuration>
-    </plugin>
+            <configuration>
+                <fork>true</fork>
+                <debug>true</debug>
+                <failOnError>true</failOnError>
+            </configuration>
+        </plugin>
+    </build>-->
 </project>

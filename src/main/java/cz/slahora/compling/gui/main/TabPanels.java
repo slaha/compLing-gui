@@ -34,6 +34,9 @@ public class TabPanels {
 	public void removePanel(String id) {
 		panels.remove(id);
 		stack.remove(id);
+		if (currentId(id)) {
+			pickNewCurrent();
+		}
 	}
 
 	public TabPanel getPanel(String id) {
@@ -60,10 +63,13 @@ public class TabPanels {
 	}
 
 	public String getCurrentId() {
-		return currentPanel != null ? currentPanel.getId() : null;
+		if (currentPanel == null) {
+			return pickNewCurrent();
+		}
+		return currentPanel.getId();
 	}
 
-	public String pickNewCurrent() {
+	private String pickNewCurrent() {
 		if (stack.empty()) {
 			Iterator<TabPanel> iterator = panels.values().iterator();
 			if (iterator.hasNext()) {
@@ -75,6 +81,6 @@ public class TabPanels {
 			String id = stack.pop();
 			this.currentPanel = getPanel(id);
 		}
-		return getCurrentId();
+		return currentPanel != null ? currentPanel.getId() : null;
 	}
 }
