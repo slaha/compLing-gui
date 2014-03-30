@@ -1,12 +1,12 @@
 package cz.slahora.compling.gui.utils;
 
+import org.apache.commons.lang.text.StrBuilder;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
-import java.util.Arrays;
 
 /**
  *
@@ -36,7 +36,7 @@ public class FileChooserUtils {
 
 	public static File getFileToSave(File startDirectory, Component parent, String...filters) {
 		JFileChooser chooser = new JFileChooser(startDirectory);
-		FileNameExtensionFilter filter = new FileNameExtensionFilter("Soubory " + Arrays.toString(filters), filters);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Soubory " + toString(filters), filters);
 		chooser.setFileFilter(filter);
 		chooser.setMultiSelectionEnabled(false);
 		int returnValue = chooser.showSaveDialog(parent);
@@ -49,6 +49,12 @@ public class FileChooserUtils {
 		}
 
 		return null;
+	}
+
+	private static String toString(String[] filters) {
+		StrBuilder sb = new StrBuilder();
+		sb.appendWithSeparators(filters, ", ");
+		return sb.toString();
 	}
 
 	private static boolean hasExtension(File selectedFile, String[] filters) {

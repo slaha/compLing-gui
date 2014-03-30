@@ -37,10 +37,11 @@ public class ChartUtils {
 	public static JFreeChart createBarChart(String title, String categoryLabel, String valueAxisLabel, CategoryDataset dataSet, PlotOrientation orientation, boolean drawBlack, boolean legend, boolean tooltips, boolean urls) {
 		JFreeChart chart = ChartFactory.createBarChart(title, categoryLabel, valueAxisLabel, dataSet, orientation, legend, tooltips, urls);
 		BarRenderer renderer = (BarRenderer) chart.getCategoryPlot().getRenderer();
-		//..black bars without shadow and gradient
 		if (drawBlack) {
+			//..black bars ...
 			renderer.setSeriesPaint(0, Color.black);
 		}
+		//..without shadow and gradient
 		renderer.setShadowVisible(false);
 		renderer.setBarPainter(new StandardBarPainter());
 		return prepareChart(chart);
@@ -53,7 +54,7 @@ public class ChartUtils {
 	}
 
 	public static ChartPanel createPanel(JFreeChart chart) {
-		ChartPanel panel = new ChartPanel(chart, 800, 800, 500, 500, Integer.MAX_VALUE, Integer.MAX_VALUE, false, false, true, true, true, true, true);
+		ChartPanel panel = new ChartPanel(chart, 800, 800, 500, 500, Integer.MAX_VALUE, Integer.MAX_VALUE, true, false, true, true, true, true, true);
 		panel.setBackground(Color.white);
 		return panel;
 	}

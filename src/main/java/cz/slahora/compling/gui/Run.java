@@ -1,8 +1,5 @@
 package cz.slahora.compling.gui;
 
-import cz.slahora.compling.gui.main.*;
-import cz.slahora.compling.gui.model.WorkingTexts;
-
 import javax.swing.*;
 
 /**
@@ -18,16 +15,7 @@ import javax.swing.*;
  */
 public class Run {
 
-	private static AppContext appContext;
-
 	public static void main(String[] args) {
-
-		appContext = new AppContext() {
-			@Override
-			public void exit(int code) {
-				System.exit(code);
-			}
-		};
 
 		try {
 			String gtk = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
@@ -39,32 +27,26 @@ public class Run {
 				e1.printStackTrace();
 			}
 		}
+		AppContext appContext = new AppContext() {
+			@Override
+			public void exit(int code) {
+				System.exit(code);
+			}
+		};
+
+		final Application application = new Application(appContext);
+
 
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
-				createAndShowGUI(appContext);
+				createAndShowGUI(application);
 			}
 		});
 	}
 
-	private static void createAndShowGUI(AppContext appContext) {
-
-		WorkingTexts workingTexts = new WorkingTexts();
-		MainWindowController ctx = new MainWindowControllerImpl(appContext, workingTexts);
-
-		MainWindow mainWindow = new MainWindow(ctx, workingTexts);
-		MainWindowMenu mainWindowMenu = new MainWindowMenu(ctx, mainWindow.mainPanel);
-		ctx.setMainPanel(mainWindow.mainPanel);
-
-		JFrame frame = new JFrame("Statistika v lexikální analýze");
-		frame.setJMenuBar(mainWindowMenu);
-		frame.setContentPane(mainWindow.mainPanel);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		frame.pack();
-
+	private static void createAndShowGUI(Application application) {
+		JFrame frame = application.createFrame();
 		frame.setVisible(true);
-
 	}
 }
