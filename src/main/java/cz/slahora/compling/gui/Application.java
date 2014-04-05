@@ -31,7 +31,7 @@ public class Application {
 		WorkingTexts workingTexts = new WorkingTexts();
 		MainWindowController ctx = new MainWindowControllerImpl(context, workingTexts);
 		mainWindow = new MainWindow(ctx, workingTexts);
-		mainWindowMenu = new MainWindowMenu(ctx, mainWindow.mainPanel);
+		mainWindowMenu = new MainWindowMenu(ctx, mainWindow.mainPanel, workingTexts);
 		ctx.setMainPanel(mainWindow.mainPanel);
 	}
 
