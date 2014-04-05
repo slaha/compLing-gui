@@ -1,6 +1,6 @@
 package cz.slahora.compling.gui.model;
 
-import org.apache.commons.lang.text.StrBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +57,7 @@ public class CsvData {
 		currentRow = new ArrayList<Object>() {
 			@Override
 			public String toString() {
-				return CsvData.this.toString(this, false);
+				return CsvData.this.toString(this, true);
 			}
 		};
 	}
@@ -79,13 +79,14 @@ public class CsvData {
 	 * @param escapeQuotes if true quotes will be doubled (from " will be ...;""""). Set to false if it is not necessary to double quotes because it is slow
 	 */
 	private String toString(List<Object> list, boolean escapeQuotes) {
-		StrBuilder sb = new StrBuilder();
+		StringBuilder sb = new StringBuilder();
 		for (Object o : list) {
+			if (escapeQuotes) {
+				o = (o == null) ? null : StringUtils.replace(o.toString(),"\"","\"\"");
+			}
 			sb.append('"').append(o).append("\";");
 		}
-		if (escapeQuotes) {
-			sb.replaceAll("\"\"\"", "\"\"\"\"");//..make "" from "
-		}
+
 		return sb.toString();
 	}
 }

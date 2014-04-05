@@ -1,6 +1,5 @@
 package cz.slahora.compling.gui.utils;
 
-import org.apache.commons.lang.text.StrBuilder;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
@@ -52,8 +51,13 @@ public class FileChooserUtils {
 	}
 
 	private static String toString(String[] filters) {
-		StrBuilder sb = new StrBuilder();
-		sb.appendWithSeparators(filters, ", ");
+		StringBuilder sb = new StringBuilder();
+		sb.append(filters[0]);
+		for (int i = 1; i < filters.length; i++) {
+			sb
+				.append(", ")
+				.append(filters[1]);
+		}
 		return sb.toString();
 	}
 
