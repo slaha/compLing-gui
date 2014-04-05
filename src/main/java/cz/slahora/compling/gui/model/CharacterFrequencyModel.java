@@ -177,7 +177,7 @@ public class CharacterFrequencyModel {
 		csvData.addHeader(allCharacters);
 		for (Map.Entry<WorkingText, CharacterFrequency> entry : characterFrequency.entrySet()) { //..for each text
 			csvData.startNewLine();
-			csvData.addData(entry.getKey().getName());//..put name as first thing in line (it is not in header now
+			csvData.addData(entry.getKey().getName());//..put name as first thing in line (it is not in header now)
 			for (Object o : csvData.getHeaders()) {
 				int frequencyFor = entry.getValue().getFrequencyFor(o.toString());
 				csvData.addData(frequencyFor);
