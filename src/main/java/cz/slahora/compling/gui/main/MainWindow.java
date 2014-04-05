@@ -123,7 +123,6 @@ public class MainWindow implements ActionListener, TabHolder {
 	@Override
 	public void onTabChange(String id) {
 		WorkingText workingText = controller.onTabChange(id);
-		TabPanel panel = (id == null) ? null : controller.getPanel(id);
 
 		documentListener.suppress(true);
 		textArea.setText(workingText == null ? "" : workingText.getText());

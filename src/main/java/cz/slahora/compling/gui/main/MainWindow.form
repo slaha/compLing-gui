@@ -38,6 +38,7 @@
               <component id="cad08" class="javax.swing.JButton" binding="openFileButton">
                 <constraints/>
                 <properties>
+                  <icon value="document-open.png"/>
                   <text value="Otevřít soubor"/>
                 </properties>
               </component>
