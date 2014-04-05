@@ -21,6 +21,10 @@ public class GridBagConstraintBuilder {
 		constraint = new GridBagConstraints();
 	}
 
+	private GridBagConstraintBuilder(GridBagConstraintBuilder _constraint) {
+		constraint = (GridBagConstraints) _constraint.constraint.clone();
+	}
+
 
 	public GridBagConstraintBuilder fill(int horizontal) {
 		constraint.fill = horizontal;
@@ -62,5 +66,9 @@ public class GridBagConstraintBuilder {
 
 	public GridBagConstraints build() {
 		return constraint;
+	}
+
+	public GridBagConstraintBuilder copy() {
+		return new GridBagConstraintBuilder(this);
 	}
 }
