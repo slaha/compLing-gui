@@ -412,11 +412,6 @@ public abstract class AbstractCharacterAnalysis {
 		}
 
 		@Override
-		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			return false;
-		}
-
-		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			RuleHolder ruleHolder = replaceRules.get(rowIndex);
 			if (columnIndex == 0) {
