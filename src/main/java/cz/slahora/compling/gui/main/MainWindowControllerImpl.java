@@ -13,7 +13,9 @@ import cz.slahora.compling.gui.utils.FileChooserUtils;
 import cz.slahora.compling.gui.utils.MapUtils;
 import org.apache.commons.io.FileUtils;
 
-import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -99,7 +101,10 @@ public class MainWindowControllerImpl implements MainWindowController {
 	public WorkingText newEmptyTab(JComponent parent) {
 		String name = JOptionPane.showInputDialog(parent, "Zadejte prosím jméno nového textu", "Jméno nového textu", JOptionPane.QUESTION_MESSAGE);
 		if (name != null) {
-			return workingTexts.add(name, "");
+			WorkingText workingText = workingTexts.add(name, "");
+			tabPanels.addPanel(workingText, tabHolder);
+			notifyNewTab(Collections.singletonList(workingText));
+			return workingText;
 		}
 		return null;
 	}

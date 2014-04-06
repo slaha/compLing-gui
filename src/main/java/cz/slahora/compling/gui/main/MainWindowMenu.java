@@ -8,7 +8,10 @@ import cz.slahora.compling.gui.model.WorkingTexts;
 import cz.slahora.compling.gui.utils.IconUtils;
 import org.jfree.ui.about.ProjectInfo;
 
-import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -147,9 +150,11 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 	@Override
 	public void onTabSelected(String id) {
 		analyzeMenu.setEnabled(id != null);
-		final String name = workingTexts.get(id).getName();
-		for (JMenuItem item : forActualTextMenus) {
-			item.setText(String.format((String)item.getClientProperty("text"), name));
+		if (id != null) {
+			final String name = workingTexts.get(id).getName();
+			for (JMenuItem item : forActualTextMenus) {
+				item.setText(String.format((String) item.getClientProperty("text"), name));
+			}
 		}
 	}
 }
