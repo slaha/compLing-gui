@@ -8,7 +8,7 @@ import javax.swing.border.MatteBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -75,16 +75,10 @@ public class MainWindow implements ActionListener, TabHolder {
 	public void actionPerformed(ActionEvent e) {
 
 		if (e.getSource() == openFileButton) {
-			java.util.List<WorkingText> workingTexts = controller.openFileUsingDialog(mainPanel);
-			/*for (WorkingText workingText : workingTexts) {
-				tabPanels.addPanel(workingText, this);
-			}*/
+			controller.openFileUsingDialog(mainPanel);
+
 		} else if (e.getSource() == newTabButton) {
-			WorkingText workingText = controller.newEmptyTab(mainPanel);
-			/*if (workingText != null) {
-				tabPanels.addPanel(workingText, this);
-				onNewTab(Collections.singletonList(workingText.getId()));
-			}*/
+			controller.newEmptyTab(mainPanel);
 		}
 	}
 
