@@ -16,7 +16,9 @@ import org.jfree.chart.plot.PlotOrientation;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -29,7 +31,7 @@ import java.util.Set;
 public class CharacterFrequencyPanel implements ResultsPanel {
 
 	private enum ChartType {
-		PIE, XY
+		PIE, XY_ABSOLUTE, XY_RELATIVE
 	}
 
 	/** The whole panel */
@@ -191,8 +193,11 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 			case PIE:
 				chart = ChartUtils.createPieChart(chartTitle, model.getPieDataSet(), true, true, Locale.getDefault());
 				break;
-			case XY:
-				chart = ChartUtils.createBarChart(chartTitle, "Jednotlivé znaky", "Četnost", model.getBarDataSet(), PlotOrientation.VERTICAL, true, true, true, true);
+			case XY_ABSOLUTE:
+				chart = ChartUtils.createBarChart(chartTitle, "Jednotlivé znaky", "Absolutní četnost", model.getAbsoluteBarDataSet(), PlotOrientation.VERTICAL, true, true, true, true);
+				break;
+			case XY_RELATIVE:
+				chart = ChartUtils.createBarChart(chartTitle, "Jednotlivé znaky", "Relativní četnost [%]", model.getRelativeBarDataSet(), PlotOrientation.VERTICAL, true, true, true, true);
 				break;
 			default:
 				throw new IllegalArgumentException("WTF?? ChartType " + type + " not recognized");

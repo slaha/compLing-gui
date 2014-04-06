@@ -51,6 +51,7 @@ public class CharacterFrequencyModel {
 	private TObjectIntHashMap<String> sums;
 	private List<String> maxOccurrences;
 	private int maxOccurrence;
+	private int allCharactersInAllTexts;
 
 	public CharacterFrequencyModel(Map<WorkingText, CharacterFrequency> characterFrequency) {
 		this.characterFrequency = characterFrequency;
@@ -104,7 +105,7 @@ public class CharacterFrequencyModel {
 		return dataset;
 	}
 
-	public CategoryDataset getBarDataSet() {
+	public CategoryDataset getAbsoluteBarDataSet() {
 		if (sums == null) {
 			doSums();
 		}
@@ -120,6 +121,23 @@ public class CharacterFrequencyModel {
 		return dataset;
 	}
 
+	public CategoryDataset getRelativeBarDataSet() {
+		if (sums == null) {
+			doSums();
+		}
+		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+		final double allCharactersInAllTexts = (double) this.allCharactersInAllTexts;
+		sums.forEachEntry(new TObjectIntProcedure<String>() {
+			@Override
+			public boolean execute(String character, int sum) {
+				double perc = (sum / allCharactersInAllTexts) * 100.0d;
+				dataset.setValue(perc, "Relativní četnost", character);
+				return true;
+			}
+		});
+		return dataset;
+	}
 	public CategoryDataset getBarDataSetFor(String...ss) {
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -139,6 +157,7 @@ public class CharacterFrequencyModel {
 		sums = new TObjectIntHashMap<String>(allCharacters.size());
 		maxOccurrences = new ArrayList<String>();
 		int maxOccurrence = 0;
+		int allCharactersInAllTexts = 0;
 		for (String character : allCharacters) {
 			int sum = 0;
 
@@ -147,6 +166,8 @@ public class CharacterFrequencyModel {
 			}
 
 			sums.put(character, sum);
+			allCharactersInAllTexts += sum;
+
 			if (sum == maxOccurrence) {
 				maxOccurrences.add(character);
 			} else if (sum > maxOccurrence) {
@@ -156,6 +177,7 @@ public class CharacterFrequencyModel {
 			}
 		}
 		this.maxOccurrence = maxOccurrence;
+		this.allCharactersInAllTexts = allCharactersInAllTexts;
 	}
 
 	public List<String> getMostOftenCharacter() {
