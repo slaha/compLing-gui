@@ -1,12 +1,14 @@
 package cz.slahora.compling.gui.analysis.character;
 
 import cz.compling.CompLing;
+import cz.compling.analysis.analysator.frequency.character.CharacterFrequencyRule;
 import cz.compling.analysis.analysator.frequency.character.ICharacterFrequency;
 import cz.compling.model.CharacterFrequency;
 import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
 import cz.slahora.compling.gui.model.WorkingText;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,13 +37,15 @@ public class CharacterMultipleTextsAnalysis extends AbstractCharacterAnalysis im
 		characterFrequencies = new HashMap<WorkingText, CharacterFrequency>(texts.size());
 		for (Map.Entry<WorkingText, CompLing> entry : texts.entrySet()) {
 			CompLing compLing = entry.getValue();
-			ICharacterFrequency iCharacterFrequency = compLing.generalAnalysis().characterFrequency();
 			ICharacterFrequency characterFrequency = compLing.generalAnalysis().characterFrequency();
 			if (optionPanel.lettersOnly()) {
 				compLing.registerRule(new OnlyLettersRule());
 			}
 			if (!optionPanel.caseSensitive()) {
-				characterFrequency.registerRule(new CaseInsensitiveRule());
+				compLing.registerRule(new CaseInsensitiveRule());
+			}
+			for (CharacterFrequencyRule rule : optionPanel.replaceRules()) {
+				characterFrequency.registerRule(rule);
 			}
 			this.characterFrequencies.put(entry.getKey(), characterFrequency.getCharacterFrequency());
 		}

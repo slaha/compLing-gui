@@ -1,12 +1,14 @@
 package cz.slahora.compling.gui.analysis.character;
 
 import cz.compling.CompLing;
+import cz.compling.analysis.analysator.frequency.character.CharacterFrequencyRule;
 import cz.compling.analysis.analysator.frequency.character.ICharacterFrequency;
 import cz.compling.model.CharacterFrequency;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
 import cz.slahora.compling.gui.model.WorkingText;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 /**
  *
@@ -36,7 +38,10 @@ public class CharacterSingleTextAnalysis extends AbstractCharacterAnalysis imple
 			compLing.registerRule(new OnlyLettersRule());
 		}
 		if (!optionPanel.caseSensitive()) {
-			characterFrequency.registerRule(new CaseInsensitiveRule());
+			compLing.registerRule(new CaseInsensitiveRule());
+		}
+		for (CharacterFrequencyRule rule : optionPanel.replaceRules()) {
+			characterFrequency.registerRule(rule);
 		}
 		this.characterFrequency = characterFrequency.getCharacterFrequency();
 	}
