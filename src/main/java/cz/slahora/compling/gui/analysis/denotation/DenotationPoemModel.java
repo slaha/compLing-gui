@@ -13,14 +13,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- *
- * TODO 
- *
+ * 
+ * TODO
+ * 
  * <dl>
  * <dt>Created by:</dt>
  * <dd>slaha</dd>
  * <dt>On:</dt>
- * <dd> 6.4.14 13:39</dd>
+ * <dd>6.4.14 13:39</dd>
  * </dl>
  */
 public class DenotationPoemModel {
@@ -29,7 +29,6 @@ public class DenotationPoemModel {
 
 	private final TIntObjectMap<DenotationStrophe> strophes;
 	private final TIntObjectMap<DenotationWord> allWords;
-
 
 	public DenotationPoemModel(WorkingText text) {
 		this.poem = text.getCompLing().poemAnalysis().poem;
@@ -105,7 +104,7 @@ public class DenotationPoemModel {
 				@Override
 				public String toString() {
 					if (isEmpty()) {
-						return " ";
+						return "";
 					}
 					StringBuilder sb = new StringBuilder();
 					sb.append(get(0));
@@ -120,7 +119,7 @@ public class DenotationPoemModel {
 				@Override
 				public String toString() {
 					if (isEmpty()) {
-						return " ";
+						return "";
 					}
 					StringBuilder sb = new StringBuilder();
 					sb.append(get(0));
@@ -143,19 +142,16 @@ public class DenotationPoemModel {
 				return;
 			}
 			this.ignored = ignored;
+			ForEachRunner runner;
 			if (ignored) {
 				final int decrement = numbers.size();
 				numbers.clear();
-
-				allWords.forEachValue(new TObjectProcedure<DenotationWord>() {
+				runner = new ForEachRunner() {
 					@Override
-					public boolean execute(DenotationWord denotationWord) {
-						if (denotationWord.number > number) {
-							denotationWord.incrementNumbers( -decrement); //decrement
-						}
-						return true;
+					public void run(DenotationWord word) {
+						word.incrementNumbers(-decrement); //decrement
 					}
-				});
+				};
 
 			} else {
 				DenotationWord previousWord = getPreviousWord();
@@ -165,17 +161,16 @@ public class DenotationPoemModel {
 				} else {
 					value = previousWord.getHighestNumber() + 1;
 				}
+
 				numbers.add(value);
-				allWords.forEachValue(new TObjectProcedure<DenotationWord>() {
+				runner = new ForEachRunner() {
 					@Override
-					public boolean execute(DenotationWord denotationWord) {
-						if (denotationWord.number > number) {
-							denotationWord.incrementNumbers(1);
-						}
-						return true;
+					public void run(DenotationWord word) {
+						word.incrementNumbers(1);
 					}
-				});
+				};
 			}
+			allWords.forEachValue(new ForEach(runner));
 		}
 
 		private void incrementNumbers(int increment) {
@@ -189,31 +184,25 @@ public class DenotationPoemModel {
 				return;
 			}
 			numbers.add(getHighestNumber() + 1);
-			allWords.forEachValue(new TObjectProcedure<DenotationWord>() {
-					@Override
-					public boolean execute(DenotationWord denotationWord) {
-						if (denotationWord.number > number) {
-							denotationWord.incrementNumbers(1);
-						}
-						return true;
-					}
-				});
+			allWords.forEachValue(new ForEach(new ForEachRunner() {
+				@Override
+				public void run(DenotationWord word) {
+					word.incrementNumbers(1);
+				}
+			}));
 		}
 
 		public void removeElement() {
 			if (ignored) {
 				return;
 			}
-			numbers.remove((Object)getHighestNumber());
-			allWords.forEachValue(new TObjectProcedure<DenotationWord>() {
-					@Override
-					public boolean execute(DenotationWord denotationWord) {
-						if (denotationWord.number > number && !denotationWord.joined && !denotationWord.ignored) {
-							denotationWord.incrementNumbers(-1);
-						}
-						return true;
-					}
-				});
+			numbers.remove((Object) getHighestNumber());
+			allWords.forEachValue(new ForEach(new ForEachRunner() {
+				@Override
+				public void run(DenotationWord word) {
+					word.incrementNumbers(-1);
+				}
+			}));
 		}
 
 		/**
@@ -233,19 +222,37 @@ public class DenotationPoemModel {
 			next.numbers.clear();
 			next.joined = true;
 
-			allWords.forEachValue(new TObjectProcedure<DenotationWord>() {
-
+			allWords.forEachValue(new ForEach(new ForEachRunner() {
 				@Override
-				public boolean execute(DenotationWord denotationWord) {
-					if (denotationWord.number > number && !denotationWord.joined && !denotationWord.ignored) {
-						denotationWord.incrementNumbers(-1);
-					}
-					return true;
+				public void run(DenotationWord word) {
+					word.incrementNumbers(-1);
 				}
-			});
-
+			}));
 
 			return true;
+		}
+
+		public void splitLast() {
+			if (words.size() == 1) {
+				return;
+			}
+			String remove = words.remove(words.size() - 1);
+
+			final DenotationWord nextWord = getNextWord(false);
+			if (nextWord != null) {
+				nextWord.words.add(remove);
+				nextWord.numbers.add(getHighestNumber() + 1);
+				nextWord.joined = false;
+
+				allWords.forEachValue(new ForEach(new ForEachRunner() {
+				@Override
+				public void run(DenotationWord word) {
+					if (word.number > nextWord.number) {
+						word.incrementNumbers(1);
+					}
+				}
+			}));
+			}
 		}
 
 		public DenotationWord getNextWord() {
@@ -254,6 +261,15 @@ public class DenotationPoemModel {
 			do {
 				w = allWords.get(++nmbr);
 			} while (w != null && w.joined);
+			return w;
+		}
+
+		private DenotationWord getNextWord(boolean ignoreJoined) {
+			DenotationWord w;
+			int nmbr = number + words.size() - 1;
+			do {
+				w = allWords.get(++nmbr);
+			} while (w == null);
 			return w;
 		}
 
@@ -312,5 +328,39 @@ public class DenotationPoemModel {
 		public List<Integer> getElements() {
 			return Collections.unmodifiableList(numbers);
 		}
+
+		public boolean isJoined() {
+			return joined;
+		}
+
+		public boolean hasJoined() {
+			return words.size() > 1;
+
+		}
+
+		public String getLastJoined() {
+			return words.get(words.size() - 1);
+		}
+
+		private class ForEach implements TObjectProcedure<DenotationWord> {
+
+			final ForEachRunner runnable;
+
+			private ForEach(ForEachRunner runnable) {
+				this.runnable = runnable;
+			}
+
+			@Override
+			public boolean execute(DenotationWord denotationWord) {
+				if (denotationWord.number > number && !denotationWord.joined && !denotationWord.ignored) {
+					runnable.run(denotationWord);
+				}
+				return true;
+			}
+		}
+	}
+
+	private interface ForEachRunner {
+		void run(DenotationWord word);
 	}
 }

@@ -7,6 +7,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.procedure.TIntObjectProcedure;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -68,9 +69,8 @@ public class DenotationAnalysis {
 			}
 		}
 
-		private static final Insets INSETS = new Insets(1, 7, 1, 1);
 		private static final Insets STROPHE_INSETS = new Insets(1, 1, 25, 1);
-		private static final GridBagConstraintBuilder BUILDER = new GridBagConstraintBuilder().anchor(GridBagConstraints.LINE_START).insets(INSETS);
+		private static final GridBagConstraintBuilder BUILDER = new GridBagConstraintBuilder().anchor(GridBagConstraints.LINE_START);
 
 		public void refresh(WordPanel wordPanel) {
 			final int _number = wordPanel.word.getNumber();
@@ -80,6 +80,7 @@ public class DenotationAnalysis {
 				public boolean execute(int number, WordPanel wordPanel) {
 					if (number >= _number) {
 						wordPanel.refresh();
+
 					}
 
 					return true;
@@ -88,6 +89,9 @@ public class DenotationAnalysis {
 		}
 	}
 	private static class WordPanel extends JPanel {
+
+		private static final Insets INSETS = new Insets(1, 7, 1, 1);
+		private static final Insets IGNORED_INSETS = new Insets(1, 0, 1, 0);
 
 		final JLabel[] labels;
 		final JLabel numberLabel, wordLabel;
@@ -98,6 +102,8 @@ public class DenotationAnalysis {
 
 		public WordPanel(DenotationPoemModel.DenotationWord word, DenotationPoemPanel panel) {
 			super(new GridBagLayout());
+
+			setBorder(new EmptyBorder(INSETS));
 
 			this.word = word;
 			this.panel = panel;
@@ -144,12 +150,12 @@ public class DenotationAnalysis {
 				}
 				label.setForeground(color);
 			}
-
 		}
 
 		public void refresh() {
 			numberLabel.setText(word.getElements().toString());
 			wordLabel.setText(word.getWords().toString());
+			setBorder(new EmptyBorder(word.isJoined() ? IGNORED_INSETS: INSETS));
 			changeFont(false);
 		}
 
@@ -167,17 +173,19 @@ public class DenotationAnalysis {
 		}
 
 		private class WordPanelPopup extends JPopupMenu implements ActionListener {
-			final JMenuItem ignore, addElement, removeElement, join;
+			final JMenuItem ignore, addElement, removeElement, join, split;
 			private WordPanelPopup() {
 				ignore = new JMenuItem("Ignorovat");
 				addElement = new JMenuItem("Přidat denotační element");
 				removeElement = new JMenuItem("Odebrat denotační element");
 				join = new JMenuItem("Sloučit s " + (word.getNextWord() != null ? word.getNextWord().getWords() : ""));
+				split = new JMenuItem("Oddělit " + (word.hasJoined() ? word.getLastJoined() :""));
 
 				ignore.addActionListener(this);
 				addElement.addActionListener(this);
 				removeElement.addActionListener(this);
 				join.addActionListener(this);
+				split.addActionListener(this);
 
 				onWordIgnored(word.isIgnored());
 			}
@@ -201,6 +209,9 @@ public class DenotationAnalysis {
 					if (word.joinNext()) {
 						onWordJoined(word.getNextWord());
 					}
+				} else if (source == split) {
+					word.splitLast();
+					onWordJoined(word.getNextWord());
 				}
 				panel.refresh(WordPanel.this);
 			}
@@ -220,7 +231,12 @@ public class DenotationAnalysis {
 				} else {
 					join.setText("Sloučit s " + (word.getNextWord() != null ? word.getNextWord().getWords() : ""));
 					add(join);
+
 					onElementChanged();
+				}
+				if (word.hasJoined()) {
+					split.setText("Oddělit " + (word.hasJoined() ? word.getLastJoined() :""));
+					add(split);
 				}
 			}
 
