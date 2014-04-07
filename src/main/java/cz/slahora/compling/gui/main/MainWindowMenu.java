@@ -4,6 +4,7 @@ import cz.slahora.compling.gui.about.AboutFrame;
 import cz.slahora.compling.gui.about.Licence;
 import cz.slahora.compling.gui.analysis.character.CharacterMultipleTextsAnalysis;
 import cz.slahora.compling.gui.analysis.character.CharacterSingleTextAnalysis;
+import cz.slahora.compling.gui.analysis.denotation.DenotationSingleTextAnalysis;
 import cz.slahora.compling.gui.model.WorkingTexts;
 import cz.slahora.compling.gui.utils.IconUtils;
 import org.jfree.ui.about.ProjectInfo;
@@ -34,6 +35,7 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 	private static final int OPEN = 1;
 	private static final int CHARACTER_COUNTS_ONE = 10;
 	private static final int CHARACTER_COUNTS_ALL = 11;
+	private static final int DENOTATION = 15;
 	private static final int APP_SETTINGS = 100;
 	private static final int APP_ABOUT = 101;
 
@@ -85,6 +87,11 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 		characterCountMenu.add(forAll);
 
 		analyzeMenu.add(characterCountMenu);
+
+		JMenuItem denotation = createMenuItem("Denotační analýza pro '%s'", DENOTATION, null);
+		analyzeMenu.add(denotation);
+		forActualTextMenus.add(denotation);
+
 		analyzeMenu.setEnabled(false);
 
 		return analyzeMenu;
@@ -112,6 +119,10 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 				break;
 			case CHARACTER_COUNTS_ALL:
 				controller.analyse(new CharacterMultipleTextsAnalysis());
+				break;
+
+			case DENOTATION:
+				controller.analyse(new DenotationSingleTextAnalysis());
 				break;
 
 			case APP_ABOUT:
