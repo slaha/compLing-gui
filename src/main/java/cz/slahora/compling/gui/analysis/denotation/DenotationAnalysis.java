@@ -15,8 +15,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.io.File;
 import java.io.FileInputStream;
@@ -282,12 +286,20 @@ public class DenotationAnalysis {
 
 				onWordIgnored(word.isIgnored());
 
-				addComponentListener(new ComponentAdapter() {
+				addPopupMenuListener(new PopupMenuListener() {
 					@Override
-					public void componentShown(ComponentEvent e) {
+					public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 						onWordIgnored(word.isIgnored());
 						onElementChanged();
 						onWordJoined(word.getNextWord());
+					}
+
+					@Override
+					public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+					}
+
+					@Override
+					public void popupMenuCanceled(PopupMenuEvent e) {
 					}
 				});
 			}
