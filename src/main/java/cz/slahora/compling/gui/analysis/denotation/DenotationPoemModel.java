@@ -2,11 +2,15 @@ package cz.slahora.compling.gui.analysis.denotation;
 
 import cz.compling.text.poem.Poem;
 import cz.compling.text.poem.Verse;
+import cz.slahora.compling.gui.model.Csv;
+import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.utils.CsvParserUtils;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.procedure.TObjectProcedure;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,29 +27,37 @@ import java.util.List;
  * <dd>6.4.14 13:39</dd>
  * </dl>
  */
-public class DenotationPoemModel {
+public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 	private final Poem poem;
 
 	private final TIntObjectMap<DenotationStrophe> strophes;
 	private final TIntObjectMap<DenotationWord> allWords;
+	private int maxWordNumber;
 
 	public DenotationPoemModel(WorkingText text) {
+		this(text, true);
+	}
+
+	private DenotationPoemModel(WorkingText text, boolean compute) {
 		this.poem = text.getCompLing().poemAnalysis().poem;
 		this.strophes = new TIntObjectHashMap<DenotationStrophe>();
 		this.allWords = new TIntObjectHashMap<DenotationWord>();
 
+		if (!compute) {
+			return;
+		}
 		DenotationStrophe strophe;
 		DenotationVerse denotationVerse;
 		int numberOfWord = 1;
-		for (int i = 1; i <= poem.getCountOfStrophes(); i++) {
-			Collection<Verse> versesOfStrophe = poem.getVersesOfStrophe(i);
-			strophe = new DenotationStrophe();
+		int numberOfVerse = 1;
+		for (int stropheNmbr = 1; stropheNmbr <= poem.getCountOfStrophes(); stropheNmbr++) {
+			Collection<Verse> versesOfStrophe = poem.getVersesOfStrophe(stropheNmbr);
+			strophe = new DenotationStrophe(stropheNmbr);
 			for (Verse verse : versesOfStrophe) {
-				denotationVerse = new DenotationVerse();
+				denotationVerse = new DenotationVerse(numberOfVerse++);
 				for (String word : verse.getWords(false)) {
-					DenotationWord denotationWord = new DenotationWord(word, numberOfWord);
-					allWords.put(numberOfWord, denotationWord);
+					DenotationWord denotationWord = new DenotationWord(word, numberOfWord, this);
 					numberOfWord++;
 
 					denotationVerse.add(denotationWord);
@@ -53,8 +65,9 @@ public class DenotationPoemModel {
 				strophe.add(denotationVerse);
 			}
 
-			strophes.put(i, strophe);
+			strophes.put(stropheNmbr, strophe);
 		}
+		this.maxWordNumber = numberOfWord - 1; //..it is incremented once more
 	}
 
 	public int getCountOfStrophes() {
@@ -65,41 +78,100 @@ public class DenotationPoemModel {
 		return strophes.get(strophe);
 	}
 
-	public class DenotationStrophe {
-		final List<DenotationVerse> verses;
+	/*********************************/
+	/*              CSV              */
+	/*********************************/
+	@Override
+	public CsvSaver<DenotationPoemModel> getCsvSaver() {
+		return new DenotationPoemModelSaver();
+	}
 
-		public DenotationStrophe() {
+	@Override
+	public boolean supportsCsvImport() {
+		return true;
+	}
+
+	@Override
+	public CsvLoader<DenotationPoemModel> getCsvLoader() {
+		return new DenotationPoemModelLoader();
+	}
+
+	private void clear() {
+		for (DenotationStrophe strophe : strophes.valueCollection()) {
+			for (DenotationVerse verse : strophe.verses) {
+				verse.words.clear();
+			}
+			strophe.verses.clear();
+		}
+		strophes.clear();
+		allWords.clear();
+		maxWordNumber = -1;
+	}
+
+	public DenotationWord getWord(int number) {
+		return allWords.get(number);
+	}
+
+	public static class DenotationStrophe {
+		final List<DenotationVerse> verses;
+		private final int number;
+
+		public DenotationStrophe(int stropheNmbr) {
 			this.verses = new ArrayList<DenotationVerse>();
+			this.number = stropheNmbr;
 		}
 
 		public void add(DenotationVerse denotationVerse) {
 			verses.add(denotationVerse);
 		}
+
+		public int getNumber() {
+			return number;
+		}
+
+		void toCsv(CsvData csvData) {
+			csvData.addData(number);
+		}
 	}
 
-	public class DenotationVerse {
+	public static class DenotationVerse {
 		final List<DenotationWord> words;
+		private final int number;
 
-		public DenotationVerse() {
+		public DenotationVerse(int numberOfVerse) {
 			this.words = new ArrayList<DenotationWord>();
+			this.number = numberOfVerse;
 		}
 
 		public void add(DenotationWord denotationWord) {
 			words.add(denotationWord);
 		}
+
+		public int getNumber() {
+			return number;
+		}
+
+		public void toCsv(CsvData csvData) {
+			csvData.addData(number);
+		}
 	}
 
-	public class DenotationWord {
+	public static class DenotationWord {
 
 		private final List<Integer> numbers;
 		private final List<String> words;
 		private final int number;
+		private final DenotationPoemModel model;
 		private boolean ignored;
 
 		/** if true this word is joined with another and should be ignored */
 		private boolean joined;
 
-		public DenotationWord(String word, final int number) {
+		private DenotationWord(DenotationPoemModel model, int number) {
+			this.model = model;
+			this.number = number;
+			model.allWords.put(number, this);
+
 			this.words = new ArrayList<String>() {
 				@Override
 				public String toString() {
@@ -114,23 +186,21 @@ public class DenotationPoemModel {
 					return sb.toString();
 				}
 			};
+			this.numbers = new PipeArrayList<Integer>();
+		}
+
+		public DenotationWord(String word, final int number, DenotationPoemModel model) {
+			this(model, number);
 			this.words.add(word);
-			this.numbers = new ArrayList<Integer>() {
-				@Override
-				public String toString() {
-					if (isEmpty()) {
-						return "";
-					}
-					StringBuilder sb = new StringBuilder();
-					sb.append(get(0));
-					for (int i = 1; i < size(); i++) {
-						sb.append('|').append(get(i));
-					}
-					return sb.toString();
-				}
-			};
 			this.numbers.add(number);
-			this.number = number;
+		}
+
+		public DenotationWord(int number, Collection<String> words, Collection<Integer> elements, boolean joined, boolean ignored, DenotationPoemModel model) {
+			this(model, number);
+			this.words.addAll(words);
+			this.numbers.addAll(elements);
+			this.joined = joined;
+			this.ignored = ignored;
 		}
 
 		public boolean isIgnored() {
@@ -170,7 +240,7 @@ public class DenotationPoemModel {
 					}
 				};
 			}
-			allWords.forEachValue(new ForEach(runner));
+			forEachValue(new ForEach(runner));
 		}
 
 		private void incrementNumbers(int increment) {
@@ -184,7 +254,7 @@ public class DenotationPoemModel {
 				return;
 			}
 			numbers.add(getHighestNumber() + 1);
-			allWords.forEachValue(new ForEach(new ForEachRunner() {
+			forEachValue(new ForEach(new ForEachRunner() {
 				@Override
 				public void run(DenotationWord word) {
 					word.incrementNumbers(1);
@@ -197,7 +267,7 @@ public class DenotationPoemModel {
 				return;
 			}
 			numbers.remove((Object) getHighestNumber());
-			allWords.forEachValue(new ForEach(new ForEachRunner() {
+			forEachValue(new ForEach(new ForEachRunner() {
 				@Override
 				public void run(DenotationWord word) {
 					word.incrementNumbers(-1);
@@ -222,7 +292,7 @@ public class DenotationPoemModel {
 			next.numbers.clear();
 			next.joined = true;
 
-			allWords.forEachValue(new ForEach(new ForEachRunner() {
+			forEachValue(new ForEach(new ForEachRunner() {
 				@Override
 				public void run(DenotationWord word) {
 					word.incrementNumbers(-1);
@@ -244,32 +314,30 @@ public class DenotationPoemModel {
 				nextWord.numbers.add(getHighestNumber() + 1);
 				nextWord.joined = false;
 
-				allWords.forEachValue(new ForEach(new ForEachRunner() {
-				@Override
-				public void run(DenotationWord word) {
-					if (word.number > nextWord.number) {
-						word.incrementNumbers(1);
+				forEachValue(new ForEach(new ForEachRunner() {
+					@Override
+					public void run(DenotationWord word) {
+						if (word.number > nextWord.number) {
+							word.incrementNumbers(1);
+						}
 					}
-				}
-			}));
+				}));
 			}
 		}
 
 		public DenotationWord getNextWord() {
-			DenotationWord w;
-			int nmbr = number;
-			do {
-				w = allWords.get(++nmbr);
-			} while (w != null && w.joined);
-			return w;
+			return getNextWord(true);
 		}
 
 		private DenotationWord getNextWord(boolean ignoreJoined) {
-			DenotationWord w;
-			int nmbr = number + words.size() - 1;
+			DenotationWord w = null;
+			int nmbr = number + words.size() - 1; //..current number + joined words - this word
 			do {
-				w = allWords.get(++nmbr);
-			} while (w == null);
+				if (nmbr > getMaxWordNumber()) {
+					break;
+				}
+				w = getAllWords().get(++nmbr);
+			} while (ignoreJoined ? w != null && w.joined : w == null);
 			return w;
 		}
 
@@ -277,7 +345,7 @@ public class DenotationPoemModel {
 			DenotationWord w;
 			int nmbr = number;
 			do {
-				w = allWords.get(--nmbr);
+				w = getAllWords().get(--nmbr);
 			} while (w != null && w.joined);
 			return w;
 		}
@@ -342,6 +410,26 @@ public class DenotationPoemModel {
 			return words.get(words.size() - 1);
 		}
 
+		public void toCsv(CsvData csvData) {
+			csvData.addData(getNumber());
+			csvData.addData(new PipeArrayList<String>(getWords()));
+			csvData.addData(getElements());
+			csvData.addData(isJoined());
+			csvData.addData(isIgnored());
+		}
+
+		private TIntObjectMap<DenotationWord> getAllWords() {
+			return model.allWords;
+		}
+
+		private void forEachValue(ForEach forEach) {
+			getAllWords().forEachValue(forEach);
+		}
+
+		public int getMaxWordNumber() {
+			return model.maxWordNumber;
+		}
+
 		private class ForEach implements TObjectProcedure<DenotationWord> {
 
 			final ForEachRunner runnable;
@@ -360,7 +448,118 @@ public class DenotationPoemModel {
 		}
 	}
 
+	private static class PipeArrayList<T> extends ArrayList<T> {
+
+		private PipeArrayList(int initialCapacity) {
+			super(initialCapacity);
+		}
+
+		private PipeArrayList() {
+		}
+
+		private PipeArrayList(Collection<? extends T> c) {
+			super(c);
+		}
+
+		@Override
+		public String toString() {
+			if (isEmpty()) {
+				return "";
+			}
+			StringBuilder sb = new StringBuilder();
+			sb.append(get(0));
+			for (int i = 1; i < size(); i++) {
+				sb.append('|').append(get(i));
+			}
+			return sb.toString();
+		}
+
+		public static final String SPLITTER = "|";
+	}
+
+
 	private interface ForEachRunner {
 		void run(DenotationWord word);
+	}
+
+	private static class DenotationPoemModelSaver extends CsvSaver<DenotationPoemModel> {
+		@Override
+		public CsvData saveToCsv(DenotationPoemModel object, Object... params) {
+			CsvData csvData = new CsvData();
+			csvData.addHeader("Number of strophe");
+			csvData.addHeader("Number of verse");
+			csvData.addHeader("Number of word");
+			csvData.addHeader("Word(s)");
+			csvData.addHeader("Denotation element(s)");
+			csvData.addHeader("Joined");
+			csvData.addHeader("Ignored");
+			for (int stropheNmbr = 1; stropheNmbr <= object.getCountOfStrophes(); stropheNmbr++) {
+				DenotationStrophe strophe = object.getStrophe(stropheNmbr);
+				for (DenotationVerse verse : strophe.verses) {
+					for (DenotationWord word : verse.words) {
+						csvData.startNewLine();
+						strophe.toCsv(csvData);
+						verse.toCsv(csvData);
+						word.toCsv(csvData);
+					}
+				}
+			}
+			csvData.startNewLine();
+			return csvData;
+		}
+	}
+	private class DenotationPoemModelLoader extends CsvLoader<DenotationPoemModel> {
+		@Override
+		public DenotationPoemModel loadFromCsv(CsvData csv, DenotationPoemModel model, Object... params) throws ParseException {
+
+			model.clear();
+
+			int currentStropheNumber = -1;
+			int currentVerseNumber = -1;
+			int maxWordNumber = -1;
+
+			DenotationStrophe currentStrophe = null;
+			DenotationVerse currentVerse = null;
+			
+			DenotationWord word;
+			for (List<Object> dataLine : csv.getDataLines()) {
+				final CsvParserUtils.CollectionSplitter splitter = new CsvParserUtils.CollectionSplitter() {
+					@Override
+					public String getSplitter() {
+						return PipeArrayList.SPLITTER;
+					}
+				};
+				int column = 0;
+				int stropheNumber = CsvParserUtils.getAsInt(dataLine.get(column++));
+				int verseNumber = CsvParserUtils.getAsInt(dataLine.get(column++));
+				int wordNumber = CsvParserUtils.getAsInt(dataLine.get(column++));
+				Collection<String> words = CsvParserUtils.getAsStringList(dataLine.get(column++), splitter);
+				Collection<Integer> elements = CsvParserUtils.getAsIntList(dataLine.get(column++), splitter);
+				boolean joined = CsvParserUtils.getAsBool(dataLine.get(column++));
+				boolean ignored = CsvParserUtils.getAsBool(dataLine.get(column++));
+
+ 				word = new DenotationWord(wordNumber, words, elements, joined, ignored, model);
+				if (currentStropheNumber != stropheNumber) {
+					if (currentStrophe != null) {
+						model.strophes.put(currentStropheNumber, currentStrophe);
+					}
+					currentStrophe = new DenotationStrophe(stropheNumber);
+					currentStropheNumber = stropheNumber;
+				}
+				if (currentVerseNumber != verseNumber) {
+					currentVerse = new DenotationVerse(verseNumber);
+					currentVerseNumber = verseNumber;
+					currentStrophe.add(currentVerse);
+				}
+				currentVerse.add(word);
+				if (maxWordNumber < wordNumber) {
+					maxWordNumber = wordNumber;
+				}
+			}
+			model.maxWordNumber = maxWordNumber;
+			
+			return model;
+		}
+
 	}
 }

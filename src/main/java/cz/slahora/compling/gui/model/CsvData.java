@@ -2,10 +2,7 @@ package cz.slahora.compling.gui.model;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -32,6 +29,41 @@ public class CsvData {
 			}
 		};
 		this.data = new ArrayList<List<Object>>();
+	}
+
+	public CsvData(Iterable<String> lines) {
+		this();
+
+		Iterator<String> iterator = lines.iterator();
+		//..header
+		if (iterator.hasNext()) {
+			String header = iterator.next();
+			if (StringUtils.isNotBlank(header)) {
+				addLine(this.header, header);
+			}
+		}
+
+		//..body
+		while (iterator.hasNext()) {
+			String line = iterator.next();
+			startNewLine();
+			addLine(currentRow, line);
+		}
+		startNewLine(); //..for last line
+	}
+
+	private void addLine(List<Object> collection, String line) {
+		String[] values = line.split(";(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+		for (String value : values) {
+			value = StringUtils.replace(value, "\"\"", "\""); //..remove double quotes
+			if (value.startsWith("\"")) {
+				value = value.substring(1);
+			}
+			if (value.endsWith("\"")) {
+				value = value.substring(0, value.length() - 1);
+			}
+			collection.add(value);
+		}
 	}
 
 	public void addHeader(int index, Object headerData) {
@@ -88,5 +120,9 @@ public class CsvData {
 		}
 
 		return sb.toString();
+	}
+
+	public List<List<Object>> getDataLines() {
+		return data;
 	}
 }

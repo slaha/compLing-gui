@@ -58,7 +58,7 @@ public class MainWindowControllerImpl implements MainWindowController {
 	@Override
 	public List<WorkingText> openFileUsingDialog(JComponent parent) {
 
-		File[] files= FileChooserUtils.getFilesToOpen(lastDirectory.getLastDirectory(), parent);
+		File[] files= FileChooserUtils.getFilesToOpen(lastDirectory.getLastDirectory(), parent, "txt");
 		if (files.length > 0) {
 			List<WorkingText> newTexts = new ArrayList<WorkingText>(files.length);
 			for (File file : files) {

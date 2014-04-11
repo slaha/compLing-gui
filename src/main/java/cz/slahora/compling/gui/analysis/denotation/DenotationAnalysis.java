@@ -1,19 +1,29 @@
 package cz.slahora.compling.gui.analysis.denotation;
 
+import cz.slahora.compling.gui.analysis.CsvExporter;
+import cz.slahora.compling.gui.model.Csv;
+import cz.slahora.compling.gui.model.CsvData;
+import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.utils.FileChooserUtils;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.procedure.TIntObjectProcedure;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.font.TextAttribute;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,16 +39,81 @@ import java.util.Map;
  */
 public class DenotationAnalysis {
 
-	public static class DenotationPanel extends JPanel {
+	public static class DenotationPanel extends JPanel implements ActionListener {
+
+		private final JButton exportBtn;
+		private final JButton importBtn;
+		private final DenotationPoemModel model;
+		private final DenotationPoemPanel denotationPoemPanel;
 
 		public DenotationPanel(WorkingText workingText) {
 			super(new GridBagLayout());
 
-			DenotationPoemModel model = new DenotationPoemModel(workingText);
-			GridBagConstraints gbc = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).build();
-			add(new JScrollPane(new DenotationPoemPanel(model)), gbc);
+			JToolBar toolBar = new JToolBar(JToolBar.HORIZONTAL);
+			exportBtn = new JButton("Export");
+			importBtn = new JButton("Import");
+			importBtn.addActionListener(this);
+			exportBtn.addActionListener(this);
+			toolBar.add(importBtn);
+			toolBar.add(exportBtn);
+			GridBagConstraints gbc;
+			gbc = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
+			add(toolBar, gbc);
+
+			model = new DenotationPoemModel(workingText);
+
+			gbc = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).build();
+			denotationPoemPanel = new DenotationPoemPanel(model);
+			JSplitPane bottomPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JPanel());
+			add(bottomPanel, gbc);
 		}
 
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			final Object source = e.getSource();
+			LastDirectory lastDir = LastDirectory.getInstance();
+			File lastDirectory = lastDir.getLastDirectory();
+			if (source == exportBtn) {
+				CsvExporter exporter = new CsvExporter(model.getCsvSaver().saveToCsv(model));
+				File csvFile = FileChooserUtils.getFileToSave(lastDirectory, this, "csv");
+				if (csvFile == null) {
+					return;
+				} else if (csvFile.exists()) {
+					int i = JOptionPane.showConfirmDialog(getParent(), "Soubor " + csvFile.getName() + " již existuje. Chcete jej přepsat?", "Soubor již existuje", JOptionPane.YES_NO_OPTION);
+					if (i != JOptionPane.YES_OPTION) {
+						return;
+					}
+				}
+				try {
+					exporter.export(csvFile);
+				} catch (IOException ex) {
+					JOptionPane.showMessageDialog(getParent(), "Chyba při ukládání souboru " + csvFile.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
+				} finally {
+					lastDir.setLastDirectory(csvFile.getParentFile());
+				}
+			}
+			else if (source == importBtn) {
+				File file = FileChooserUtils.getFileToOpen(lastDirectory, this, "csv");
+				if (file == null) {
+					return;
+				}
+				try {
+					List<String> lines = IOUtils.readLines(new FileInputStream(file));
+					CsvData csvData = new CsvData(lines);
+					Csv.CsvLoader<DenotationPoemModel> csvLoader = this.model.getCsvLoader();
+					csvLoader.loadFromCsv(csvData, model);
+					denotationPoemPanel.refresh(0);
+
+				} catch (IOException ex) {
+					JOptionPane.showMessageDialog(getParent(), "Chyba při čtení souboru " + file.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
+				} catch (ParseException pe) {
+					JOptionPane.showMessageDialog(getParent(), "Chyba při parsování souboru " + file.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
+				} finally {
+					lastDir.setLastDirectory(file.getParentFile());
+				}
+			}
+
+		}
 	}
 
 	private static class DenotationPoemPanel extends JPanel {
@@ -48,18 +123,21 @@ public class DenotationAnalysis {
 		public DenotationPoemPanel(DenotationPoemModel model) {
 			super(new GridBagLayout());
 
+			setBackground(Color.white);
+
 			this.wordPanels = new TIntObjectHashMap<WordPanel>();
 
 			final int countOfStrophes = model.getCountOfStrophes();
 			for (int i = 1; i <= countOfStrophes; i++) {
 				DenotationPoemModel.DenotationStrophe strophe = model.getStrophe(i);
 				JPanel strophePanel = new JPanel(new GridBagLayout());
+				strophePanel.setBackground(Color.white);
 				int verseNumber = 0;
 				for (DenotationPoemModel.DenotationVerse verse : strophe.verses) {
 					JPanel versePanel = new JPanel(new GridBagLayout());
 
 					for (DenotationPoemModel.DenotationWord word : verse.words) {
-						WordPanel wordPanel = new WordPanel(word, this);
+						WordPanel wordPanel = new WordPanel(model, word.getNumber(), this);
 						wordPanels.put(word.getNumber(), wordPanel);
 						versePanel.add(wordPanel, BUILDER.copy().build());
 					}
@@ -73,8 +151,10 @@ public class DenotationAnalysis {
 		private static final GridBagConstraintBuilder BUILDER = new GridBagConstraintBuilder().anchor(GridBagConstraints.LINE_START);
 
 		public void refresh(WordPanel wordPanel) {
-			final int _number = wordPanel.word.getNumber();
+			refresh(wordPanel.word.getNumber());
+		}
 
+		public void refresh(final int _number) {
 			wordPanels.forEachEntry(new TIntObjectProcedure<WordPanel>() {
 				@Override
 				public boolean execute(int number, WordPanel wordPanel) {
@@ -98,14 +178,18 @@ public class DenotationAnalysis {
 		final DenotationPoemPanel panel;
 		final Font _font;
 
-		private final DenotationPoemModel.DenotationWord word;
+		private DenotationPoemModel.DenotationWord word;
+		private final DenotationPoemModel model;
+		private final int wordNumber;
 
-		public WordPanel(DenotationPoemModel.DenotationWord word, DenotationPoemPanel panel) {
+		public WordPanel(DenotationPoemModel model, int number, DenotationPoemPanel panel) {
 			super(new GridBagLayout());
-
+			setBackground(Color.white);
 			setBorder(new EmptyBorder(INSETS));
 
-			this.word = word;
+			this.model = model;
+			this.wordNumber = number;
+			this.word = model.getWord(number);
 			this.panel = panel;
 
 			numberLabel = new JLabel(word.getElements().toString());
@@ -153,8 +237,17 @@ public class DenotationAnalysis {
 		}
 
 		public void refresh() {
-			numberLabel.setText(word.getElements().toString());
-			wordLabel.setText(word.getWords().toString());
+			DenotationPoemModel.DenotationWord denotationWord = model.getWord(wordNumber);
+			if (word != denotationWord) {
+				word = denotationWord;
+
+			}
+			String txt;
+			txt = word.getElements().toString();
+			numberLabel.setText(StringUtils.isEmpty(txt) ? " " : txt);
+
+			txt = word.getWords().toString();
+			wordLabel.setText(StringUtils.isEmpty(txt) ? " " : txt);
 			setBorder(new EmptyBorder(word.isJoined() ? IGNORED_INSETS: INSETS));
 			changeFont(false);
 		}
@@ -188,7 +281,18 @@ public class DenotationAnalysis {
 				split.addActionListener(this);
 
 				onWordIgnored(word.isIgnored());
+
+				addComponentListener(new ComponentAdapter() {
+					@Override
+					public void componentShown(ComponentEvent e) {
+						onWordIgnored(word.isIgnored());
+						onElementChanged();
+						onWordJoined(word.getNextWord());
+					}
+				});
 			}
+
+
 
 			@Override
 			public void actionPerformed(ActionEvent e) {

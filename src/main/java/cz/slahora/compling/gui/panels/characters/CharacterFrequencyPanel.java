@@ -275,7 +275,7 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 
 	@Override
 	public CsvData getCsvData() {
-		return model.getCsvData();
+		return model.getCsvSaver().saveToCsv(model);
 	}
 
 	private class PlusMinusButtonListener implements ActionListener {

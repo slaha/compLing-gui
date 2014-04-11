@@ -2,9 +2,9 @@ package cz.slahora.compling.gui.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
+import java.awt.Component;
 import java.io.File;
 
 /**
@@ -20,9 +20,9 @@ import java.io.File;
  */
 public class FileChooserUtils {
 
-	public static File[] getFilesToOpen(File startDirectory, Component parent) {
+	public static File[] getFilesToOpen(File startDirectory, Component parent, String...filters) {
 		JFileChooser chooser = new JFileChooser(startDirectory);
-		FileNameExtensionFilter filter = new FileNameExtensionFilter("Textové soubory", "txt");
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Soubory " + toString(filters), filters);
 		chooser.setFileFilter(filter);
 		chooser.setMultiSelectionEnabled(true);
 		int returnValue = chooser.showOpenDialog(parent);
@@ -31,6 +31,18 @@ public class FileChooserUtils {
 		}
 
 		return new File[0];
+	}
+
+	public static File getFileToOpen(File startDirectory, Component parent, String...filters) {
+		JFileChooser chooser = new JFileChooser(startDirectory);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Soubory " + toString(filters), filters);
+		chooser.setFileFilter(filter);
+		int returnValue = chooser.showOpenDialog(parent);
+		if (returnValue == JFileChooser.APPROVE_OPTION) {
+			return chooser.getSelectedFile();
+		}
+
+		return null;
 	}
 
 	public static File getFileToSave(File startDirectory, Component parent, String...filters) {
