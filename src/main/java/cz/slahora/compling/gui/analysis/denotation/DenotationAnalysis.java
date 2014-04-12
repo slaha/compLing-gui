@@ -5,6 +5,7 @@ import cz.slahora.compling.gui.model.Csv;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.utils.ColumnsAutoSizer;
 import cz.slahora.compling.gui.utils.FileChooserUtils;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import gnu.trove.map.TIntObjectMap;
@@ -14,9 +15,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
+import javax.swing.event.*;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.text.View;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -43,17 +47,23 @@ import java.util.Map;
  */
 public class DenotationAnalysis {
 
+	public static final int SPIKE_NUMBER_COLUMN = 0;
+	public static final int SPIKE_SIZE_COLUMN = 1;
+	public static final int SPIKE_WORDS_COLUMN = 2;
+
 	public static class DenotationPanel extends JPanel implements ActionListener {
 
 		private final JButton exportBtn;
 		private final JButton importBtn;
-		private final DenotationPoemModel model;
+		private final DenotationModel model;
 		private final DenotationPoemPanel denotationPoemPanel;
+		private final DenotationSpikesPanel denotationSpikesPanel;
 
 		public DenotationPanel(WorkingText workingText) {
 			super(new GridBagLayout());
 
 			JToolBar toolBar = new JToolBar(JToolBar.HORIZONTAL);
+			toolBar.setFloatable(false);
 			exportBtn = new JButton("Export");
 			importBtn = new JButton("Import");
 			importBtn.addActionListener(this);
@@ -64,12 +74,22 @@ public class DenotationAnalysis {
 			gbc = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
 			add(toolBar, gbc);
 
-			model = new DenotationPoemModel(workingText);
+			model = new DenotationModel(workingText);
+			denotationPoemPanel = new DenotationPoemPanel(model, this);
+			denotationSpikesPanel = new DenotationSpikesPanel(model.getSpikesModel());
+
+			final JSplitPane bottomPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationSpikesPanel));
+
 
 			gbc = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).build();
-			denotationPoemPanel = new DenotationPoemPanel(model);
-			JSplitPane bottomPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JPanel());
 			add(bottomPanel, gbc);
+
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					bottomPanel.setDividerLocation(denotationPoemPanel.getWidth() + 50);
+				}
+			});
 		}
 
 		@Override
@@ -78,7 +98,7 @@ public class DenotationAnalysis {
 			LastDirectory lastDir = LastDirectory.getInstance();
 			File lastDirectory = lastDir.getLastDirectory();
 			if (source == exportBtn) {
-				CsvExporter exporter = new CsvExporter(model.getCsvSaver().saveToCsv(model));
+				CsvExporter exporter = new CsvExporter(model.getPoemModel().getCsvSaver().saveToCsv(model.getPoemModel()));
 				File csvFile = FileChooserUtils.getFileToSave(lastDirectory, this, "csv");
 				if (csvFile == null) {
 					return;
@@ -104,8 +124,8 @@ public class DenotationAnalysis {
 				try {
 					List<String> lines = IOUtils.readLines(new FileInputStream(file));
 					CsvData csvData = new CsvData(lines);
-					Csv.CsvLoader<DenotationPoemModel> csvLoader = this.model.getCsvLoader();
-					csvLoader.loadFromCsv(csvData, model);
+					Csv.CsvLoader<DenotationPoemModel> csvLoader = this.model.getPoemModel().getCsvLoader();
+					csvLoader.loadFromCsv(csvData, model.getPoemModel());
 					denotationPoemPanel.refresh(0);
 
 				} catch (IOException ex) {
@@ -118,22 +138,34 @@ public class DenotationAnalysis {
 			}
 
 		}
+
+		public void refreshSpikes(int number) {
+			denotationSpikesPanel.refresh(number);
+
+		}
 	}
 
 	private static class DenotationPoemPanel extends JPanel {
 
 		private final TIntObjectMap<WordPanel> wordPanels;
 
-		public DenotationPoemPanel(DenotationPoemModel model) {
+		private final DenotationPanel denotationPanel;
+		private final DenotationSpikesModel spikesModel;
+
+		public DenotationPoemPanel(DenotationModel denotationModel, DenotationPanel denotationPanel) {
 			super(new GridBagLayout());
 
 			setBackground(Color.white);
 
+			this.denotationPanel = denotationPanel;
+			this.spikesModel = denotationModel.getSpikesModel();
+			DenotationPoemModel poemModel = denotationModel.getPoemModel();
+
 			this.wordPanels = new TIntObjectHashMap<WordPanel>();
 
-			final int countOfStrophes = model.getCountOfStrophes();
+			final int countOfStrophes = poemModel.getCountOfStrophes();
 			for (int i = 1; i <= countOfStrophes; i++) {
-				DenotationPoemModel.DenotationStrophe strophe = model.getStrophe(i);
+				DenotationPoemModel.DenotationStrophe strophe = poemModel.getStrophe(i);
 				JPanel strophePanel = new JPanel(new GridBagLayout());
 				strophePanel.setBackground(Color.white);
 				int verseNumber = 0;
@@ -141,7 +173,7 @@ public class DenotationAnalysis {
 					JPanel versePanel = new JPanel(new GridBagLayout());
 
 					for (DenotationPoemModel.DenotationWord word : verse.words) {
-						WordPanel wordPanel = new WordPanel(model, word.getNumber(), this);
+						WordPanel wordPanel = new WordPanel(poemModel, word.getNumber(), this, spikesModel);
 						wordPanels.put(word.getNumber(), wordPanel);
 						versePanel.add(wordPanel, BUILDER.copy().build());
 					}
@@ -170,6 +202,11 @@ public class DenotationAnalysis {
 					return true;
 				}
 			});
+
+		}
+
+		public void refreshSpikes(int number) {
+			denotationPanel.refreshSpikes(number);
 		}
 	}
 	private static class WordPanel extends JPanel {
@@ -186,7 +223,7 @@ public class DenotationAnalysis {
 		private final DenotationPoemModel model;
 		private final int wordNumber;
 
-		public WordPanel(DenotationPoemModel model, int number, DenotationPoemPanel panel) {
+		public WordPanel(DenotationPoemModel model, int number, DenotationPoemPanel panel, DenotationSpikesModel spikesModel) {
 			super(new GridBagLayout());
 			setBackground(Color.white);
 			setBorder(new EmptyBorder(INSETS));
@@ -206,7 +243,7 @@ public class DenotationAnalysis {
 
 			addMouseListener(new MouseAdapter());
 
-			setComponentPopupMenu(new WordPanelPopup());
+			setComponentPopupMenu(new WordPanelPopup(spikesModel));
 		}
 
 		private void changeFont(boolean hovered) {
@@ -216,9 +253,9 @@ public class DenotationAnalysis {
 			} else {
 				font = _font.deriveFont(Font.PLAIN);
 			}
-			Map attributes;
+			Map<TextAttribute, Object> attributes;
 			if (word.getWords().size() > 1) {
-				attributes = new HashMap();
+				attributes = new HashMap<TextAttribute, Object>();
 				attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
 			} else {
 				attributes = null;
@@ -270,13 +307,21 @@ public class DenotationAnalysis {
 		}
 
 		private class WordPanelPopup extends JPopupMenu implements ActionListener {
-			final JMenuItem ignore, addElement, removeElement, join, split;
-			private WordPanelPopup() {
+			private final DenotationSpikesModel spikesModel;
+
+			private final JMenuItem ignore, addElement, removeElement, join, split;
+			private final JMenu spikesMenu;
+
+			private WordPanelPopup(DenotationSpikesModel spikesModel) {
+				this.spikesModel = spikesModel;
+
 				ignore = new JMenuItem("Ignorovat");
 				addElement = new JMenuItem("Přidat denotační element");
 				removeElement = new JMenuItem("Odebrat denotační element");
 				join = new JMenuItem("Sloučit s " + (word.getNextWord() != null ? word.getNextWord().getWords() : ""));
 				split = new JMenuItem("Oddělit " + (word.hasJoined() ? word.getLastJoined() :""));
+
+				spikesMenu = new JMenu("Přidat do hřebu");
 
 				ignore.addActionListener(this);
 				addElement.addActionListener(this);
@@ -292,6 +337,7 @@ public class DenotationAnalysis {
 						onWordIgnored(word.isIgnored());
 						onElementChanged();
 						onWordJoined(word.getNextWord());
+						loadSpikes();
 					}
 
 					@Override
@@ -312,24 +358,42 @@ public class DenotationAnalysis {
 				if (source == ignore) {
 					word.setIgnored(!word.isIgnored());
 					changeFont(false); //..set to gray or black
-					onWordIgnored(word.isIgnored());
 				} else if (source == addElement) {
 					word.addElement();
-					onElementChanged();
-
 				} else if (source == removeElement) {
 					word.removeElement();
 					onElementChanged();
 
 				} else if (source == join) {
-					if (word.joinNext()) {
-						onWordJoined(word.getNextWord());
-					}
+					word.joinNext();
 				} else if (source == split) {
 					word.splitLast();
-					onWordJoined(word.getNextWord());
+				} else if (source instanceof JMenuItem
+					&& "spikes_submenu".equals(((JMenuItem)source).getName())) {
+
+					DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) ((JMenuItem) source).getClientProperty("spike");
+					spike.add(word);
+					panel.refreshSpikes(spike.getNumber());
+					return;
 				}
 				panel.refresh(WordPanel.this);
+			}
+
+			private void loadSpikes() {
+				spikesMenu.removeAll();
+				if (spikesModel.hasSpikes()) {
+					for (DenotationSpikesModel.Spike spike : spikesModel.getSpikes()) {
+						JMenuItem spikeItem = new JMenuItem("Přidat do hřebu č. " + spike.getNumber());
+						spikeItem.setName("spikes_submenu");
+						spikeItem.putClientProperty("spike", spike);
+						spikeItem.addActionListener(this);
+						spikesMenu.add(spikeItem);
+					}
+					add(spikesMenu, 0);
+				} else {
+					remove(spikesMenu);
+				}
+
 			}
 
 			private void onElementChanged() {
@@ -372,5 +436,253 @@ public class DenotationAnalysis {
 
 			}
 		}
+	}
+
+	private static class DenotationSpikesPanel extends JPanel implements ActionListener {
+		private final DenotationSpikesModel model;
+		private final DenotationSpikesTableModel tableModel;
+
+		private final JButton addBtn;
+		private final JButton removeBtn;
+		private final JTable table;
+
+		public DenotationSpikesPanel(DenotationSpikesModel model) {
+			super(new GridBagLayout());
+
+			this.model = model;
+			this.tableModel = new DenotationSpikesTableModel(model);
+
+			JToolBar toolBar = new JToolBar(JToolBar.HORIZONTAL);
+			toolBar.setFloatable(false);
+			addBtn = new JButton("Nový hřeb");
+			removeBtn = new JButton("Odstranit hřeb");
+			removeBtn.setEnabled(false);
+			addBtn.addActionListener(this);
+			removeBtn.addActionListener(this);
+			toolBar.add(addBtn);
+			toolBar.add(removeBtn);
+			GridBagConstraintBuilder builder;
+			builder = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.NORTHWEST).weightx(1);
+			add(toolBar, builder.build());
+
+
+			table = new JTable(tableModel) {
+
+				final int rowHeigth = getRowHeight();
+
+				@Override
+				public TableCellRenderer getCellRenderer(int row, int column) {
+					if (column != SPIKE_WORDS_COLUMN) {
+						return new SingleLineCellRenderer(rowHeight);
+					}
+					return new MultilineCellRenderer(rowHeigth);
+				}
+			};
+
+			table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+			table.getColumnModel().getColumn(0).setPreferredWidth(100);
+			table.getColumnModel().getColumn(1).setPreferredWidth(100);
+			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			table.setColumnSelectionAllowed(false);
+			table.setRowSelectionAllowed(true);
+			table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+
+			table.getModel().addTableModelListener(new TableModelListener() {
+				public void tableChanged(TableModelEvent e) {
+					ColumnsAutoSizer.sizeColumnsToFit(table);
+				}
+			});
+
+			table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+				@Override
+				public void valueChanged(ListSelectionEvent e) {
+					if (!e.getValueIsAdjusting()) {
+						removeBtn.setEnabled(table.getSelectedRow() >= 0);
+					}
+				}
+			});
+
+			builder = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.NORTHWEST).weightx(1);
+			add(table.getTableHeader(), builder.build());
+
+			builder = new GridBagConstraintBuilder().gridxy(0, 2).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.NORTHWEST).weightx(1).weighty(1);
+			add(table, builder.copy().build());
+
+			ColumnsAutoSizer.sizeColumnsToFit(table);
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			final Object source = e.getSource();
+			if (source == addBtn) {
+				model.addNewSpike();
+			} else if (source == removeBtn) {
+				Object selected = table.getValueAt(table.getSelectedRow(), 0);
+				if (selected != null) {
+					model.removeSpike(Integer.parseInt(selected.toString()));
+				}
+			}
+			tableModel.fireTableDataChanged();
+		}
+
+		public void refresh(int number) {
+			int row = findRowForSpike(number);
+			if (row >= 0) {
+				tableModel.fireTableRowsUpdated(row, row);
+			}
+		}
+
+		private int findRowForSpike(int number) {
+			for (int row = 0; row < table.getRowCount(); row++) {
+				Object valueAt = table.getValueAt(row, 0);
+				if (valueAt != null) {
+					int i = Integer.parseInt(valueAt.toString());
+					if (i == number) {
+						return row;
+					}
+				}
+			}
+			throw new IllegalStateException("No Spike with number " + number + " found in the table");
+		}
+
+		private class MultilineCellRenderer extends JTextArea implements TableCellRenderer {
+
+			private final int rowHeight;
+
+			public MultilineCellRenderer(int rowHeight) {
+				this.rowHeight = rowHeight;
+				setLineWrap(true);
+				setWrapStyleWord(true);
+				setOpaque(true);
+			}
+
+			public Component getTableCellRendererComponent(final JTable table, Object value, boolean isSelected, boolean hasFocus, final int row, int column) {
+				if (isSelected) {
+					setForeground(table.getSelectionBackground());
+				} else {
+					setForeground(table.getForeground());
+					setBackground(table.getBackground());
+				}
+
+				setText((value == null) ? "" : value.toString());
+				//..need to be called after painting. Very nice, Java, very nice
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						table.setRowHeight(row, getWrappedLines() * rowHeight);
+					}
+				});
+
+				return this;
+			}
+
+			public int getWrappedLines() {
+				View view = getUI().getRootView(this).getView(0);
+				int preferredHeight = (int) view.getPreferredSpan(View.Y_AXIS);
+				int lineHeight = getFontMetrics(getFont()).getHeight();
+				return preferredHeight / lineHeight;
+			}
+		}
+
+		private class SingleLineCellRenderer extends JLabel implements TableCellRenderer {
+
+			private final int rowHeight;
+
+			private SingleLineCellRenderer(int rowHeight) {
+				this.rowHeight = rowHeight;
+			}
+
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+				setOpaque(true);
+				setText(value == null ? "" : value.toString());
+
+				setAlignmentX(JLabel.LEFT_ALIGNMENT);
+				setAlignmentY(JLabel.TOP_ALIGNMENT);
+
+				if (isSelected) {
+					setBackground(table.getSelectionBackground());
+					setForeground(table.getSelectionForeground());
+				} else {
+					setBackground(table.getBackground());
+					setForeground(table.getForeground());
+				}
+				setFont(table.getFont());
+				Border border;
+				int verticalMargin = table.getRowHeight(row) - table.getFont().getSize();
+				int margin = (rowHeight -table.getFont().getSize()) / 2;
+
+				int bottomMargin = verticalMargin - margin;
+				border = new EmptyBorder(margin, margin, bottomMargin, margin);
+				setBorder(border);
+
+				return this;
+			}
+		}
+	}
+
+	private static class DenotationSpikesTableModel extends AbstractTableModel {
+
+		private final DenotationSpikesModel model;
+
+		public DenotationSpikesTableModel(DenotationSpikesModel model) {
+			this.model = model;
+		}
+
+		@Override
+		public int getRowCount() {
+			return model.getSpikesCount();
+		}
+
+		@Override
+		public int getColumnCount() {
+			return Math.max(Math.max(SPIKE_NUMBER_COLUMN, SPIKE_SIZE_COLUMN), SPIKE_WORDS_COLUMN) + 1;
+		}
+
+		@Override
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			DenotationSpikesModel.Spike spike = model.getSpikeOnRow(rowIndex);
+			if (spike == null) {
+				return null;
+			}
+			switch (columnIndex) {
+				case SPIKE_NUMBER_COLUMN:
+					return spike.getNumber();
+				case SPIKE_SIZE_COLUMN:
+					return spike.getWords().size();
+				case SPIKE_WORDS_COLUMN:
+					return spike.getWords();
+				default:
+					return null;
+			}
+		}
+
+		@Override
+		public String getColumnName(int column) {
+			switch (column) {
+				case SPIKE_NUMBER_COLUMN:
+					return "Číslo hřebu";
+				case SPIKE_SIZE_COLUMN:
+					return "Velikost hřebu";
+				case SPIKE_WORDS_COLUMN:
+					return "Slova ve hřebu";
+				default:
+					return null;
+			}
+		}
+
+		@Override
+		public Class<?> getColumnClass(int column) {
+			switch (column) {
+				case SPIKE_NUMBER_COLUMN:
+				case SPIKE_SIZE_COLUMN:
+					return Integer.class;
+				case SPIKE_WORDS_COLUMN:
+					return String.class;
+				default:
+					return Object.class;
+			}
+		}
+
 	}
 }

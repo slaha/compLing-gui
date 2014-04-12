@@ -16,17 +16,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * 
- * TODO
- * 
- * <dl>
- * <dt>Created by:</dt>
- * <dd>slaha</dd>
- * <dt>On:</dt>
- * <dd>6.4.14 13:39</dd>
- * </dl>
- */
 public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 	private final Poem poem;
@@ -79,7 +68,8 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 	}
 
 	/*********************************/
-	/*              CSV              */
+	/* CSV */
+
 	/*********************************/
 	@Override
 	public CsvSaver<DenotationPoemModel> getCsvSaver() {
@@ -195,7 +185,8 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			this.numbers.add(number);
 		}
 
-		public DenotationWord(int number, Collection<String> words, Collection<Integer> elements, boolean joined, boolean ignored, DenotationPoemModel model) {
+		public DenotationWord(int number, Collection<String> words, Collection<Integer> elements, boolean joined,
+				boolean ignored, DenotationPoemModel model) {
 			this(model, number);
 			this.words.addAll(words);
 			this.numbers.addAll(elements);
@@ -477,7 +468,6 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		public static final String SPLITTER = "|";
 	}
 
-
 	private interface ForEachRunner {
 		void run(DenotationWord word);
 	}
@@ -508,9 +498,11 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			return csvData;
 		}
 	}
+
 	private class DenotationPoemModelLoader extends CsvLoader<DenotationPoemModel> {
 		@Override
-		public DenotationPoemModel loadFromCsv(CsvData csv, DenotationPoemModel model, Object... params) throws ParseException {
+		public DenotationPoemModel loadFromCsv(CsvData csv, DenotationPoemModel model, Object... params)
+				throws ParseException {
 
 			model.clear();
 
@@ -520,7 +512,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 			DenotationStrophe currentStrophe = null;
 			DenotationVerse currentVerse = null;
-			
+
 			DenotationWord word;
 			for (List<Object> dataLine : csv.getDataLines()) {
 				final CsvParserUtils.CollectionSplitter splitter = new CsvParserUtils.CollectionSplitter() {
@@ -538,7 +530,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				boolean joined = CsvParserUtils.getAsBool(dataLine.get(column++));
 				boolean ignored = CsvParserUtils.getAsBool(dataLine.get(column++));
 
- 				word = new DenotationWord(wordNumber, words, elements, joined, ignored, model);
+				word = new DenotationWord(wordNumber, words, elements, joined, ignored, model);
 				if (currentStropheNumber != stropheNumber) {
 					if (currentStrophe != null) {
 						model.strophes.put(currentStropheNumber, currentStrophe);
@@ -549,7 +541,13 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				if (currentVerseNumber != verseNumber) {
 					currentVerse = new DenotationVerse(verseNumber);
 					currentVerseNumber = verseNumber;
+					if (currentStrophe == null) {
+						throw new ParseException("Current strophe is null when attempting to add verse", -1);
+					}
 					currentStrophe.add(currentVerse);
+				}
+				if (currentVerse == null) {
+					throw new ParseException("Current verse is null when attempting to add word", -1);
 				}
 				currentVerse.add(word);
 				if (maxWordNumber < wordNumber) {
@@ -557,7 +555,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				}
 			}
 			model.maxWordNumber = maxWordNumber;
-			
+
 			return model;
 		}
 
