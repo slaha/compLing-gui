@@ -7,6 +7,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.Component;
 import java.awt.FontMetrics;
+import java.util.Arrays;
 
 public class ColumnsAutoSizer {
 
@@ -15,11 +16,25 @@ public class ColumnsAutoSizer {
 	}
 
 	public static void sizeColumnsToFit(JTable table, int columnMargin) {
+		sizeColumnsToFit(table, columnMargin, new int[0]);
+	}
+
+	/**
+	 * Resize columns in table to fit their content
+	 *
+	 * @param table table to fit columns
+	 * @param columnMargin margin between columns
+	 * @param columnsToFill number of columns that can be bigger than their content (fill empty space)
+	 */
+	public static void sizeColumnsToFit(JTable table, int columnMargin, int...columnsToFill) {
 		JTableHeader tableHeader = table.getTableHeader();
 
 		if(tableHeader == null) {
 			// can't auto size a table without a header
 			return;
+		}
+		if (columnsToFill == null) {
+			columnsToFill = new int[0];
 		}
 
 		FontMetrics headerFontMetrics = tableHeader.getFontMetrics(tableHeader.getFont());
@@ -39,13 +54,19 @@ public class ColumnsAutoSizer {
 
 		adjustMaximumWidths(table, minWidths, maxWidths);
 
+		Arrays.sort(columnsToFill);
+
 		for(int i = 0; i < minWidths.length; i++) {
 			if(minWidths[i] > 0) {
 				table.getColumnModel().getColumn(i).setMinWidth(minWidths[i]);
 			}
 
 			if(maxWidths[i] > 0) {
-				table.getColumnModel().getColumn(i).setMaxWidth(maxWidths[i]);
+				if (Arrays.binarySearch(columnsToFill, i) < 0) {
+					table.getColumnModel().getColumn(i).setMaxWidth(maxWidths[i]);
+				} else {
+					table.getColumnModel().getColumn(i).setMaxWidth(Integer.MAX_VALUE);
+				}
 
 				table.getColumnModel().getColumn(i).setWidth(maxWidths[i]);
 			}

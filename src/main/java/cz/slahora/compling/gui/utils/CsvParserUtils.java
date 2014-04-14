@@ -58,7 +58,20 @@ public class CsvParserUtils {
 		return Boolean.parseBoolean(o.toString());
 	}
 
+	public static <T> Collection<T> getAsList(Object o, CollectionSplitter splitter, CollectionParser<T> parser) throws ParseException {
+		Collection<String> stringList = getAsStringList(o, splitter);
+		Collection<T> list = new ArrayList<T>();
+		for (String s : stringList) {
+			parser.parse(s, list);
+		}
+		return list;
+	}
+
 	public static interface CollectionSplitter {
 		String getSplitter();
+	}
+
+	public static interface CollectionParser<T> {
+		void parse(String toParse, Collection<T> toAdd) throws ParseException;
 	}
 }

@@ -76,7 +76,7 @@ public class DenotationAnalysis {
 
 			model = new DenotationModel(workingText);
 			denotationPoemPanel = new DenotationPoemPanel(model, this);
-			denotationSpikesPanel = new DenotationSpikesPanel(model.getSpikesModel());
+			denotationSpikesPanel = new DenotationSpikesPanel(model.getSpikesModel(), this);
 
 			final JSplitPane bottomPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationSpikesPanel));
 
@@ -98,7 +98,7 @@ public class DenotationAnalysis {
 			LastDirectory lastDir = LastDirectory.getInstance();
 			File lastDirectory = lastDir.getLastDirectory();
 			if (source == exportBtn) {
-				CsvExporter exporter = new CsvExporter(model.getPoemModel().getCsvSaver().saveToCsv(model.getPoemModel()));
+				CsvExporter exporter = new CsvExporter(model.getCsvSaver().saveToCsv(model));
 				File csvFile = FileChooserUtils.getFileToSave(lastDirectory, this, "csv");
 				if (csvFile == null) {
 					return;
@@ -124,14 +124,16 @@ public class DenotationAnalysis {
 				try {
 					List<String> lines = IOUtils.readLines(new FileInputStream(file));
 					CsvData csvData = new CsvData(lines);
-					Csv.CsvLoader<DenotationPoemModel> csvLoader = this.model.getPoemModel().getCsvLoader();
-					csvLoader.loadFromCsv(csvData, model.getPoemModel());
+					Csv.CsvLoader<DenotationModel> csvLoader = this.model.getCsvLoader();
+					csvLoader.loadFromCsv(csvData, model);
 					denotationPoemPanel.refresh(0);
+					denotationSpikesPanel.tableModel.fireTableDataChanged();
 
 				} catch (IOException ex) {
 					JOptionPane.showMessageDialog(getParent(), "Chyba při čtení souboru " + file.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
 				} catch (ParseException pe) {
 					JOptionPane.showMessageDialog(getParent(), "Chyba při parsování souboru " + file.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
+					pe.printStackTrace();
 				} finally {
 					lastDir.setLastDirectory(file.getParentFile());
 				}
@@ -142,6 +144,10 @@ public class DenotationAnalysis {
 		public void refreshSpikes(int number) {
 			denotationSpikesPanel.refresh(number);
 
+		}
+
+		public void refreshPoems(int number) {
+			denotationPoemPanel.refresh(number);
 		}
 	}
 
@@ -214,7 +220,6 @@ public class DenotationAnalysis {
 		private static final Insets INSETS = new Insets(1, 7, 1, 1);
 		private static final Insets IGNORED_INSETS = new Insets(1, 0, 1, 0);
 
-		final JLabel[] labels;
 		final JLabel numberLabel, wordLabel;
 		final DenotationPoemPanel panel;
 		final Font _font;
@@ -235,7 +240,6 @@ public class DenotationAnalysis {
 
 			numberLabel = new JLabel(word.getElements().toString());
 			wordLabel = new JLabel(word.getWords().toString());
-			labels = new JLabel[]{wordLabel, numberLabel};
 			_font = wordLabel.getFont();
 
 			add(numberLabel, new GridBagConstraintBuilder().gridxy(0, 0).anchor(GridBagConstraints.NORTH).build());
@@ -261,20 +265,22 @@ public class DenotationAnalysis {
 				attributes = null;
 			}
 			final Font underlineFont =  font.deriveFont(attributes);
-			final Color color;
+			final Color wordColor, numberColor;
 			if (word.isIgnored()) {
-				color = Color.gray;
+				numberColor = wordColor = Color.gray;
+
+			} else if (!word.hasFreeElement()) {
+				numberColor = Color.gray;
+				wordColor = Color.black;
 			} else {
-				color = Color.black;
+				numberColor = wordColor = Color.black;
 			}
-			for (JLabel label : labels) {
-				if (label == wordLabel) {
-					label.setFont(underlineFont);
-				} else {
-					label.setFont(font);
-				}
-				label.setForeground(color);
-			}
+
+			wordLabel.setFont(underlineFont);
+			wordLabel.setForeground(wordColor);
+
+			numberLabel.setFont(font);
+			numberLabel.setForeground(numberColor);
 		}
 
 		public void refresh() {
@@ -307,10 +313,14 @@ public class DenotationAnalysis {
 		}
 
 		private class WordPanelPopup extends JPopupMenu implements ActionListener {
+			public static final String SPIKES_ADD_SUBMENU = "spikes_add_submenu";
+			public static final String SPIKES_REMOVE_SUBMENU = "spikes_remove_submenu";
+			public static final String SPIKE_KEY = "spike";
+
 			private final DenotationSpikesModel spikesModel;
 
 			private final JMenuItem ignore, addElement, removeElement, join, split;
-			private final JMenu spikesMenu;
+			private final JMenu spikesAddMenu, spikesRemoveMenu;
 
 			private WordPanelPopup(DenotationSpikesModel spikesModel) {
 				this.spikesModel = spikesModel;
@@ -321,7 +331,8 @@ public class DenotationAnalysis {
 				join = new JMenuItem("Sloučit s " + (word.getNextWord() != null ? word.getNextWord().getWords() : ""));
 				split = new JMenuItem("Oddělit " + (word.hasJoined() ? word.getLastJoined() :""));
 
-				spikesMenu = new JMenu("Přidat do hřebu");
+				spikesAddMenu = new JMenu("Přidat do hřebu");
+				spikesRemoveMenu = new JMenu("Odebrat z hřebu");
 
 				ignore.addActionListener(this);
 				addElement.addActionListener(this);
@@ -350,50 +361,78 @@ public class DenotationAnalysis {
 				});
 			}
 
-
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Object source = e.getSource();
 				if (source == ignore) {
 					word.setIgnored(!word.isIgnored());
-					changeFont(false); //..set to gray or black
+
 				} else if (source == addElement) {
 					word.addElement();
+
 				} else if (source == removeElement) {
 					word.removeElement();
-					onElementChanged();
 
 				} else if (source == join) {
 					word.joinNext();
+
 				} else if (source == split) {
 					word.splitLast();
-				} else if (source instanceof JMenuItem
-					&& "spikes_submenu".equals(((JMenuItem)source).getName())) {
 
-					DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) ((JMenuItem) source).getClientProperty("spike");
-					spike.add(word);
-					panel.refreshSpikes(spike.getNumber());
-					return;
+				} else if (source instanceof JMenuItem) {
+					JMenuItem menuItem = (JMenuItem) source;
+					if (SPIKES_ADD_SUBMENU.equals(menuItem.getName())) {
+
+						DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) menuItem.getClientProperty(SPIKE_KEY);
+						spike.add(word);
+						DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getFreeElement();
+						spikeNumber.onAddToSpike(spike);
+						WordPanel.this.setToolTipText("Patří do hřebu č. " + word.getSpikes());
+						panel.refreshSpikes(spike.getNumber());
+					} else if (SPIKES_REMOVE_SUBMENU.equals(menuItem.getName())) {
+						DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) menuItem.getClientProperty(SPIKE_KEY);
+						spike.remove(word);
+						DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getElementInSpike(spike);
+						spikeNumber.onRemoveFromSpike(spike);
+						if (word.isInSpike()) {
+							WordPanel.this.setToolTipText("Patří do hřebu č. " + word.getSpikes());
+						} else {
+							WordPanel.this.setToolTipText(null);
+						}
+						panel.refreshSpikes(spike.getNumber());
+					}
 				}
 				panel.refresh(WordPanel.this);
 			}
 
 			private void loadSpikes() {
-				spikesMenu.removeAll();
-				if (spikesModel.hasSpikes()) {
+				spikesAddMenu.removeAll();
+				spikesRemoveMenu.removeAll();
+				int menuPosition = 0;
+				if (spikesModel.hasSpikes() && !word.isIgnored() && word.hasFreeElement()) {
 					for (DenotationSpikesModel.Spike spike : spikesModel.getSpikes()) {
 						JMenuItem spikeItem = new JMenuItem("Přidat do hřebu č. " + spike.getNumber());
-						spikeItem.setName("spikes_submenu");
-						spikeItem.putClientProperty("spike", spike);
+						spikeItem.setName(SPIKES_ADD_SUBMENU);
+						spikeItem.putClientProperty(SPIKE_KEY, spike);
 						spikeItem.addActionListener(this);
-						spikesMenu.add(spikeItem);
+						spikesAddMenu.add(spikeItem);
 					}
-					add(spikesMenu, 0);
+					add(spikesAddMenu, menuPosition++);
 				} else {
-					remove(spikesMenu);
+					remove(spikesAddMenu);
 				}
-
+				if (spikesModel.hasSpikes() && !word.isIgnored() && word.isInSpike()) {
+					for (DenotationSpikesModel.Spike spike : word.getSpikes()) {
+						JMenuItem spikeItem = new JMenuItem("Odebrat z hřebu č. " + spike.getNumber());
+						spikeItem.setName(SPIKES_REMOVE_SUBMENU);
+						spikeItem.putClientProperty(SPIKE_KEY, spike);
+						spikeItem.addActionListener(this);
+						spikesRemoveMenu.add(spikeItem);
+					}
+					add(spikesRemoveMenu, menuPosition);
+				} else {
+					remove(spikesRemoveMenu);
+				}
 			}
 
 			private void onElementChanged() {
@@ -402,11 +441,10 @@ public class DenotationAnalysis {
 				} else {
 					remove(removeElement);
 				}
-
 			}
 
 			private void onWordJoined(DenotationPoemModel.DenotationWord nextWord) {
-				if (nextWord == null)  {
+				if (nextWord == null || word.isIgnored())  {
 					remove(join);
 				} else {
 					join.setText("Sloučit s " + (word.getNextWord() != null ? word.getNextWord().getWords() : ""));
@@ -433,7 +471,6 @@ public class DenotationAnalysis {
 					onElementChanged();
 					onWordJoined(word.getNextWord());
 				}
-
 			}
 		}
 	}
@@ -445,10 +482,12 @@ public class DenotationAnalysis {
 		private final JButton addBtn;
 		private final JButton removeBtn;
 		private final JTable table;
+		private final DenotationPanel panel;
 
-		public DenotationSpikesPanel(DenotationSpikesModel model) {
+		public DenotationSpikesPanel(DenotationSpikesModel model, DenotationPanel denotationPanel) {
 			super(new GridBagLayout());
 
+			this.panel = denotationPanel;
 			this.model = model;
 			this.tableModel = new DenotationSpikesTableModel(model);
 
@@ -468,28 +507,25 @@ public class DenotationAnalysis {
 
 			table = new JTable(tableModel) {
 
-				final int rowHeigth = getRowHeight();
+				final int _rowHeight = getRowHeight();
 
 				@Override
 				public TableCellRenderer getCellRenderer(int row, int column) {
 					if (column != SPIKE_WORDS_COLUMN) {
-						return new SingleLineCellRenderer(rowHeight);
+						return new SingleLineCellRenderer(_rowHeight);
 					}
-					return new MultilineCellRenderer(rowHeigth);
+					return new MultilineCellRenderer(_rowHeight);
 				}
 			};
 
-			table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
-			table.getColumnModel().getColumn(0).setPreferredWidth(100);
-			table.getColumnModel().getColumn(1).setPreferredWidth(100);
 			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			table.setColumnSelectionAllowed(false);
 			table.setRowSelectionAllowed(true);
-			table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+			table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 
 			table.getModel().addTableModelListener(new TableModelListener() {
 				public void tableChanged(TableModelEvent e) {
-					ColumnsAutoSizer.sizeColumnsToFit(table);
+					ColumnsAutoSizer.sizeColumnsToFit(table, 10, SPIKE_WORDS_COLUMN);
 				}
 			});
 
@@ -508,7 +544,7 @@ public class DenotationAnalysis {
 			builder = new GridBagConstraintBuilder().gridxy(0, 2).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.NORTHWEST).weightx(1).weighty(1);
 			add(table, builder.copy().build());
 
-			ColumnsAutoSizer.sizeColumnsToFit(table);
+			ColumnsAutoSizer.sizeColumnsToFit(table, 10, SPIKE_WORDS_COLUMN);
 		}
 
 		@Override
@@ -519,7 +555,8 @@ public class DenotationAnalysis {
 			} else if (source == removeBtn) {
 				Object selected = table.getValueAt(table.getSelectedRow(), 0);
 				if (selected != null) {
-					model.removeSpike(Integer.parseInt(selected.toString()));
+					int lowestWordNumber = model.removeSpike(Integer.parseInt(selected.toString()));
+					panel.refreshPoems(lowestWordNumber);
 				}
 			}
 			tableModel.fireTableDataChanged();

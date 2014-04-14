@@ -4,6 +4,7 @@ import cz.compling.text.poem.Poem;
 import cz.compling.text.poem.Verse;
 import cz.slahora.compling.gui.model.Csv;
 import cz.slahora.compling.gui.model.CsvData;
+import cz.slahora.compling.gui.model.PipeArrayList;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.CsvParserUtils;
 import gnu.trove.map.TIntObjectMap;
@@ -120,7 +121,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		}
 
 		void toCsv(CsvData csvData) {
-			csvData.addData(number);
+			csvData.getCurrentSection().addData(number);
 		}
 	}
 
@@ -142,13 +143,13 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		}
 
 		public void toCsv(CsvData csvData) {
-			csvData.addData(number);
+			csvData.getCurrentSection().addData(number);
 		}
 	}
 
 	public static class DenotationWord {
 
-		private final List<Integer> numbers;
+		private final List<DenotationSpikeNumber> numbers;
 		private final List<String> words;
 		private final int number;
 		private final DenotationPoemModel model;
@@ -176,16 +177,16 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 					return sb.toString();
 				}
 			};
-			this.numbers = new PipeArrayList<Integer>();
+			this.numbers = new PipeArrayList<DenotationSpikeNumber>();
 		}
 
 		public DenotationWord(String word, final int number, DenotationPoemModel model) {
 			this(model, number);
 			this.words.add(word);
-			this.numbers.add(number);
+			this.numbers.add(new DenotationSpikeNumber(number));
 		}
 
-		public DenotationWord(int number, Collection<String> words, Collection<Integer> elements, boolean joined,
+		public DenotationWord(int number, Collection<String> words, Collection<DenotationSpikeNumber> elements, boolean joined,
 				boolean ignored, DenotationPoemModel model) {
 			this(model, number);
 			this.words.addAll(words);
@@ -220,10 +221,10 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				if (previousWord == null) {
 					value = 1;
 				} else {
-					value = previousWord.getHighestNumber() + 1;
+					value = previousWord.getHighestNumber().number + 1;
 				}
 
-				numbers.add(value);
+				numbers.add(new DenotationSpikeNumber(value));
 				runner = new ForEachRunner() {
 					@Override
 					public void run(DenotationWord word) {
@@ -235,8 +236,8 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		}
 
 		private void incrementNumbers(int increment) {
-			for (int i = 0; i < numbers.size(); i++) {
-				numbers.set(i, numbers.get(i) + increment);
+			for (DenotationSpikeNumber spikeNumber : numbers) {
+				spikeNumber.increment(increment);
 			}
 		}
 
@@ -244,7 +245,8 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			if (ignored) {
 				return;
 			}
-			numbers.add(getHighestNumber() + 1);
+			DenotationSpikeNumber spikeNumber = new DenotationSpikeNumber(getHighestNumber().number + 1);
+			numbers.add(spikeNumber);
 			forEachValue(new ForEach(new ForEachRunner() {
 				@Override
 				public void run(DenotationWord word) {
@@ -257,7 +259,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			if (ignored) {
 				return;
 			}
-			numbers.remove((Object) getHighestNumber());
+			numbers.remove(getHighestNumber());
 			forEachValue(new ForEach(new ForEachRunner() {
 				@Override
 				public void run(DenotationWord word) {
@@ -302,7 +304,8 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			final DenotationWord nextWord = getNextWord(false);
 			if (nextWord != null) {
 				nextWord.words.add(remove);
-				nextWord.numbers.add(getHighestNumber() + 1);
+				DenotationSpikeNumber spikeNumber = new DenotationSpikeNumber(getHighestNumber().number + 1);
+				nextWord.numbers.add(spikeNumber);
 				nextWord.joined = false;
 
 				forEachValue(new ForEach(new ForEachRunner() {
@@ -350,22 +353,22 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			if (numbers.isEmpty()) {
 				throw new IllegalStateException("Numbers were empty when calling getLowestNumber");
 			}
-			int min = numbers.get(0);
+			int min = numbers.get(0).number;
 			for (int i = 1; i < numbers.size(); i++) {
-				if (numbers.get(i) < min) {
-					min = numbers.get(i);
+				if (numbers.get(i).number < min) {
+					min = numbers.get(i).number;
 				}
 			}
 			return min;
 		}
 
-		public int getHighestNumber() {
+		public DenotationSpikeNumber getHighestNumber() {
 			if (numbers.isEmpty()) {
 				throw new IllegalStateException("Numbers were empty when calling getHighestNumber");
 			}
-			int max = numbers.get(0);
+			DenotationSpikeNumber max = numbers.get(0);
 			for (int i = 1; i < numbers.size(); i++) {
-				if (numbers.get(i) > max) {
+				if (numbers.get(i).number > max.number) {
 					max = numbers.get(i);
 				}
 			}
@@ -384,7 +387,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			return Collections.unmodifiableList(words);
 		}
 
-		public List<Integer> getElements() {
+		public List<DenotationSpikeNumber> getElements() {
 			return Collections.unmodifiableList(numbers);
 		}
 
@@ -402,11 +405,11 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		}
 
 		public void toCsv(CsvData csvData) {
-			csvData.addData(getNumber());
-			csvData.addData(new PipeArrayList<String>(getWords()));
-			csvData.addData(getElements());
-			csvData.addData(isJoined());
-			csvData.addData(isIgnored());
+			csvData.getCurrentSection().addData(getNumber());
+			csvData.getCurrentSection().addData(new PipeArrayList<String>(getWords()));
+			csvData.getCurrentSection().addData(getElements());
+			csvData.getCurrentSection().addData(isJoined());
+			csvData.getCurrentSection().addData(isIgnored());
 		}
 
 		private TIntObjectMap<DenotationWord> getAllWords() {
@@ -419,6 +422,72 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 		public int getMaxWordNumber() {
 			return model.maxWordNumber;
+		}
+
+		public void onAddToSpike(DenotationSpikesModel.Spike spike) {
+
+
+		}
+
+		public Collection<DenotationSpikesModel.Spike> getSpikes() {
+			List<DenotationSpikesModel.Spike> spikes = new ArrayList<DenotationSpikesModel.Spike>() {
+				@Override
+				public String toString() {
+					if (isEmpty()) {
+						return "";
+					}
+					StringBuilder sb = new StringBuilder();
+					sb.append(get(0));
+					for (int i = 1; i < size(); i++) {
+						sb.append(", ").append(get(i));
+					}
+					return sb.toString();
+				}
+			};
+
+			for (DenotationSpikeNumber spikeNumber : numbers) {
+				if (spikeNumber.isInSpike()) {
+					spikes.add(spikeNumber.spike);
+				}
+			}
+			
+			return spikes;
+		}
+
+		public boolean hasFreeElement() {
+			for (DenotationSpikeNumber spikeNumber : numbers) {
+				if (!spikeNumber.isInSpike()) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public DenotationSpikeNumber getFreeElement() {
+			for (DenotationSpikeNumber spikeNumber : numbers) {
+				if (!spikeNumber.isInSpike()) {
+					return spikeNumber;
+				}
+			}
+			throw new IllegalStateException("Word " + words + " (number " + number + ") does not have any free elements");
+		}
+
+		public boolean isInSpike() {
+			for (DenotationSpikeNumber spikeNumber : numbers) {
+				if (spikeNumber.isInSpike()) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public DenotationSpikeNumber getElementInSpike(DenotationSpikesModel.Spike spike) {
+			for (DenotationSpikeNumber spikeNumber : numbers) {
+				if (spikeNumber.hasSpike(spike)) {
+					return spikeNumber;
+				}
+			}
+			throw new IllegalStateException("Word " + words + " (number " + number + ") does not belong to spike " + spike);
 		}
 
 		private class ForEach implements TObjectProcedure<DenotationWord> {
@@ -439,33 +508,44 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		}
 	}
 
-	private static class PipeArrayList<T> extends ArrayList<T> {
+	public static class DenotationSpikeNumber {
+		private int number;
+		private DenotationSpikesModel.Spike spike;
 
-		private PipeArrayList(int initialCapacity) {
-			super(initialCapacity);
+		public DenotationSpikeNumber(int number) {
+			this.number = number;
 		}
 
-		private PipeArrayList() {
-		}
 
-		private PipeArrayList(Collection<? extends T> c) {
-			super(c);
+		public DenotationSpikeNumber increment(int increment) {
+			number += increment;
+			return this;
 		}
 
 		@Override
 		public String toString() {
-			if (isEmpty()) {
-				return "";
-			}
-			StringBuilder sb = new StringBuilder();
-			sb.append(get(0));
-			for (int i = 1; i < size(); i++) {
-				sb.append('|').append(get(i));
-			}
-			return sb.toString();
+			return String.valueOf(number);
 		}
 
-		public static final String SPLITTER = "|";
+		public void onAddToSpike(DenotationSpikesModel.Spike spike) {
+			this.spike = spike;
+		}
+
+		public void onRemoveFromSpike(DenotationSpikesModel.Spike spike) {
+			if (this.spike == spike) {
+				this.spike = null;
+			} else {
+				throw new IllegalArgumentException("Spike " + spike + " is not current spike of this number " + this.spike);
+			}
+		}
+
+		public boolean isInSpike() {
+			return spike != null;
+		}
+
+		public boolean hasSpike(DenotationSpikesModel.Spike spike) {
+			return this.spike == spike;
+		}
 	}
 
 	private interface ForEachRunner {
@@ -476,32 +556,35 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		@Override
 		public CsvData saveToCsv(DenotationPoemModel object, Object... params) {
 			CsvData csvData = new CsvData();
-			csvData.addHeader("Number of strophe");
-			csvData.addHeader("Number of verse");
-			csvData.addHeader("Number of word");
-			csvData.addHeader("Word(s)");
-			csvData.addHeader("Denotation element(s)");
-			csvData.addHeader("Joined");
-			csvData.addHeader("Ignored");
+			csvData.addSection();
+			csvData.getCurrentSection().addHeader("Number of strophe");
+			csvData.getCurrentSection().addHeader("Number of verse");
+			csvData.getCurrentSection().addHeader("Number of word");
+			csvData.getCurrentSection().addHeader("Word(s)");
+			csvData.getCurrentSection().addHeader("Denotation element(s)");
+			csvData.getCurrentSection().addHeader("Joined");
+			csvData.getCurrentSection().addHeader("Ignored");
 			for (int stropheNmbr = 1; stropheNmbr <= object.getCountOfStrophes(); stropheNmbr++) {
 				DenotationStrophe strophe = object.getStrophe(stropheNmbr);
+				if (strophe == null) {
+					System.out.println("stropheNmbr = " + stropheNmbr);
+				}
 				for (DenotationVerse verse : strophe.verses) {
 					for (DenotationWord word : verse.words) {
-						csvData.startNewLine();
+						csvData.getCurrentSection().startNewLine();
 						strophe.toCsv(csvData);
 						verse.toCsv(csvData);
 						word.toCsv(csvData);
 					}
 				}
 			}
-			csvData.startNewLine();
 			return csvData;
 		}
 	}
 
 	private class DenotationPoemModelLoader extends CsvLoader<DenotationPoemModel> {
 		@Override
-		public DenotationPoemModel loadFromCsv(CsvData csv, DenotationPoemModel model, Object... params)
+		public void loadFromCsv(CsvData csv, DenotationPoemModel model, Object... params)
 				throws ParseException {
 
 			model.clear();
@@ -514,11 +597,22 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			DenotationVerse currentVerse = null;
 
 			DenotationWord word;
-			for (List<Object> dataLine : csv.getDataLines()) {
+			for (List<Object> dataLine : csv.getSection(0).getDataLines()) {
 				final CsvParserUtils.CollectionSplitter splitter = new CsvParserUtils.CollectionSplitter() {
 					@Override
 					public String getSplitter() {
 						return PipeArrayList.SPLITTER;
+					}
+				};
+				final CsvParserUtils.CollectionParser<DenotationSpikeNumber> parser = new CsvParserUtils.CollectionParser<DenotationSpikeNumber>() {
+					@Override
+					public void parse(String toParse, Collection<DenotationSpikeNumber> toAdd) throws ParseException {
+						try {
+							int number = Integer.parseInt(toParse);
+							toAdd.add(new DenotationSpikeNumber(number));
+						} catch (NumberFormatException nfe) {
+							throw new ParseException(nfe.getMessage(), -1);
+						}
 					}
 				};
 				int column = 0;
@@ -526,12 +620,12 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				int verseNumber = CsvParserUtils.getAsInt(dataLine.get(column++));
 				int wordNumber = CsvParserUtils.getAsInt(dataLine.get(column++));
 				Collection<String> words = CsvParserUtils.getAsStringList(dataLine.get(column++), splitter);
-				Collection<Integer> elements = CsvParserUtils.getAsIntList(dataLine.get(column++), splitter);
+				Collection<DenotationSpikeNumber> numbers = CsvParserUtils.getAsList(dataLine.get(column++), splitter, parser);
 				boolean joined = CsvParserUtils.getAsBool(dataLine.get(column++));
 				boolean ignored = CsvParserUtils.getAsBool(dataLine.get(column++));
 
-				word = new DenotationWord(wordNumber, words, elements, joined, ignored, model);
-				if (currentStropheNumber != stropheNumber) {
+				word = new DenotationWord(wordNumber, words, numbers, joined, ignored, model);
+ 				if (currentStropheNumber != stropheNumber) {
 					if (currentStrophe != null) {
 						model.strophes.put(currentStropheNumber, currentStrophe);
 					}
@@ -554,9 +648,11 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 					maxWordNumber = wordNumber;
 				}
 			}
+			if (currentStrophe != null) {
+				//..add last strophe
+				model.strophes.put(currentStropheNumber, currentStrophe);
+			}
 			model.maxWordNumber = maxWordNumber;
-
-			return model;
 		}
 
 	}

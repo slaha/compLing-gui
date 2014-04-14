@@ -23,7 +23,7 @@ public interface Csv<T> {
 
 	public abstract class CsvLoader<T> {
 
-		public abstract T loadFromCsv(CsvData csv, T objectToLoad, Object... params) throws ParseException;
+		public abstract void loadFromCsv(CsvData csv, T objectToLoad, Object... params) throws ParseException;
 	}
 
 	public abstract class CsvSaver<T> {

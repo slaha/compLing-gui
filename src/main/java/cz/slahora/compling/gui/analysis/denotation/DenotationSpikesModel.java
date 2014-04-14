@@ -1,12 +1,14 @@
 package cz.slahora.compling.gui.analysis.denotation;
 
+import cz.slahora.compling.gui.model.Csv;
+import cz.slahora.compling.gui.model.CsvData;
+import cz.slahora.compling.gui.model.PipeArrayList;
+import cz.slahora.compling.gui.utils.CsvParserUtils;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.text.ParseException;
+import java.util.*;
 
 /**
  *
@@ -19,7 +21,7 @@ import java.util.List;
  * <dd> 12.4.14 10:38</dd>
  * </dl>
  */
-public class DenotationSpikesModel {
+public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 
 	private final TIntObjectMap<Spike> spikes;
 	private int currentSpike = 0;
@@ -50,8 +52,17 @@ public class DenotationSpikesModel {
 		return spikes.get(keys[row]);
 	}
 
-	public void removeSpike(int spike) {
-		spikes.remove(spike);
+	public int removeSpike(int spikeNumber) {
+		Spike spike = spikes.remove(spikeNumber);
+		int lowestWordNumber = Integer.MAX_VALUE;
+		for (DenotationPoemModel.DenotationWord word : spike.getWords()) {
+			word.getElementInSpike(spike).onRemoveFromSpike(spike);
+			if (word.getNumber() < lowestWordNumber) {
+				lowestWordNumber = word.getNumber();
+			}
+		}
+		spike.words.clear();
+		return lowestWordNumber;
 	}
 
 	public boolean hasSpikes() {
@@ -67,6 +78,21 @@ public class DenotationSpikesModel {
 			}
 		});
 		return values;
+	}
+
+	@Override
+	public CsvSaver<DenotationSpikesModel> getCsvSaver() {
+		return new DenotationSpikesModelSaver();
+	}
+
+	@Override
+	public boolean supportsCsvImport() {
+		return true;
+	}
+
+	@Override
+	public CsvLoader<DenotationSpikesModel> getCsvLoader() {
+		return new DenotationSpikesModelLoader();
 	}
 
 	public static class Spike {
@@ -106,6 +132,67 @@ public class DenotationSpikesModel {
 
 		public List<DenotationPoemModel.DenotationWord> getWords() {
 			return words;
+		}
+
+		@Override
+		public String toString() {
+			return String.valueOf(number);
+		}
+
+		public void remove(DenotationPoemModel.DenotationWord word) {
+			words.remove(word);
+		}
+
+		public void toCsv(CsvData data) {
+			data.getCurrentSection().addData(number);
+			PipeArrayList<Integer> wordNumbers = new PipeArrayList<Integer>();
+			for (DenotationPoemModel.DenotationWord word : words) {
+				wordNumbers.add(word.getNumber());
+			}
+			data.getCurrentSection().addData(wordNumbers);
+		}
+	}
+
+	private static class DenotationSpikesModelSaver extends CsvSaver<DenotationSpikesModel> {
+
+		@Override
+		public CsvData saveToCsv(DenotationSpikesModel object, Object... params) {
+			CsvData data = new CsvData();
+			data.addSection();
+			data.getCurrentSection().addHeader("Spike number");
+			data.getCurrentSection().addHeader("Word number(s)");
+			for (Spike spike : object.getSpikes()) {
+				data.getCurrentSection().startNewLine();
+				spike.toCsv(data);
+			}
+			return data;
+		}
+	}
+
+	private static class DenotationSpikesModelLoader extends CsvLoader<DenotationSpikesModel> {
+
+		@Override
+		public void loadFromCsv(CsvData csv, DenotationSpikesModel objectToLoad, Object... params) throws ParseException {
+			DenotationSpikesModel spikesModel = (DenotationSpikesModel) params[0];
+			DenotationPoemModel poemModel = (DenotationPoemModel) params[1];
+			final CsvParserUtils.CollectionSplitter splitter = new CsvParserUtils.CollectionSplitter() {
+				@Override
+				public String getSplitter() {
+					return PipeArrayList.SPLITTER;
+				}
+			};
+			for (List<Object> objects : csv.getCurrentSection().getDataLines()) {
+				int number = CsvParserUtils.getAsInt(objects.get(0));
+				Spike spike = new Spike(number);
+				Collection<Integer> wordsNumbers = CsvParserUtils.getAsIntList(objects.get(1), splitter);
+				for (Integer wordNumber : wordsNumbers) {
+					DenotationPoemModel.DenotationWord word = poemModel.getWord(wordNumber);
+					spike.add(word);
+					word.onAddToSpike(spike);
+				}
+				spikesModel.spikes.put(number, spike);
+			}
+
 		}
 	}
 }
