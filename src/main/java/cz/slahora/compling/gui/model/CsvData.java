@@ -41,10 +41,16 @@ public class CsvData {
 		this();
 
 		for (CsvData data : datas) {
-			addSection();
-			currentSection.addHeader(data.getSection(0).getHeaders());
-			currentSection.addDataLines(data.getSection(0).getDataLines());
+			for (CsvDataSection section : data.getSections()) {
+				addSection();
+				currentSection.addHeader(section.getHeaders());
+				currentSection.addDataLines(section.getDataLines());
+			}
 		}
+	}
+
+	private Iterable<? extends CsvDataSection> getSections() {
+		return sections.valueCollection();
 	}
 
 	public CsvData(CsvDataSection section) {
@@ -178,8 +184,8 @@ public class CsvData {
 			data.add(currentRow);
 		}
 
-		public Iterable<Object> getHeaders() {
-			return header;
+		public Collection<Object> getHeaders() {
+			return Collections.unmodifiableCollection(header);
 		}
 
 		public Collection<?> toLines() {
@@ -195,17 +201,17 @@ public class CsvData {
 		 */
 		private String toString(List<Object> list) {
 			StringBuilder sb = new StringBuilder();
-			if (list == header) {
-				list = (List<Object>)list.get(0);
-			}
+			
 			for (Object o : list) {
-
-				o = (o == null) ? null : StringUtils.replace(o.toString(), "\"", "\"\"");
-				sb.append('"').append(o).append("\";");
-
+				escape(sb, o);
 			}
 
 			return sb.toString();
+		}
+
+		private void escape(StringBuilder sb, Object o) {
+			o = (o == null) ? null : StringUtils.replace(o.toString(), "\"", "\"\"");
+			sb.append('"').append(o).append("\";");
 		}
 
 		public List<List<Object>> getDataLines() {

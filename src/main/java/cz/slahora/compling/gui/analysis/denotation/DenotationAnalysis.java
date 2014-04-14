@@ -55,12 +55,16 @@ public class DenotationAnalysis {
 
 		private final JButton exportBtn;
 		private final JButton importBtn;
-		private final DenotationModel model;
-		private final DenotationPoemPanel denotationPoemPanel;
-		private final DenotationSpikesPanel denotationSpikesPanel;
+		private final WorkingText workingText;
+
+		private DenotationModel model;
+		private DenotationSpikesPanel denotationSpikesPanel;
+		private DenotationPoemPanel denotationPoemPanel;
 
 		public DenotationPanel(WorkingText workingText) {
 			super(new GridBagLayout());
+
+			this.workingText = workingText;
 
 			JToolBar toolBar = new JToolBar(JToolBar.HORIZONTAL);
 			toolBar.setFloatable(false);
@@ -70,18 +74,24 @@ public class DenotationAnalysis {
 			exportBtn.addActionListener(this);
 			toolBar.add(importBtn);
 			toolBar.add(exportBtn);
-			GridBagConstraints gbc;
-			gbc = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
+			GridBagConstraints gbc = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
 			add(toolBar, gbc);
 
-			model = new DenotationModel(workingText);
+			setModel(new DenotationModel(workingText));
+		}
+
+		private void setModel(DenotationModel denotationModel) {
+			this.model = denotationModel;
+			remove(denotationPoemPanel);
+			remove(denotationSpikesPanel);
+
 			denotationPoemPanel = new DenotationPoemPanel(model, this);
 			denotationSpikesPanel = new DenotationSpikesPanel(model.getSpikesModel(), this);
 
 			final JSplitPane bottomPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationSpikesPanel));
 
 
-			gbc = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).build();
+			GridBagConstraints gbc = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).build();
 			add(bottomPanel, gbc);
 
 			SwingUtilities.invokeLater(new Runnable() {
@@ -125,9 +135,9 @@ public class DenotationAnalysis {
 					List<String> lines = IOUtils.readLines(new FileInputStream(file));
 					CsvData csvData = new CsvData(lines);
 					Csv.CsvLoader<DenotationModel> csvLoader = this.model.getCsvLoader();
-					csvLoader.loadFromCsv(csvData, model);
-					denotationPoemPanel.refresh(0);
-					denotationSpikesPanel.tableModel.fireTableDataChanged();
+					DenotationModel newModel = new DenotationModel(workingText);
+					csvLoader.loadFromCsv(csvData, newModel);
+					setModel(newModel);
 
 				} catch (IOException ex) {
 					JOptionPane.showMessageDialog(getParent(), "Chyba při čtení souboru " + file.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
