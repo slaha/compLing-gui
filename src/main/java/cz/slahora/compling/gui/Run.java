@@ -1,6 +1,9 @@
 package cz.slahora.compling.gui;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.Frame;
 
 /**
  *
@@ -16,6 +19,8 @@ import javax.swing.*;
 public class Run {
 
 	public static void main(String[] args) {
+
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
 
 		try {
 			String gtk = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
@@ -36,7 +41,6 @@ public class Run {
 
 		final Application application = new Application(appContext);
 
-
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
@@ -47,6 +51,8 @@ public class Run {
 
 	private static void createAndShowGUI(Application application) {
 		JFrame frame = application.createFrame();
+		frame.setSize(800, 600);
+		frame.setExtendedState(Frame.MAXIMIZED_VERT);
 		frame.setVisible(true);
 	}
 }
