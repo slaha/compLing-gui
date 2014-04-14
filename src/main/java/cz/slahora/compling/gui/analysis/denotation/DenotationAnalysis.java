@@ -60,6 +60,7 @@ public class DenotationAnalysis {
 		private DenotationModel model;
 		private DenotationSpikesPanel denotationSpikesPanel;
 		private DenotationPoemPanel denotationPoemPanel;
+		private JSplitPane bottomPanel;
 
 		public DenotationPanel(WorkingText workingText) {
 			super(new GridBagLayout());
@@ -82,22 +83,27 @@ public class DenotationAnalysis {
 
 		private void setModel(DenotationModel denotationModel) {
 			this.model = denotationModel;
-			remove(denotationPoemPanel);
-			remove(denotationSpikesPanel);
+			if (bottomPanel != null) {
+				remove(bottomPanel);
+			}
 
 			denotationPoemPanel = new DenotationPoemPanel(model, this);
 			denotationSpikesPanel = new DenotationSpikesPanel(model.getSpikesModel(), this);
 
-			final JSplitPane bottomPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationSpikesPanel));
-
+			bottomPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationSpikesPanel));
 
 			GridBagConstraints gbc = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).build();
 			add(bottomPanel, gbc);
+
+			validate();
+
 
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
 					bottomPanel.setDividerLocation(denotationPoemPanel.getWidth() + 50);
+					denotationPoemPanel.refresh(-1); //..refresh all
+					denotationSpikesPanel.refresh();
 				}
 			});
 		}
@@ -590,6 +596,10 @@ public class DenotationAnalysis {
 				}
 			}
 			throw new IllegalStateException("No Spike with number " + number + " found in the table");
+		}
+
+		public void refresh() {
+			tableModel.fireTableDataChanged();
 		}
 
 		private class MultilineCellRenderer extends JTextArea implements TableCellRenderer {

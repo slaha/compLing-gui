@@ -62,7 +62,7 @@ public class DenotationModel implements Csv<DenotationModel> {
 				objectToLoad.getPoemModel().getCsvLoader().loadFromCsv(sectionPoem, objectToLoad.getPoemModel(), params);
 
 				CsvData sectionSpikes = new CsvData(csv.getSection(1));
-				objectToLoad.getSpikesModel().getCsvLoader().loadFromCsv(sectionSpikes, objectToLoad.getSpikesModel(), spikesModel, poemModel);
+				objectToLoad.getSpikesModel().getCsvLoader().loadFromCsv(sectionSpikes, objectToLoad.getSpikesModel(), objectToLoad.getSpikesModel(), objectToLoad.getPoemModel());
 			}
 		};
 	}
