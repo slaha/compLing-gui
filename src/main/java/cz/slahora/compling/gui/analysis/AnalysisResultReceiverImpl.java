@@ -5,8 +5,13 @@ import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.panels.ResultsPanel;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.util.Map;
 
 /**
@@ -31,6 +36,7 @@ public class AnalysisResultReceiverImpl implements AnalysisResultReceiver {
 
 		ResultsPanel result = ReportFactory.createReport(results);
 		JFrame frame = new JFrame("Výsledek analýzy");
+
 		JPanel panel = result.getPanel();
 		JToolBar topPanel = new AnalysisReceiverToolbar(result);
 		JScrollPane scrollPane = new JScrollPane(panel);
@@ -43,5 +49,6 @@ public class AnalysisResultReceiverImpl implements AnalysisResultReceiver {
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.pack();
 		frame.setVisible(true);
+		frame.setExtendedState(Frame.MAXIMIZED_BOTH);
 	}
 }
