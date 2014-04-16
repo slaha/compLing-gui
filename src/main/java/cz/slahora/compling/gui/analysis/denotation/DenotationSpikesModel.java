@@ -7,7 +7,6 @@ import cz.slahora.compling.gui.utils.CsvParserUtils;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -171,8 +170,11 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 
 	private static class DenotationSpikesModelLoader extends CsvLoader<DenotationSpikesModel> {
 
+		/**
+		 * @param params [0]..DenotationSpikesModel; [1]..DenotationPoemModel
+		 */
 		@Override
-		public void loadFromCsv(CsvData csv, DenotationSpikesModel objectToLoad, Object... params) throws ParseException {
+		public void loadFromCsv(CsvData csv, DenotationSpikesModel objectToLoad, Object... params) throws CsvParserException {
 			DenotationSpikesModel spikesModel = (DenotationSpikesModel) params[0];
 			DenotationPoemModel poemModel = (DenotationPoemModel) params[1];
 			final CsvParserUtils.CollectionSplitter splitter = new CsvParserUtils.CollectionSplitter() {

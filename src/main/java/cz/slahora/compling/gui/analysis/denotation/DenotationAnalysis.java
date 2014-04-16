@@ -29,7 +29,6 @@ import java.awt.font.TextAttribute;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +96,6 @@ public class DenotationAnalysis {
 
 			validate();
 
-
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
@@ -147,8 +145,8 @@ public class DenotationAnalysis {
 
 				} catch (IOException ex) {
 					JOptionPane.showMessageDialog(getParent(), "Chyba při čtení souboru " + file.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
-				} catch (ParseException pe) {
-					JOptionPane.showMessageDialog(getParent(), "Chyba při parsování souboru " + file.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
+				} catch (Csv.CsvParserException pe) {
+					JOptionPane.showMessageDialog(getParent(), "Chyba při parsování souboru " + file.getName() + "\n\nChyba: " + pe.getMessage(), "Chyba", JOptionPane.ERROR_MESSAGE);
 					pe.printStackTrace();
 				} finally {
 					lastDir.setLastDirectory(file.getParentFile());

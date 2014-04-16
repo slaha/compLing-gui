@@ -4,8 +4,6 @@ import cz.slahora.compling.gui.model.Csv;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
 
-import java.text.ParseException;
-
 /**
  *
  * TODO
@@ -57,7 +55,7 @@ public class DenotationModel implements Csv<DenotationModel> {
 	public CsvLoader<DenotationModel> getCsvLoader() {
 		return new CsvLoader<DenotationModel>() {
 			@Override
-			public void loadFromCsv(CsvData csv, DenotationModel objectToLoad, Object... params) throws ParseException {
+			public void loadFromCsv(CsvData csv, DenotationModel objectToLoad, Object... params) throws CsvParserException {
 				CsvData sectionPoem = new CsvData(csv.getSection(0));
 				objectToLoad.getPoemModel().getCsvLoader().loadFromCsv(sectionPoem, objectToLoad.getPoemModel(), params);
 
