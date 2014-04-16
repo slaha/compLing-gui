@@ -1,10 +1,10 @@
 package cz.slahora.compling.gui.utils;
 
-import javax.swing.*;
+import javax.swing.JLabel;
 
 /**
  * 
- * TODO
+ * Builder for creating JLabel with html content
  * 
  * <dl>
  * <dt>Created by:</dt>

@@ -10,12 +10,12 @@ import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.general.PieDataset;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.Locale;
 
 /**
  *
- * TODO 
+ * Utilities for working with graphs from JFreeChart library
  *
  * <dl>
  * <dt>Created by:</dt>
@@ -26,6 +26,16 @@ import java.util.Locale;
  */
 public class ChartUtils {
 
+	/**
+	 * Create pie chart.
+	 *
+	 * @param chartTitle the chart title
+	 * @param pieDataSet the pie data set
+	 * @param legend the legend
+	 * @param tooltips the tooltips
+	 * @param locale the locale
+	 * @return created chart
+	 */
 	public static JFreeChart createPieChart(String chartTitle, PieDataset pieDataSet, boolean legend, boolean tooltips, Locale locale) {
 		JFreeChart chart = ChartFactory.createPieChart(chartTitle, pieDataSet, legend, tooltips,locale);
 		//..remove shadows
@@ -34,6 +44,20 @@ public class ChartUtils {
 		return prepareChart(chart);
 	}
 
+	/**
+	 * Create bar chart.
+	 *
+	 * @param title the title
+	 * @param categoryLabel the category label
+	 * @param valueAxisLabel the value axis label
+	 * @param dataSet the data set
+	 * @param orientation the orientation
+	 * @param drawBlack the draw black
+	 * @param legend the legend
+	 * @param tooltips the tooltips
+	 * @param urls the urls
+	 * @return created chart
+	 */
 	public static JFreeChart createBarChart(String title, String categoryLabel, String valueAxisLabel, CategoryDataset dataSet, PlotOrientation orientation, boolean drawBlack, boolean legend, boolean tooltips, boolean urls) {
 		JFreeChart chart = ChartFactory.createBarChart(title, categoryLabel, valueAxisLabel, dataSet, orientation, legend, tooltips, urls);
 		BarRenderer renderer = (BarRenderer) chart.getCategoryPlot().getRenderer();
@@ -47,12 +71,25 @@ public class ChartUtils {
 		return prepareChart(chart);
 	}
 
+
+	/**
+	 * Set colors to chart
+	 *
+	 * @param chart the chart to set color
+	 * @return the chart {@code chart}
+	 */
 	private static JFreeChart prepareChart(JFreeChart chart) {
 		chart.setBackgroundPaint(Color.white);
 		chart.getPlot().setBackgroundPaint(Color.white);
 		return chart;
 	}
 
+	/**
+	 * Create panel for chart {@code chart}.
+	 *
+	 * @param chart the chart to display on panel
+	 * @return the panel with the chart
+	 */
 	public static ChartPanel createPanel(JFreeChart chart) {
 		ChartPanel panel = new ChartPanel(chart, 800, 800, 500, 500, Integer.MAX_VALUE, Integer.MAX_VALUE, true, false, true, true, true, true, true);
 		panel.setBackground(Color.white);

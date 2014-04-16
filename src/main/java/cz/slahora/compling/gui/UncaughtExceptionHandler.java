@@ -19,7 +19,7 @@ import java.util.Date;
 
 /**
  *
- * TODO 
+ * Handler for catching exceptions. Displays dialog and logs the stack trace to compLingGuiError.log file
  *
  * <dl>
  * <dt>Created by:</dt>
@@ -29,7 +29,7 @@ import java.util.Date;
  * </dl>
  */
 public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
-	private static final File FILE = new File(System.getProperty("user.home") + File.separator + "compLingGuiError.log");
+	private static final File LOG_FILE = new File(System.getProperty("user.home") + File.separator + "compLingGuiError.log");
 
 	@Override
 	public void uncaughtException(Thread t, Throwable e) {
@@ -45,7 +45,7 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 		StringBuilder stackTrace = new StringBuilder(ExceptionUtils.getStackTrace(e));
 		try {
 			logStackTrace(stackTrace.toString(), name);
-			text3 = new JLabel("Zpráva o chybě byla uložena do souboru " + FILE.getAbsolutePath());
+			text3 = new JLabel("Zpráva o chybě byla uložena do souboru " + LOG_FILE.getAbsolutePath());
 		} catch (IOException e1) {
 			text3 = new JLabel("Zprávu o chybě se nepodařilo uložit do souboru!");
 			stackTrace
@@ -71,17 +71,26 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 
 	}
 
+	public boolean logStackTrace(Throwable t) {
+		try {
+			logStackTrace(ExceptionUtils.getStackTrace(t), t.getClass().getSimpleName());
+			return true;
+		} catch (IOException e) {
+			return false;
+		}
+	}
+
 	private void logStackTrace(String stackTrace, String name) throws IOException {
 
-		if (!FILE.exists()) {
-			boolean newFile = FILE.createNewFile();
+		if (!LOG_FILE.exists()) {
+			boolean newFile = LOG_FILE.createNewFile();
 			if (!newFile) {
-				throw new IOException("Cannot create log file " + FILE.getAbsolutePath());
+				throw new IOException("Cannot create log file " + LOG_FILE.getAbsolutePath());
 			}
 		}
 		FileWriter fileWriter = null;
 		try {
-			fileWriter = new FileWriter(FILE, true);
+			fileWriter = new FileWriter(LOG_FILE, true);
 			IOUtils.write(createHeader(name), fileWriter);
 			IOUtils.write(stackTrace, fileWriter);
 			fileWriter.close();

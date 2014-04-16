@@ -2,7 +2,7 @@ package cz.slahora.compling.gui;
 
 /**
  *
- * TODO 
+ * Interface for common app methods
  *
  * <dl>
  * <dt>Created by:</dt>

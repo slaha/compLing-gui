@@ -2,11 +2,11 @@ package cz.slahora.compling.gui.panels;
 
 import cz.slahora.compling.gui.model.CsvData;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 
 /**
  *
- * TODO 
+ * Interface that must be implemented by all results of analysis
  *
  * <dl>
  * <dt>Created by:</dt>
@@ -17,7 +17,18 @@ import javax.swing.*;
  */
 public interface ResultsPanel {
 
+
+	/**
+	 * Returns JPanel that hold results of analysis
+	 *
+	 * @return the panel
+	 */
 	JPanel getPanel();
 
+	/**
+	 * Returns data that can be exported as csv
+	 *
+	 * @return csv data
+	 */
 	CsvData getCsvData();
 }

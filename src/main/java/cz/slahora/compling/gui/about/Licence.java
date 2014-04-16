@@ -2,7 +2,7 @@ package cz.slahora.compling.gui.about;
 
 /**
  *
- * TODO 
+ * Class with text of unlicense.org licence
  *
  * <dl>
  * <dt>Created by:</dt>

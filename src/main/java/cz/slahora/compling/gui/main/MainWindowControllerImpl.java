@@ -23,7 +23,7 @@ import java.util.*;
 
 /**
  *
- * TODO 
+ * Implementation of Main Window Controller
  *
  * <dl>
  * <dt>Created by:</dt>

@@ -9,7 +9,7 @@ import java.io.File;
 
 /**
  *
- * TODO 
+ * Utilities for working with {@code JFileChooser}
  *
  * <dl>
  * <dt>Created by:</dt>

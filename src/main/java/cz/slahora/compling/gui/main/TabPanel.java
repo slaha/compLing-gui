@@ -2,7 +2,10 @@ package cz.slahora.compling.gui.main;
 
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -12,7 +15,7 @@ import java.awt.event.MouseEvent;
 
 /**
  *
- * TODO 
+ * Tab
  *
  * <dl>
  * <dt>Created by:</dt>

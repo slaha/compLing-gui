@@ -7,7 +7,7 @@ import java.awt.Frame;
 
 /**
  *
- * TODO 
+ * Executable class of CompLingGui
  *
  * <dl>
  * <dt>Created by:</dt>
@@ -23,6 +23,7 @@ public class Run {
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
 
 		try {
+			//FIXME remove before release
 			String gtk = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
 			UIManager.setLookAndFeel(gtk);
 		} catch (Exception e) {
@@ -52,7 +53,7 @@ public class Run {
 	private static void createAndShowGUI(Application application) {
 		JFrame frame = application.createFrame();
 		frame.setSize(800, 600);
-		frame.setExtendedState(Frame.MAXIMIZED_VERT);
 		frame.setVisible(true);
+		frame.setExtendedState(Frame.MAXIMIZED_VERT);
 	}
 }

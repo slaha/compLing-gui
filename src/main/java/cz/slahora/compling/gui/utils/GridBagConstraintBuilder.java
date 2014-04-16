@@ -1,10 +1,11 @@
 package cz.slahora.compling.gui.utils;
 
-import java.awt.*;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 
 /**
  *
- * TODO 
+ * Builder for generating {@code GridBagConstraints}
  *
  * <dl>
  * <dt>Created by:</dt>

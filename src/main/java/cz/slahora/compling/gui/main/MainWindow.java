@@ -16,7 +16,7 @@ import java.awt.event.MouseEvent;
 
 /**
  *
- * TODO 
+ * CompLingGui main window
  *
  * <dl>
  * <dt>Created by:</dt>

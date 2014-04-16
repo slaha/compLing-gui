@@ -4,7 +4,7 @@ import java.util.Map;
 
 /**
  *
- * TODO 
+ * Utilities for work with {@code java.util.Map}s
  *
  * <dl>
  * <dt>Created by:</dt>

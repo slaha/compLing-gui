@@ -5,11 +5,12 @@ import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
 import cz.slahora.compling.gui.model.WorkingText;
 
-import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 /**
  *
- * TODO 
+ * Interface for controller of {@code MainWindow}
  *
  * <dl>
  * <dt>Created by:</dt>

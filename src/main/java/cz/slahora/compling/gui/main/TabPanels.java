@@ -6,7 +6,7 @@ import java.util.*;
 
 /**
  *
- * TODO 
+ * Holder of {@code TabPanel}s
  *
  * <dl>
  * <dt>Created by:</dt>

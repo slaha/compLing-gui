@@ -1,11 +1,11 @@
 package cz.slahora.compling.gui.utils;
 
-import java.awt.*;
+import java.awt.Desktop;
 import java.net.URL;
 
 /**
  * 
- * TODO
+ * Helper class for opening hyperlinks
  * 
  * <dl>
  * <dt>Created by:</dt>

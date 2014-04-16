@@ -1,12 +1,12 @@
 package cz.slahora.compling.gui.utils;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.ImageIcon;
 import java.awt.image.BufferedImage;
 
 /**
  *
- * TODO 
+ * Utilities for working with icons from resources
  *
  * <dl>
  * <dt>Created by:</dt>

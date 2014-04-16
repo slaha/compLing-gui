@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  *
- * TODO 
+ * Interface for class that holds multiple tabs
  *
  * <dl>
  * <dt>Created by:</dt>

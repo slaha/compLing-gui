@@ -20,7 +20,7 @@ import java.util.Collection;
 
 /**
  *
- * TODO 
+ * Menu from menu bar of MainWindow
  *
  * <dl>
  * <dt>Created by:</dt>

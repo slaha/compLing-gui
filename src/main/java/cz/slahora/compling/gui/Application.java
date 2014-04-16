@@ -6,11 +6,12 @@ import cz.slahora.compling.gui.main.MainWindowControllerImpl;
 import cz.slahora.compling.gui.main.MainWindowMenu;
 import cz.slahora.compling.gui.model.WorkingTexts;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 
 /**
  *
- * TODO 
+ * Main class of ComLingGui. It is responsible for creating initial controllers and views
  *
  * <dl>
  * <dt>Created by:</dt>
