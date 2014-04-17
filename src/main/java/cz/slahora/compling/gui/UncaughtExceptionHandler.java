@@ -1,7 +1,8 @@
 package cz.slahora.compling.gui;
 
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.JLabel;
@@ -12,8 +13,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -30,6 +31,7 @@ import java.util.Date;
  */
 public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 	private static final File LOG_FILE = new File(System.getProperty("user.home") + File.separator + "compLingGuiError.log");
+	private static final Charset UTF8 = Charset.forName(CharEncoding.UTF_8);
 
 	@Override
 	public void uncaughtException(Thread t, Throwable e) {
@@ -88,20 +90,10 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 				throw new IOException("Cannot create log file " + LOG_FILE.getAbsolutePath());
 			}
 		}
-		FileWriter fileWriter = null;
-		try {
-			fileWriter = new FileWriter(LOG_FILE, true);
-			IOUtils.write(createHeader(name), fileWriter);
-			IOUtils.write(stackTrace, fileWriter);
-			fileWriter.close();
-		} finally {
-			IOUtils.closeQuietly(fileWriter);
-		}
-
-
+		FileUtils.write(LOG_FILE, createText(name, stackTrace), UTF8, true);
 	}
 
-	private String createHeader(String name) {
+	private String createText(String name, String stackTrace) {
 		String date = new SimpleDateFormat("yyyy-MM-dd HH.mm:ss").format(new Date());
 		StringBuilder sb = new StringBuilder();
 		sb
@@ -115,7 +107,6 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 			sb.append('=');
 		}
 
-		sb.append('\n');
-		return sb.toString();
+		return sb.append('\n').append(stackTrace).append('\n').toString();
 	}
 }
