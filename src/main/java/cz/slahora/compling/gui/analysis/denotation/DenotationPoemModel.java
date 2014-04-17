@@ -22,7 +22,6 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 	private final TIntObjectMap<DenotationStrophe> strophes;
 	private final TIntObjectMap<DenotationWord> allWords;
-	private final WorkingText workingText;
 	private int maxWordNumber;
 
 	public DenotationPoemModel(WorkingText text) {
@@ -30,7 +29,6 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 	}
 
 	private DenotationPoemModel(WorkingText text, boolean compute) {
-		this.workingText = text;
 		this.poem = text.getCompLing().poemAnalysis().poem;
 		this.strophes = new TIntObjectHashMap<DenotationStrophe>();
 		this.allWords = new TIntObjectHashMap<DenotationWord>();
@@ -588,15 +586,15 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		}
 	}
 
-	private class DenotationPoemModelLoader extends CsvLoader<DenotationPoemModel> {
+	private static class DenotationPoemModelLoader extends CsvLoader<DenotationPoemModel> {
 
-		private final CsvParserUtils.CollectionSplitter splitter = new CsvParserUtils.CollectionSplitter() {
+		private static final CsvParserUtils.CollectionSplitter SPLITTER = new CsvParserUtils.CollectionSplitter() {
 			@Override
 			public String getSplitter() {
 				return PipeArrayList.SPLITTER;
 			}
 		};
-		private final CsvParserUtils.CollectionParser<DenotationSpikeNumber> parser = new CsvParserUtils.CollectionParser<DenotationSpikeNumber>() {
+		private static final CsvParserUtils.CollectionParser<DenotationSpikeNumber> PARSER = new CsvParserUtils.CollectionParser<DenotationSpikeNumber>() {
 					@Override
 					public void parse(String toParse, Collection<DenotationSpikeNumber> toAdd) throws CsvParserException {
 						try {
@@ -624,6 +622,9 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			int wordInVerseNumber = 0;
 			int verseNumberInStrophe = 0;
 			DenotationWord word;
+
+			final Poem poem = model.poem;
+
 			for (List<Object> dataLine : csv.getSection(0).getDataLines()) {
 
 				int column = 0;
@@ -658,11 +659,11 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				}
 
 				String wordString = CsvParserUtils.getAsString(dataLine.get(column++));
-				checkWord(wordString, stropheNumber, verseNumberInStrophe, wordInVerseNumber);
+				checkWord(poem, wordString, stropheNumber, verseNumberInStrophe, wordInVerseNumber);
 
 				int wordNumber = CsvParserUtils.getAsInt(dataLine.get(column++));
-				Collection<String> words = CsvParserUtils.getAsStringList(dataLine.get(column++), splitter);
-				Collection<DenotationSpikeNumber> numbers = CsvParserUtils.getAsList(dataLine.get(column++), splitter, parser);
+				Collection<String> words = CsvParserUtils.getAsStringList(dataLine.get(column++), SPLITTER);
+				Collection<DenotationSpikeNumber> numbers = CsvParserUtils.getAsList(dataLine.get(column++), SPLITTER, PARSER);
 				boolean joined = CsvParserUtils.getAsBool(dataLine.get(column++));
 				boolean ignored = CsvParserUtils.getAsBool(dataLine.get(column));
 
@@ -683,10 +684,10 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			model.maxWordNumber = maxWordNumber;
 		}
 
-		private void checkWord(String wordString, int stropheNumber, int verseNumberInStrophe, int wordInVerseNumber) throws CsvParserException {
+		private void checkWord(Poem poem, String wordString, int stropheNumber, int verseNumberInStrophe, int wordInVerseNumber) throws CsvParserException {
 			try {
 				final Collection<Verse> verses = poem.getVersesOfStrophe(stropheNumber);
-				final Verse verse = new ArrayList<Verse>(verses).get(verseNumberInStrophe);
+				final Verse verse = ((List<Verse>)verses).get(verseNumberInStrophe);
 				final String wordInVerse = verse.getWords(false).get(wordInVerseNumber);
 				if (!wordString.equalsIgnoreCase(wordInVerse)) {
 					throw new CsvParserException("Word in poem '" + wordInVerse + "' does not match word in loaded file '" + wordString + "'");
