@@ -5,7 +5,10 @@ import cz.compling.analysis.analysator.frequency.character.CharacterFrequencyRul
 import cz.compling.analysis.analysator.frequency.character.ICharacterFrequency;
 import cz.compling.model.CharacterFrequency;
 import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
+import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.panels.ResultsPanel;
+import cz.slahora.compling.gui.panels.characters.CharacterFrequencyPanel;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -52,9 +55,21 @@ public class CharacterMultipleTextsAnalysis extends AbstractCharacterAnalysis im
 	}
 
 	@Override
-	public Map<WorkingText, CharacterFrequency> getResults() {
-		return characterFrequencies;
+	public Results getResults() {
+		return new CharacterMultipleTextsAnalysisResults(characterFrequencies);
 	}
 
 
+	private static class CharacterMultipleTextsAnalysisResults implements Results {
+		private Map<WorkingText, CharacterFrequency> characterFrequencies;
+
+		public CharacterMultipleTextsAnalysisResults(Map<WorkingText, CharacterFrequency> characterFrequencies) {
+			this.characterFrequencies = characterFrequencies;
+		}
+
+		@Override
+		public ResultsPanel getResultPanel() {
+			return new CharacterFrequencyPanel(characterFrequencies);
+		}
+	}
 }

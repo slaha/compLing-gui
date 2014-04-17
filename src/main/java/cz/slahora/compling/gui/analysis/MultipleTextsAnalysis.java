@@ -3,12 +3,12 @@ package cz.slahora.compling.gui.analysis;
 import cz.compling.CompLing;
 import cz.slahora.compling.gui.model.WorkingText;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 import java.util.Map;
 
 /**
  *
- * TODO 
+ * Analysis of multiple texts at once
  *
  * <dl>
  * <dt>Created by:</dt>
@@ -20,5 +20,5 @@ import java.util.Map;
 public interface MultipleTextsAnalysis<T> {
 	void analyse(JPanel mainPanel, Map<WorkingText, CompLing> texts);
 
-	Map<WorkingText, T> getResults();
+	Results getResults();
 }

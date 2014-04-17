@@ -1,7 +1,5 @@
 package cz.slahora.compling.gui.analysis;
 
-import cz.compling.model.CharacterFrequency;
-import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.panels.ResultsPanel;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 
@@ -12,7 +10,6 @@ import javax.swing.JToolBar;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.util.Map;
 
 /**
  *
@@ -26,15 +23,11 @@ import java.util.Map;
  * </dl>
  */
 public class AnalysisResultReceiverImpl implements AnalysisResultReceiver {
-	@Override
-	public boolean canReceive(Class<?> aClass) {
-		return CharacterFrequency.class.equals(aClass);
-	}
 
 	@Override
-	public void send(Map<WorkingText, ?> results) throws TypeNotSupportedException {
+	public void send(Results results) {
 
-		ResultsPanel result = ReportFactory.createReport(results);
+		ResultsPanel result = results.getResultPanel();
 		JFrame frame = new JFrame("Výsledek analýzy");
 
 		JPanel panel = result.getPanel();

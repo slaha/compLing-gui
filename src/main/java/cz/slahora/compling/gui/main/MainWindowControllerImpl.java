@@ -2,15 +2,11 @@ package cz.slahora.compling.gui.main;
 
 import cz.compling.CompLing;
 import cz.slahora.compling.gui.AppContext;
-import cz.slahora.compling.gui.analysis.AnalysisResultReceiver;
-import cz.slahora.compling.gui.analysis.AnalysisResultReceiverImpl;
-import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
-import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
+import cz.slahora.compling.gui.analysis.*;
 import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.model.WorkingTexts;
 import cz.slahora.compling.gui.utils.FileChooserUtils;
-import cz.slahora.compling.gui.utils.MapUtils;
 import org.apache.commons.io.FileUtils;
 
 import javax.swing.JComponent;
@@ -113,15 +109,11 @@ public class MainWindowControllerImpl implements MainWindowController {
 	public <T> void analyse(SingleTextAnalysis<T> analysis) {
 		WorkingText text = workingTexts.get(tabPanels.getCurrentId());
 		analysis.analyse(mainPanel, text.getCompLing(), text);
-		T results = analysis.getResults();
-		if (results == null || resultReceiver == null) {
-			return;
+		Results results = analysis.getResults();
+		if (resultReceiver == null) {
+			throw new IllegalStateException("No results receiver registered");
 		}
-		if (resultReceiver.canReceive(results.getClass())) {
-			resultReceiver.send(Collections.singletonMap(text, results));
-		} else {
-			throw new AnalysisResultReceiver.TypeNotSupportedException(results.getClass());
-		}
+		resultReceiver.send(results);
 	}
 
 	@Override
@@ -131,18 +123,14 @@ public class MainWindowControllerImpl implements MainWindowController {
 			toAnalyse.put(workingText, workingText.getCompLing());
 		}
 		analysis.analyse(mainPanel, toAnalyse);
-		Map<WorkingText, T> results = analysis.getResults();
-		if (results == null || results.isEmpty() || resultReceiver == null) {
-			return;
+		Results results = analysis.getResults();
+		if (resultReceiver == null) {
+			throw new IllegalStateException("No results receiver registered");
 		}
 
-		if (resultReceiver.canReceive(MapUtils.getValueClass(results))) {
-			resultReceiver.send(results);
-		} else {
-			throw new AnalysisResultReceiver.TypeNotSupportedException(results.getClass());
-		}
-
+		resultReceiver.send(results);
 	}
+
 	@Override
 	public void registerOnTabChange(OnTabSelected callback) {
 		this.onTabSelectedListeners.add(callback);
