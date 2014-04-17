@@ -4,11 +4,16 @@ import cz.compling.CompLing;
 import cz.compling.analysis.analysator.frequency.character.CharacterFrequencyRule;
 import cz.compling.analysis.analysator.frequency.character.ICharacterFrequency;
 import cz.compling.model.CharacterFrequency;
+import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.panels.ResultsPanel;
+import cz.slahora.compling.gui.panels.characters.CharacterFrequencyPanel;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  *
@@ -24,9 +29,12 @@ import javax.swing.JPanel;
 public class CharacterSingleTextAnalysis extends AbstractCharacterAnalysis implements SingleTextAnalysis<CharacterFrequency> {
 
 	private CharacterFrequency characterFrequency;
+	private WorkingText text;
 
 	@Override
 	public void analyse(JPanel mainPanel, CompLing compLing, WorkingText text) {
+		this.text = text;
+
 		OptionPanel optionPanel = new OptionPanel();
 		int result = JOptionPane.showConfirmDialog(mainPanel, optionPanel, "Nastavení analýzy četnosti znaků pro " + text.getName(), JOptionPane.OK_CANCEL_OPTION);
 		if (result != JOptionPane.OK_OPTION) {
@@ -47,7 +55,20 @@ public class CharacterSingleTextAnalysis extends AbstractCharacterAnalysis imple
 	}
 
 	@Override
-	public CharacterFrequency getResults() {
-		return characterFrequency;
+	public Results getResults() {
+		return new CharacterSingleTextAnalysisResults(text, characterFrequency);
+	}
+
+	private static class CharacterSingleTextAnalysisResults implements Results {
+		private Map<WorkingText, CharacterFrequency> map;
+
+		public CharacterSingleTextAnalysisResults(WorkingText text, CharacterFrequency characterFrequency) {
+			map = Collections.singletonMap(text, characterFrequency);
+		}
+
+		@Override
+		public ResultsPanel getResultPanel() {
+			return new CharacterFrequencyPanel(map);
+		}
 	}
 }

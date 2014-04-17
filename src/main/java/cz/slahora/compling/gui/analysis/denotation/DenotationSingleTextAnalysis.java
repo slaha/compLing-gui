@@ -2,8 +2,11 @@ package cz.slahora.compling.gui.analysis.denotation;
 
 import cz.compling.CompLing;
 import cz.compling.model.CharacterFrequency;
+import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
+import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.panels.ResultsPanel;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -32,7 +35,25 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis<Characte
 	}
 
 	@Override
-	public CharacterFrequency getResults() {
-		return null;
+	public Results getResults() {
+		return new DenotationSingleTextAnalysisResults();
+	}
+
+	//TODO
+	private static class DenotationSingleTextAnalysisResults implements Results {
+		@Override
+		public ResultsPanel getResultPanel() {
+			return new ResultsPanel() {
+				@Override
+				public JPanel getPanel() {
+					return new JPanel();
+				}
+
+				@Override
+				public CsvData getCsvData() {
+					return new CsvData();
+				}
+			};
+		}
 	}
 }

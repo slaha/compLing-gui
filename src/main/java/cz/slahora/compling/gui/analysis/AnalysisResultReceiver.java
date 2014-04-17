@@ -1,9 +1,5 @@
 package cz.slahora.compling.gui.analysis;
 
-import cz.slahora.compling.gui.model.WorkingText;
-
-import java.util.Map;
-
 /**
  *
  * TODO 
@@ -16,15 +12,6 @@ import java.util.Map;
  * </dl>
  */
 public interface AnalysisResultReceiver {
-	boolean canReceive(Class<?> aClass);
 
-	void send(Map<WorkingText, ?> results) throws TypeNotSupportedException;
-
-	public static class TypeNotSupportedException extends RuntimeException {
-
-
-		public TypeNotSupportedException(Class<?> aClass) {
-			super("Class " + aClass +" is not supported by this AnalysisResultReceiver.");
-		}
-	}
+	void send(Results results);
 }

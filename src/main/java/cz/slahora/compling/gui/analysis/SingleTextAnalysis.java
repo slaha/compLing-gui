@@ -3,11 +3,11 @@ package cz.slahora.compling.gui.analysis;
 import cz.compling.CompLing;
 import cz.slahora.compling.gui.model.WorkingText;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 
 /**
  *
- * TODO 
+ * Interface for analysis of just one text
  *
  * <dl>
  * <dt>Created by:</dt>
@@ -19,5 +19,5 @@ import javax.swing.*;
 public interface SingleTextAnalysis<T> {
 	void analyse(JPanel mainPanel, CompLing compLing, WorkingText text);
 
-	T getResults();
+	Results getResults();
 }
