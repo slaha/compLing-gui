@@ -354,7 +354,7 @@ public abstract class AbstractCharacterAnalysis {
 		}
 	}
 
-	protected class OnlyLettersRule implements TextModificationRule {
+	protected static class OnlyLettersRule implements TextModificationRule {
 
 		@Override
 		public String modify(Text text) {

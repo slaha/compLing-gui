@@ -600,7 +600,7 @@ public class DenotationAnalysis {
 			tableModel.fireTableDataChanged();
 		}
 
-		private class MultilineCellRenderer extends JTextArea implements TableCellRenderer {
+		private static class MultilineCellRenderer extends JTextArea implements TableCellRenderer {
 
 			private final int rowHeight;
 
@@ -639,7 +639,7 @@ public class DenotationAnalysis {
 			}
 		}
 
-		private class SingleLineCellRenderer extends JLabel implements TableCellRenderer {
+		private static class SingleLineCellRenderer extends JLabel implements TableCellRenderer {
 
 			private final int rowHeight;
 
