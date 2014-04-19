@@ -5,10 +5,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -32,6 +31,7 @@ import java.util.Date;
 public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 	private static final File LOG_FILE = new File(System.getProperty("user.home") + File.separator + "compLingGuiError.log");
 	private static final Charset UTF8 = Charset.forName(CharEncoding.UTF_8);
+	public static final EmptyBorder BORDER = new EmptyBorder(new Insets(10, 10, 10, 10));
 
 	@Override
 	public void uncaughtException(Thread t, Throwable e) {
@@ -55,6 +55,7 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 				.append(ExceptionUtils.getStackTrace(e1));
 		}
 		JTextArea area = new JTextArea(stackTrace.toString());
+		area.setBorder(BORDER);
 		area.setEditable(false);
 
 		GridBagConstraintBuilder gbc;
@@ -68,7 +69,15 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 		panel.add(text3, gbc.copy().gridy(y++).insets(insets).build());
 		panel.add(area, gbc.copy().gridy(y).insets(insets).build());
 
-		JOptionPane.showMessageDialog(null, panel, "Neočekávaná chyba", JOptionPane.ERROR_MESSAGE);
+		JScrollPane allScroll = new JScrollPane(panel) {
+			@Override
+			public Dimension getPreferredSize() {
+				return new Dimension(800, 800);
+			}
+		};
+		panel.setBorder(BORDER);
+
+		JOptionPane.showMessageDialog(null, allScroll, "Neočekávaná chyba", JOptionPane.ERROR_MESSAGE);
 
 
 	}
