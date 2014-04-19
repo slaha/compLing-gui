@@ -33,10 +33,6 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 		return spikes.size();
 	}
 
-	public void addTo(int spikeNumber, DenotationPoemModel.DenotationWord word) {
-		spikes.get(spikeNumber).add(word);
-	}
-
 	public void addNewSpike() {
 		Spike spike = new Spike(++currentSpike);
 		spikes.put(currentSpike, spike);
@@ -95,30 +91,12 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 	}
 
 	public static class Spike {
-		private final List<DenotationPoemModel.DenotationWord> words;
+		private final DenotationWordsArrayList words;
 		private final int number;
 
 		public Spike(int number) {
 			this.number = number;
-			words = new ArrayList<DenotationPoemModel.DenotationWord>() {
-				@Override
-				public String toString() {
-					if (isEmpty()) {
-						return "–";
-					}
-					StringBuilder sb = new StringBuilder();
-					appendWord(sb, get(0));
-					for (int i = 1; i < size(); i++) {
-						sb.append(", ");
-						appendWord(sb, get(i));
-					}
-					return sb.toString();
-				}
-
-				void appendWord(StringBuilder sb, DenotationPoemModel.DenotationWord word) {
-					sb.append(word.getWords()).append(' ').append(word.getElements());
-				}
-			};
+			words = new DenotationWordsArrayList();
 		}
 
 		public void add(DenotationPoemModel.DenotationWord word) {
@@ -129,7 +107,7 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 			return number;
 		}
 
-		public List<DenotationPoemModel.DenotationWord> getWords() {
+		public DenotationWordsArrayList getWords() {
 			return words;
 		}
 
@@ -150,6 +128,48 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 			}
 			data.getCurrentSection().addData(wordNumbers);
 		}
+
+
+	}
+
+	public static class DenotationWordsArrayList extends ArrayList<DenotationPoemModel.DenotationWord> {
+		@Override
+		public String toString() {
+			if (isEmpty()) {
+				return "–";
+			}
+			StringBuilder sb = new StringBuilder();
+			appendWord(sb, get(0));
+			for (int i = 1; i < size(); i++) {
+				sb.append(", ");
+				appendWord(sb, get(i));
+			}
+			return sb.toString();
+		}
+
+		void appendWord(StringBuilder sb, DenotationPoemModel.DenotationWord word) {
+			sb.append(word.getWords()).append(' ').append(word.getElements());
+		}
+
+		public String toStringForSpike(Spike s) {
+			if (isEmpty()) {
+				return "–";
+			}
+
+			StringBuilder sb = new StringBuilder();
+			appendWordSpike(sb, get(0), s);
+			for (int i = 1; i < size(); i++) {
+				sb.append(", ");
+				appendWordSpike(sb, get(i), s);
+			}
+			return sb.toString();
+		}
+
+		void appendWordSpike(StringBuilder sb, DenotationPoemModel.DenotationWord word, Spike s) {
+			final DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getElementInSpike(s);
+			sb.append(spikeNumber.getWord()).append(' ').append(spikeNumber);
+		}
+
 	}
 
 	private static class DenotationSpikesModelSaver extends CsvSaver<DenotationSpikesModel> {

@@ -343,7 +343,7 @@ public class DenotationAnalysis {
 				addElement = new JMenuItem("Přidat denotační element");
 				removeElement = new JMenuItem("Odebrat denotační element");
 				join = new JMenuItem("Sloučit s " + (word.getNextWord() != null ? word.getNextWord().getWords() : ""));
-				split = new JMenuItem("Oddělit " + (word.hasJoined() ? word.getLastJoined() :""));
+				split = new JMenuItem("Oddělit " + (word.hasJoinedAnotherWord() ? word.getLastJoined() :""));
 
 				spikesAddMenu = new JMenu("Přidat do hřebu");
 				spikesRemoveMenu = new JMenu("Odebrat z hřebu");
@@ -354,14 +354,12 @@ public class DenotationAnalysis {
 				join.addActionListener(this);
 				split.addActionListener(this);
 
-				onWordIgnored(word.isIgnored());
-
 				addPopupMenuListener(new PopupMenuListener() {
 					@Override
 					public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-						onWordIgnored(word.isIgnored());
+						onWordIgnored();
 						onElementChanged();
-						onWordJoined(word.getNextWord());
+						onWordJoined();
 						loadSpikes();
 					}
 
@@ -379,12 +377,25 @@ public class DenotationAnalysis {
 			public void actionPerformed(ActionEvent e) {
 				Object source = e.getSource();
 				if (source == ignore) {
+					final boolean isIgnoredNow = word.isIgnored();
+					if (!isIgnoredNow && word.isInSpike()) {
+						if (!notifyIsInSpike()) {
+							return;
+						}
+					}
 					word.setIgnored(!word.isIgnored());
 
 				} else if (source == addElement) {
 					word.addElement();
 
 				} else if (source == removeElement) {
+					final DenotationPoemModel.DenotationSpikeNumber highestNumber = word.getHighestNumber();
+					if (highestNumber.isInSpike()) {
+						if (!notifyIsInElement(highestNumber)) {
+							return;
+						}
+					}
+
 					word.removeElement();
 
 				} else if (source == join) {
@@ -398,9 +409,31 @@ public class DenotationAnalysis {
 					if (SPIKES_ADD_SUBMENU.equals(menuItem.getName())) {
 
 						DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) menuItem.getClientProperty(SPIKE_KEY);
-						spike.add(word);
-						DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getFreeElement();
-						spikeNumber.onAddToSpike(spike);
+							DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getFreeElement();
+
+						//..check if the word is already in any other spike. If so, ask for divide
+						if (word.getElements().size() > 1 && word.isInSpike()) {
+
+							String input = null;
+							do {
+								String msg = "Zadejte prosím [pomocí ( a )], které část slova '" + word.getWord() + "' nepatří do hřebu.";
+								if (input != null) {
+									msg += "\n\nDo textu vepiště pouze znak '(' a ')', tak aby v závorkách byla část slova, která do hřebu nepatří";
+								}
+								input = JOptionPane.showInputDialog(this, msg, word.getWord());
+							} while (input != null && !checkInput(input, word.getWord()));
+							if (input == null) {
+								//..canceled
+								return;
+							}
+							spike.add(word);
+							spikeNumber.onAddToSpike(spike, input);
+						}
+						else {
+
+							spike.add(word);
+							spikeNumber.onAddToSpike(spike);
+						}
 						WordPanel.this.setToolTipText("Patří do hřebu č. " + word.getSpikes());
 						panel.refreshSpikes(spike.getNumber());
 					} else if (SPIKES_REMOVE_SUBMENU.equals(menuItem.getName())) {
@@ -419,17 +452,97 @@ public class DenotationAnalysis {
 				panel.refresh(WordPanel.this);
 			}
 
+			private boolean notifyIsInElement(DenotationPoemModel.DenotationSpikeNumber element) {
+				final int yesNo = JOptionPane.showConfirmDialog(this,
+					"Denotační element " + element + " je ve hřebu č. " + element.getSpike() + ". Budete-li pokračovat, bude z tohoto hřebu odstraněn.\n\nChcete pokračovat?",
+					"Odstranit denotační element?",
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.QUESTION_MESSAGE);
+				return yesNo == JOptionPane.YES_OPTION;
+			}
+
+			private boolean notifyIsInSpike() {
+				final int yesNo = JOptionPane.showConfirmDialog(this,
+					"Slovo '" + word + "' je ve hřebech č. " + word.getSpikes() + ". Budete-li pokračovat, bude z těchto hřebů odstraněno.\n\nChcete pokračovat?",
+					"Odstranit slovo ze hřebů?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+				return yesNo == JOptionPane.YES_OPTION;
+			}
+
+			private boolean checkInput(String input, String word) {
+				if (word.length() >= input.length()) {
+					return false;
+				}
+
+				StringBuilder  inputSb = new StringBuilder();
+				StringBuilder wordSb = new StringBuilder();
+				removeBraces(input, word, inputSb, wordSb);
+				input = inputSb.toString();
+				word = wordSb.toString();
+				//..check if there is one (, one ) and ( is before )
+				if (StringUtils.countMatches(input, ")") ==  1
+					&& StringUtils.countMatches(input, "(") == 1) {
+
+					int openingBracket = input.indexOf('(');
+					int closingBracket = input.indexOf(')');
+					if (openingBracket < closingBracket
+						&& (closingBracket - openingBracket) > 1) {
+
+						//..check if input without braces is the same as word
+						return input.replace("(", "").replace(")", "").equals(word);
+					}
+
+				}
+				return false;
+			}
+
+			/**
+			 * Removes ( and ) from {@code input} and {@code word} if the brace is on the same position in both words.
+			 *
+			 * <p>
+			 *     word=Succ(ess)
+			 *     input=(S)ucc(ess)
+			 *     wordSb=Success
+			 *     inputSb=(S)uccess
+			 */
+			private void removeBraces(String input, String word, StringBuilder inputSb, StringBuilder wordSb) {
+				int wordDiff = 0;
+				char inputChar, wordChar;
+				final int wordLength = word.length();
+				for (int i = 0; i < input.length(); i++) {
+					inputChar = input.charAt(i);
+					int wordCharIndex = i - wordDiff;
+					if (wordCharIndex < wordLength) {
+						wordChar = word.charAt(wordCharIndex);
+					} else {
+						wordChar = 0;
+					}
+					inputSb.append(inputChar);
+
+					if (wordChar > 0) {
+						if ((inputChar == '(' || inputChar == ')')
+							&& (wordChar != '(' && wordChar != ')')) {
+							//..new bracket in input
+							wordDiff++;
+						} else {
+							wordSb.append(wordChar);
+						}
+					}
+				}
+			}
+
 			private void loadSpikes() {
 				spikesAddMenu.removeAll();
 				spikesRemoveMenu.removeAll();
 				int menuPosition = 0;
 				if (spikesModel.hasSpikes() && !word.isIgnored() && word.hasFreeElement()) {
 					for (DenotationSpikesModel.Spike spike : spikesModel.getSpikes()) {
-						JMenuItem spikeItem = new JMenuItem("Přidat do hřebu č. " + spike.getNumber());
-						spikeItem.setName(SPIKES_ADD_SUBMENU);
-						spikeItem.putClientProperty(SPIKE_KEY, spike);
-						spikeItem.addActionListener(this);
-						spikesAddMenu.add(spikeItem);
+						if (!word.isInSpike(spike)) {
+							JMenuItem spikeItem = new JMenuItem("Přidat do hřebu č. " + spike.getNumber());
+							spikeItem.setName(SPIKES_ADD_SUBMENU);
+							spikeItem.putClientProperty(SPIKE_KEY, spike);
+							spikeItem.addActionListener(this);
+							spikesAddMenu.add(spikeItem);
+						}
 					}
 					add(spikesAddMenu, menuPosition++);
 				} else {
@@ -437,11 +550,13 @@ public class DenotationAnalysis {
 				}
 				if (spikesModel.hasSpikes() && !word.isIgnored() && word.isInSpike()) {
 					for (DenotationSpikesModel.Spike spike : word.getSpikes()) {
-						JMenuItem spikeItem = new JMenuItem("Odebrat z hřebu č. " + spike.getNumber());
-						spikeItem.setName(SPIKES_REMOVE_SUBMENU);
-						spikeItem.putClientProperty(SPIKE_KEY, spike);
-						spikeItem.addActionListener(this);
-						spikesRemoveMenu.add(spikeItem);
+						if (word.isInSpike(spike)) {
+							JMenuItem spikeItem = new JMenuItem("Odebrat z hřebu č. " + spike.getNumber());
+							spikeItem.setName(SPIKES_REMOVE_SUBMENU);
+							spikeItem.putClientProperty(SPIKE_KEY, spike);
+							spikeItem.addActionListener(this);
+							spikesRemoveMenu.add(spikeItem);
+						}
 					}
 					add(spikesRemoveMenu, menuPosition);
 				} else {
@@ -450,6 +565,13 @@ public class DenotationAnalysis {
 			}
 
 			private void onElementChanged() {
+
+				if (word.isIgnored()) {
+					remove(addElement);
+					return;
+				}
+				add(addElement, 1);
+
 				if (word.canRemoveElement()) {
 					add(removeElement, 2);
 				} else {
@@ -457,33 +579,29 @@ public class DenotationAnalysis {
 				}
 			}
 
-			private void onWordJoined(DenotationPoemModel.DenotationWord nextWord) {
+			private void onWordJoined() {
+				DenotationPoemModel.DenotationWord nextWord = word.getNextWord();
 				if (nextWord == null || word.isIgnored())  {
 					remove(join);
 				} else {
-					join.setText("Sloučit s " + (word.getNextWord() != null ? word.getNextWord().getWords() : ""));
+					join.setText("Sloučit s " + nextWord.getWords());
 					add(join);
 
 					onElementChanged();
 				}
-				if (word.hasJoined()) {
-					split.setText("Oddělit " + (word.hasJoined() ? word.getLastJoined() :""));
+				if (word.hasJoinedAnotherWord()) {
+					split.setText("Oddělit " + word.getLastJoined());
 					add(split);
 				}
 			}
 
-			private void onWordIgnored(boolean ignored) {
+			private void onWordIgnored() {
+
 				add(ignore, 0);
-				if (ignored) {
+				if (word.isIgnored()) {
 					ignore.setText("Brát v potaz");
-					remove(addElement);
-					remove(removeElement);
-					remove(join);
 				} else {
 					ignore.setText("Ignorovat");
-					add(addElement, 1);
-					onElementChanged();
-					onWordJoined(word.getNextWord());
 				}
 			}
 		}
@@ -706,7 +824,7 @@ public class DenotationAnalysis {
 				case SPIKE_SIZE_COLUMN:
 					return spike.getWords().size();
 				case SPIKE_WORDS_COLUMN:
-					return spike.getWords();
+					return spike.getWords().toStringForSpike(spike);
 				default:
 					return null;
 			}
