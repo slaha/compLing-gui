@@ -50,7 +50,7 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 	public int removeSpike(int spikeNumber) {
 		Spike spike = spikes.remove(spikeNumber);
 		int lowestWordNumber = Integer.MAX_VALUE;
-		for (DenotationPoemModel.DenotationWord word : spike.getWords()) {
+		for (DenotationPoemModel.DenotationWord word : spike.getWords().keySet()) {
 			word.getElementInSpike(spike).onRemoveFromSpike(spike);
 			if (word.getNumber() < lowestWordNumber) {
 				lowestWordNumber = word.getNumber();
@@ -91,23 +91,23 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 	}
 
 	public static class Spike {
-		private final DenotationWordsArrayList words;
+		private final DenotationWordsMap words;
 		private final int number;
 
 		public Spike(int number) {
 			this.number = number;
-			words = new DenotationWordsArrayList();
+			words = new DenotationWordsMap();
 		}
 
-		public void add(DenotationPoemModel.DenotationWord word) {
-			words.add(word);
+		public void add(DenotationPoemModel.DenotationWord word, DenotationPoemModel.DenotationSpikeNumber spikeNumber) {
+			words.put(word, spikeNumber);
 		}
 
 		public int getNumber() {
 			return number;
 		}
 
-		public DenotationWordsArrayList getWords() {
+		public DenotationWordsMap getWords() {
 			return words;
 		}
 
@@ -122,9 +122,10 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 
 		public void toCsv(CsvData data) {
 			data.getCurrentSection().addData(number);
-			PipeArrayList<Integer> wordNumbers = new PipeArrayList<Integer>();
-			for (DenotationPoemModel.DenotationWord word : words) {
-				wordNumbers.add(word.getNumber());
+			PipeArrayList<SpikeWordBundle> wordNumbers = new PipeArrayList<SpikeWordBundle>();
+			for (DenotationPoemModel.DenotationWord word : words.keySet()) {
+				final DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getElementInSpike(this);
+				wordNumbers.add(new SpikeWordBundle(word.getNumber(), spikeNumber.getNumber(), spikeNumber.getWord()));
 			}
 			data.getCurrentSection().addData(wordNumbers);
 		}
@@ -132,17 +133,18 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 
 	}
 
-	public static class DenotationWordsArrayList extends ArrayList<DenotationPoemModel.DenotationWord> {
+	public static class DenotationWordsMap extends HashMap<DenotationPoemModel.DenotationWord, DenotationPoemModel.DenotationSpikeNumber> {
 		@Override
 		public String toString() {
 			if (isEmpty()) {
 				return "–";
 			}
+			final Iterator<DenotationPoemModel.DenotationWord> iterator = keySet().iterator();
 			StringBuilder sb = new StringBuilder();
-			appendWord(sb, get(0));
-			for (int i = 1; i < size(); i++) {
+			appendWord(sb, iterator.next());
+			while (iterator.hasNext()) {
 				sb.append(", ");
-				appendWord(sb, get(i));
+				appendWord(sb, iterator.next());
 			}
 			return sb.toString();
 		}
@@ -156,11 +158,12 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 				return "–";
 			}
 
+			final Iterator<DenotationPoemModel.DenotationWord> iterator = keySet().iterator();
 			StringBuilder sb = new StringBuilder();
-			appendWordSpike(sb, get(0), s);
-			for (int i = 1; i < size(); i++) {
+			appendWordSpike(sb, iterator.next(), s);
+			while (iterator.hasNext()) {
 				sb.append(", ");
-				appendWordSpike(sb, get(i), s);
+				appendWordSpike(sb, iterator.next(), s);
 			}
 			return sb.toString();
 		}
@@ -169,7 +172,27 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 			final DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getElementInSpike(s);
 			sb.append(spikeNumber.getWord()).append(' ').append(spikeNumber);
 		}
+	}
 
+	private static class SpikeWordBundle {
+
+		public static final char SPLITTER_CHAR = '\\';
+		public static final String SPLITTER = "\\\\";
+		private final int wordNumber;
+		private final int elementNumber;
+		private final String wordAsString;
+
+		public SpikeWordBundle(int wordNumber, int elementNumber, String elementInSpike) {
+			this.wordNumber = wordNumber;
+			this.elementNumber = elementNumber;
+			this.wordAsString = elementInSpike;
+		}
+
+
+		@Override
+		public String toString() {
+			return "[" + wordNumber + SPLITTER_CHAR + elementNumber + SPLITTER_CHAR + wordAsString + "]";
+		}
 	}
 
 	private static class DenotationSpikesModelSaver extends CsvSaver<DenotationSpikesModel> {
@@ -203,14 +226,34 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 					return PipeArrayList.SPLITTER;
 				}
 			};
+			final CsvParserUtils.CollectionParser<SpikeWordBundle> parser = new CsvParserUtils.CollectionParser<SpikeWordBundle>() {
+				@Override
+				public void parse(String toParse, Collection<SpikeWordBundle> toAdd) throws CsvParserException {
+					try {
+						toParse = toParse.substring(1, toParse.length() - 1); //..remove [ and ]
+						String[] split = toParse.split(SpikeWordBundle.SPLITTER);
+						int wordNumber = Integer.parseInt(split[0]);
+						int elementNumber = Integer.parseInt(split[1]);
+						String word = split[2];
+						toAdd.add(new SpikeWordBundle(wordNumber, elementNumber, word));
+					} catch (NumberFormatException nfe) {
+
+					} catch (IndexOutOfBoundsException ioobe) {
+						throw new CsvParserException(ioobe.getMessage());
+					}
+				}
+			};
 			for (List<Object> objects : csv.getCurrentSection().getDataLines()) {
 				int number = CsvParserUtils.getAsInt(objects.get(0));
 				Spike spike = new Spike(number);
-				Collection<Integer> wordsNumbers = CsvParserUtils.getAsIntList(objects.get(1), splitter);
-				for (Integer wordNumber : wordsNumbers) {
-					DenotationPoemModel.DenotationWord word = poemModel.getWord(wordNumber);
-					spike.add(word);
-					word.onAddToSpike(spike);
+
+				Collection<SpikeWordBundle> wordsNumbers = CsvParserUtils.getAsList(objects.get(1), splitter, parser);
+				//..numbers of words
+				for (SpikeWordBundle bundle : wordsNumbers) {
+					DenotationPoemModel.DenotationWord word = poemModel.getWord(bundle.wordNumber);
+					final DenotationPoemModel.DenotationSpikeNumber element = word.getElement(bundle.elementNumber);
+					spike.add(word, element);
+					element.onAddToSpike(spike, bundle.wordAsString);
 				}
 				spikesModel.spikes.put(number, spike);
 			}

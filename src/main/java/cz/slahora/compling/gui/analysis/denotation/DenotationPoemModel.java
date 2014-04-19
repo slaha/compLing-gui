@@ -303,6 +303,9 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 					word.incrementNumbers(-1);
 				}
 			}));
+			for (DenotationSpikeNumber spikeNumber : numbers) {
+				spikeNumber.word = words.toString();
+			}
 
 			return true;
 		}
@@ -328,6 +331,9 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 						}
 					}
 				}));
+				for (DenotationSpikeNumber spike : numbers) {
+					spike.word = words.toString();
+				}
 			}
 		}
 
@@ -441,11 +447,6 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			return model.maxWordNumber;
 		}
 
-		public void onAddToSpike(DenotationSpikesModel.Spike spike) {
-
-
-		}
-
 		public Collection<DenotationSpikesModel.Spike> getSpikes() {
 			List<DenotationSpikesModel.Spike> spikes = new ArrayList<DenotationSpikesModel.Spike>() {
 				@Override
@@ -505,6 +506,15 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				}
 			}
 			throw new IllegalStateException("Word " + words + " (number " + number + ") does not belong to spike " + spike);
+		}
+
+		/*package*/ DenotationSpikeNumber getElement(int number) {
+			for (DenotationSpikeNumber spikeNumber : numbers) {
+				if (number == spikeNumber.number) {
+					return spikeNumber;
+				}
+			}
+			throw new IllegalStateException("Word " + words + " (number " + number + ") does not have any spike with number " + number);
 		}
 
 		public boolean isInSpike(DenotationSpikesModel.Spike spike) {
@@ -587,6 +597,10 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		public DenotationSpikesModel.Spike getSpike() {
 			return spike;
 		}
+
+		public int getNumber() {
+			return number;
+		}
 	}
 
 	private interface ForEachRunner {
@@ -633,9 +647,8 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 					@Override
 					public void parse(String toParse, Collection<DenotationSpikeNumber> toAdd) throws CsvParserException {
 						try {
-							String[] split = toParse.split("\\|");
-							int number = Integer.parseInt(split[0]);
-							toAdd.add(new DenotationSpikeNumber(number, split[1]));
+							int number = Integer.parseInt(toParse);
+							toAdd.add(new DenotationSpikeNumber(number, null));
 						} catch (NumberFormatException nfe) {
 							throw new CsvParserException(nfe.getMessage());
 						}
@@ -700,10 +713,16 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				int wordNumber = CsvParserUtils.getAsInt(dataLine.get(column++));
 				Collection<String> words = CsvParserUtils.getAsStringList(dataLine.get(column++), SPLITTER);
 				Collection<DenotationSpikeNumber> numbers = CsvParserUtils.getAsList(dataLine.get(column++), SPLITTER, PARSER);
+
 				boolean joined = CsvParserUtils.getAsBool(dataLine.get(column++));
 				boolean ignored = CsvParserUtils.getAsBool(dataLine.get(column));
 
 				word = new DenotationWord(wordString, wordNumber, words, numbers, joined, ignored, model);
+
+				//..set word value in DenotationSpikeNumber to value from words (it is null from parsing
+				for (DenotationSpikeNumber number : numbers) {
+					number.word = word.getWords().toString();
+				}
 
 				if (currentVerse == null) {
 					throw new CsvParserException("Current verse is null when attempting to add word");

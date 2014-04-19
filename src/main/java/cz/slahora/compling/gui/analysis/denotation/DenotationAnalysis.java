@@ -409,29 +409,29 @@ public class DenotationAnalysis {
 					if (SPIKES_ADD_SUBMENU.equals(menuItem.getName())) {
 
 						DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) menuItem.getClientProperty(SPIKE_KEY);
-							DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getFreeElement();
+						DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getFreeElement();
 
 						//..check if the word is already in any other spike. If so, ask for divide
 						if (word.getElements().size() > 1 && word.isInSpike()) {
 
 							String input = null;
 							do {
-								String msg = "Zadejte prosím [pomocí ( a )], které část slova '" + word.getWord() + "' nepatří do hřebu.";
+								String msg = "Zadejte prosím [pomocí ( a )], které část slova '" + word.getWords() + "' nepatří do hřebu.";
 								if (input != null) {
 									msg += "\n\nDo textu vepiště pouze znak '(' a ')', tak aby v závorkách byla část slova, která do hřebu nepatří";
 								}
-								input = JOptionPane.showInputDialog(this, msg, word.getWord());
-							} while (input != null && !checkInput(input, word.getWord()));
+								input = JOptionPane.showInputDialog(this, msg, word.getWords());
+							} while (input != null && !checkInput(input, word.getWords().toString()));
 							if (input == null) {
 								//..canceled
 								return;
 							}
-							spike.add(word);
+							spike.add(word, spikeNumber);
 							spikeNumber.onAddToSpike(spike, input);
 						}
 						else {
 
-							spike.add(word);
+							spike.add(word, spikeNumber);
 							spikeNumber.onAddToSpike(spike);
 						}
 						WordPanel.this.setToolTipText("Patří do hřebu č. " + word.getSpikes());
