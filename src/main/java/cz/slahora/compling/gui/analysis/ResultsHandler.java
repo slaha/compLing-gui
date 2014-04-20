@@ -2,15 +2,15 @@ package cz.slahora.compling.gui.analysis;
 
 /**
  *
- * Interface for analysis of just one text
+ * TODO 
  *
  * <dl>
  * <dt>Created by:</dt>
  * <dd>slaha</dd>
  * <dt>On:</dt>
- * <dd> 25.3.14 8:40</dd>
+ * <dd> 20.4.14 9:23</dd>
  * </dl>
  */
-public interface SingleTextAnalysis<T> extends Analysis<T> {
-
+public interface ResultsHandler {
+	void handleResult(Analysis analysis);
 }

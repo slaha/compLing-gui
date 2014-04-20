@@ -6,6 +6,7 @@ import cz.compling.analysis.analysator.frequency.character.ICharacterFrequency;
 import cz.compling.model.CharacterFrequency;
 import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
 import cz.slahora.compling.gui.analysis.Results;
+import cz.slahora.compling.gui.analysis.ResultsHandler;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.panels.ResultsPanel;
 import cz.slahora.compling.gui.panels.characters.CharacterFrequencyPanel;
@@ -31,7 +32,7 @@ public class CharacterMultipleTextsAnalysis extends AbstractCharacterAnalysis im
 	private Map<WorkingText, CharacterFrequency> characterFrequencies;
 
 	@Override
-	public void analyse(JPanel mainPanel, Map<WorkingText, CompLing> texts) {
+	public void analyse(JPanel mainPanel, ResultsHandler handler, Map<WorkingText, CompLing> texts) {
 		OptionPanel optionPanel = new OptionPanel();
 		int result = JOptionPane.showConfirmDialog(mainPanel, optionPanel, "Nastavení analýzy četnosti znaků", JOptionPane.OK_CANCEL_OPTION);
 		if (result != JOptionPane.OK_OPTION) {
@@ -52,6 +53,8 @@ public class CharacterMultipleTextsAnalysis extends AbstractCharacterAnalysis im
 			}
 			this.characterFrequencies.put(entry.getKey(), characterFrequency.getCharacterFrequency());
 		}
+
+		handler.handleResult(this);
 	}
 
 	@Override
@@ -65,6 +68,12 @@ public class CharacterMultipleTextsAnalysis extends AbstractCharacterAnalysis im
 
 		public CharacterMultipleTextsAnalysisResults(Map<WorkingText, CharacterFrequency> characterFrequencies) {
 			this.characterFrequencies = characterFrequencies;
+		}
+
+		@Override
+		public boolean resultsOk() {
+			//..always ok
+			return true;
 		}
 
 		@Override

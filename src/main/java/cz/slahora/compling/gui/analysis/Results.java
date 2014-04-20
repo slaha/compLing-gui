@@ -18,5 +18,7 @@ import cz.slahora.compling.gui.panels.ResultsPanel;
  */
 public interface Results {
 
+	boolean resultsOk();
+
 	ResultsPanel getResultPanel();
 }

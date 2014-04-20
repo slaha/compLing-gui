@@ -42,6 +42,14 @@ public class MainWindowControllerImpl implements MainWindowController {
 	private AnalysisResultReceiver resultReceiver;
 	private JPanel mainPanel;
 
+	private final ResultsHandler RESULTS_HANDLER = new ResultsHandler() {
+
+		@Override
+		public void handleResult(Analysis analysis) {
+			handleResults(analysis.getResults());
+		}
+	};
+
 	public MainWindowControllerImpl(AppContext appContext, WorkingTexts workingTexts) {
 		this.appContext = appContext;
 		this.workingTexts = workingTexts;
@@ -105,15 +113,25 @@ public class MainWindowControllerImpl implements MainWindowController {
 		return null;
 	}
 
-	@Override
-	public <T> void analyse(SingleTextAnalysis<T> analysis) {
-		WorkingText text = workingTexts.get(tabPanels.getCurrentId());
-		analysis.analyse(mainPanel, text.getCompLing(), text);
-		Results results = analysis.getResults();
+	private void analyse(Analysis<?> analysis, Map<WorkingText, CompLing> toAnalyse) {
+		analysis.analyse(mainPanel, RESULTS_HANDLER, toAnalyse);
+	}
+
+	private void handleResults(Results results) {
+		if (!results.resultsOk()) {
+			return;
+		}
 		if (resultReceiver == null) {
 			throw new IllegalStateException("No results receiver registered");
 		}
+
 		resultReceiver.send(results);
+	}
+
+	@Override
+	public <T> void analyse(SingleTextAnalysis<T> analysis) {
+		WorkingText text = workingTexts.get(tabPanels.getCurrentId());
+		analyse(analysis, Collections.singletonMap(text, text.getCompLing()));
 	}
 
 	@Override
@@ -122,13 +140,7 @@ public class MainWindowControllerImpl implements MainWindowController {
 		for (WorkingText workingText : workingTexts.getTexts()) {
 			toAnalyse.put(workingText, workingText.getCompLing());
 		}
-		analysis.analyse(mainPanel, toAnalyse);
-		Results results = analysis.getResults();
-		if (resultReceiver == null) {
-			throw new IllegalStateException("No results receiver registered");
-		}
-
-		resultReceiver.send(results);
+		analyse(analysis, toAnalyse);
 	}
 
 	@Override
