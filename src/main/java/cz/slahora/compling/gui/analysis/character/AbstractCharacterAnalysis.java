@@ -251,7 +251,7 @@ public abstract class AbstractCharacterAnalysis {
 					try {
 						mWhatToFind = document.getText(0, length);
 					} catch (BadLocationException e) {
-						System.err.println("mWhatToFind - Location that does not exist in the document. Length: " + length );
+						throw new RuntimeException("mWhatToFind - Location that does not exist in the document. Length: " + length );
 					}
 				}
 
@@ -280,7 +280,7 @@ public abstract class AbstractCharacterAnalysis {
 					try {
 						mReplaceWith = document.getText(0, length);
 					} catch (BadLocationException e) {
-						System.err.println("mReplaceWith - Location that does not exist in the document. Length: " + length );
+						throw new RuntimeException("mReplaceWith - Location that does not exist in the document. Length: " + length );
 					}
 				}
 
