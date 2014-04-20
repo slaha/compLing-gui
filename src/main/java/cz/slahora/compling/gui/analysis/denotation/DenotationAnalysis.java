@@ -182,6 +182,17 @@ public class DenotationAnalysis {
 		public void refreshPoems(int number) {
 			denotationPoemPanel.refresh(number);
 		}
+
+		public boolean isAnySpikeInTheTable() {
+			return denotationSpikesPanel.isAnySpikeInTheTable();
+		}
+
+		public void save() {
+
+			ActionEvent event = new ActionEvent(exportBtn, ActionEvent.ACTION_FIRST , exportBtn.getText());
+			actionPerformed(event);
+
+		}
 	}
 
 	private static class DenotationPoemPanel extends JPanel {
@@ -695,6 +706,10 @@ public class DenotationAnalysis {
 
 		public void refresh() {
 			tableModel.fireTableDataChanged();
+		}
+
+		public boolean isAnySpikeInTheTable() {
+			return model.hasSpikes();
 		}
 
 		private static class MultilineCellRenderer extends JTextArea implements TableCellRenderer {

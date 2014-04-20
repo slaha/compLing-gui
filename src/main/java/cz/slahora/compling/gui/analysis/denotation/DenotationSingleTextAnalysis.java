@@ -11,6 +11,7 @@ import cz.slahora.compling.gui.panels.ResultsPanel;
 import cz.slahora.compling.gui.utils.MapUtils;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -34,15 +35,42 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis<Characte
 
 		final WorkingText text = MapUtils.getFirstKey(texts);
 
-		JFrame frame = new JFrame("Denotační analýza");
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setContentPane(new DenotationAnalysis.DenotationPanel(text));
+		final JFrame frame = new JFrame("Denotační analýza");
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		final DenotationAnalysis.DenotationPanel denotationPanel = new DenotationAnalysis.DenotationPanel(text);
+		frame.setContentPane(denotationPanel);
 
 		frame.pack();
 		frame.setVisible(true);
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
 		frame.addWindowListener(new WindowAdapter() {
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if (denotationPanel.isAnySpikeInTheTable()) {
+					final int confirmDialog = JOptionPane.showConfirmDialog(null,
+						"Tabulka obsahuje denotační elementy. Skutečně chcete uzavřít okno?\n\n" +
+							"Kliknutím na 'ano' uložíte rozpracovanou analýzu,\n" +
+							"Kliknutím na 'ne' uzavřete okno,\n" +
+							"Kliknutím na 'cancel' uzavřete tento dialog, ale ne okno s analýzou.",
+						"Uzavřít okno?",
+						JOptionPane.YES_NO_CANCEL_OPTION
+					);
+
+					switch (confirmDialog) {
+						case JOptionPane.YES_OPTION:
+							denotationPanel.save();
+							//..fall through
+						case JOptionPane.NO_OPTION:
+							frame.dispose();
+						//..do nothing on cancel
+					}
+				} else {
+					frame.dispose();
+				}
+			}
+
 			@Override
 			public void windowClosed(WindowEvent e) {
 				handler.handleResult(DenotationSingleTextAnalysis.this);
