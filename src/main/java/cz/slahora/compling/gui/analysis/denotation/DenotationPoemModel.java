@@ -68,8 +68,9 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 	}
 
 	/*********************************/
-	/* CSV */
-
+	/*
+	/* CSV
+	/*
 	/*********************************/
 	@Override
 	public CsvSaver<DenotationPoemModel> getCsvSaver() {
@@ -102,6 +103,11 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		return allWords.get(number);
 	}
 
+	/*********************************/
+	/*
+	/* Denotation Strophe
+	/*
+	/*********************************/
 	public static class DenotationStrophe {
 		final List<DenotationVerse> verses;
 		private final int number;
@@ -124,6 +130,11 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		}
 	}
 
+	/*********************************/
+	/*
+	/* Denotation Verse
+	/*
+	/*********************************/
 	public static class DenotationVerse {
 		final List<DenotationWord> words;
 		private final int number;
@@ -146,6 +157,11 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		}
 	}
 
+	/*********************************/
+	/*
+	/* Denotation Word
+	/*
+	/*********************************/
 	public static class DenotationWord {
 
 		private final List<DenotationSpikeNumber> numbers;
@@ -209,7 +225,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			if (ignored) {
 				final int decrement = numbers.size();
 				for (DenotationSpikeNumber spikeNumber : numbers) {
-					if (spikeNumber.isInSpike()) {
+					if (spikeNumber.isInAnySpike()) {
 						spikeNumber.spike.remove(this);
 						spikeNumber.onRemoveFromSpike(spikeNumber.spike);
 					}
@@ -267,7 +283,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				return;
 			}
 			final DenotationSpikeNumber highestNumber = getHighestNumber();
-			if (highestNumber.isInSpike()) {
+			if (highestNumber.isInAnySpike()) {
 				highestNumber.spike.remove(this);
 				highestNumber.onRemoveFromSpike(highestNumber.spike);
 			}
@@ -464,7 +480,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			};
 
 			for (DenotationSpikeNumber spikeNumber : numbers) {
-				if (spikeNumber.isInSpike()) {
+				if (spikeNumber.isInAnySpike()) {
 					spikes.add(spikeNumber.spike);
 				}
 			}
@@ -474,7 +490,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 		public boolean hasFreeElement() {
 			for (DenotationSpikeNumber spikeNumber : numbers) {
-				if (!spikeNumber.isInSpike()) {
+				if (!spikeNumber.isInAnySpike()) {
 					return true;
 				}
 			}
@@ -483,7 +499,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 		public DenotationSpikeNumber getFreeElement() {
 			for (DenotationSpikeNumber spikeNumber : numbers) {
-				if (!spikeNumber.isInSpike()) {
+				if (!spikeNumber.isInAnySpike()) {
 					return spikeNumber;
 				}
 			}
@@ -492,7 +508,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 		public boolean isInSpike() {
 			for (DenotationSpikeNumber spikeNumber : numbers) {
-				if (spikeNumber.isInSpike()) {
+				if (spikeNumber.isInAnySpike()) {
 					return true;
 				}
 			}
@@ -501,7 +517,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 		public DenotationSpikeNumber getElementInSpike(DenotationSpikesModel.Spike spike) {
 			for (DenotationSpikeNumber spikeNumber : numbers) {
-				if (spikeNumber.hasSpike(spike)) {
+				if (spikeNumber.isInSpike(spike)) {
 					return spikeNumber;
 				}
 			}
@@ -545,8 +561,12 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 	}
 
 	public static class DenotationSpikeNumber {
+		/** String value of the word. Can be different than in poem for example when the word has more denotation elements */
 		private String word;
+
+		/** Number of the spike number */
 		private int number;
+
 		private DenotationSpikesModel.Spike spike;
 
 		public DenotationSpikeNumber(int number, String word) {
@@ -577,11 +597,11 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			}
 		}
 
-		public boolean isInSpike() {
+		public boolean isInAnySpike() {
 			return spike != null;
 		}
 
-		public boolean hasSpike(DenotationSpikesModel.Spike spike) {
+		public boolean isInSpike(DenotationSpikesModel.Spike spike) {
 			return this.spike == spike;
 		}
 
@@ -637,12 +657,15 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 	private static class DenotationPoemModelLoader extends CsvLoader<DenotationPoemModel> {
 
+		/** splitter for splitting lists */
 		private static final CsvParserUtils.CollectionSplitter SPLITTER = new CsvParserUtils.CollectionSplitter() {
 			@Override
 			public String getSplitter() {
 				return PipeArrayList.SPLITTER;
 			}
 		};
+
+		/** parser for parsing DenotationSpikeNumbers */
 		private static final CsvParserUtils.CollectionParser<DenotationSpikeNumber> PARSER = new CsvParserUtils.CollectionParser<DenotationSpikeNumber>() {
 					@Override
 					public void parse(String toParse, Collection<DenotationSpikeNumber> toAdd) throws CsvParserException {
@@ -658,8 +681,6 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		@Override
 		public void loadFromCsv(CsvData csv, DenotationPoemModel model, Object... params)
 				throws CsvParserException {
-
-			model.clear();
 
 			int currentStropheNumber = -1;
 			int currentVerseNumber = -1;

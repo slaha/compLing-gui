@@ -22,7 +22,13 @@ import java.util.*;
  */
 public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 
+	/**
+	 * Key: number of spike
+	 * value: spike
+	*/
 	private final TIntObjectMap<Spike> spikes;
+
+	/** no. of current spike (used for creating new spike) */
 	private int currentSpike = 0;
 
 	public DenotationSpikesModel() {
@@ -38,6 +44,11 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 		spikes.put(currentSpike, spike);
 	}
 
+	/**
+	 * Returns spike for {@code row}<sup>th</sup> row of table
+	 *
+	 * @return Spike which should be displayed on {@code row}<sup>th</sup> row of table
+	 */
 	public Spike getSpikeOnRow(int row) {
 		int[] keys = spikes.keys();
 		Arrays.sort(keys);
@@ -47,6 +58,13 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 		return spikes.get(keys[row]);
 	}
 
+	/**
+	 * Remove spike with number {@code spikeNumber}.
+	 *
+	 * @param spikeNumber number of spike to remove.
+	 *
+	 * @return the lowest number of {@code DenotationPoemModel.DenotationWord} which was in removed spike
+	 */
 	public int removeSpike(int spikeNumber) {
 		Spike spike = spikes.remove(spikeNumber);
 		int lowestWordNumber = Integer.MAX_VALUE;
@@ -60,10 +78,16 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 		return lowestWordNumber;
 	}
 
+	/**
+	 * Checks if there is at least one Spike
+	 */
 	public boolean hasSpikes() {
 		return !spikes.isEmpty();
 	}
 
+	/**
+	 * @return all Spikes as sorted array (by Spike's number)
+	 */
 	public Spike[] getSpikes() {
 		Spike[] values = spikes.values(new Spike[spikes.size()]);
 		Arrays.sort(values, new Comparator<Spike>() {
@@ -90,8 +114,13 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 		return new DenotationSpikesModelLoader();
 	}
 
+	/**
+	 * Spike
+	 */
 	public static class Spike {
 		private final DenotationWordsMap words;
+
+		/** number of Spike */
 		private final int number;
 
 		public Spike(int number) {
@@ -129,8 +158,6 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 			}
 			data.getCurrentSection().addData(wordNumbers);
 		}
-
-
 	}
 
 	public static class DenotationWordsMap extends HashMap<DenotationPoemModel.DenotationWord, DenotationPoemModel.DenotationSpikeNumber> {
@@ -174,10 +201,23 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 		}
 	}
 
+	/**
+	 * This is helper class for saving
+	 * <ul>
+	 *     <li>Number of word</li>
+	 *     <li>Number of denotation element</li>
+	 *     <li>String which represents the DenotationWord</li>
+	 * </ul>
+	 * into csv file
+	 */
 	private static class SpikeWordBundle {
 
+		/** splitter for values - when saving */
 		public static final char SPLITTER_CHAR = '\\';
+		/** splitter for values - when loading */
 		public static final String SPLITTER = "\\\\";
+
+
 		private final int wordNumber;
 		private final int elementNumber;
 		private final String wordAsString;
@@ -202,7 +242,7 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 			CsvData data = new CsvData();
 			data.addSection();
 			data.getCurrentSection().addHeader("Spike number");
-			data.getCurrentSection().addHeader("Word number(s)");
+			data.getCurrentSection().addHeader("Word number(s) [word number\\denotation element\\value]");
 			for (Spike spike : object.getSpikes()) {
 				data.getCurrentSection().startNewLine();
 				spike.toCsv(data);
@@ -237,7 +277,7 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 						String word = split[2];
 						toAdd.add(new SpikeWordBundle(wordNumber, elementNumber, word));
 					} catch (NumberFormatException nfe) {
-
+						throw new CsvParserException(nfe.getMessage());
 					} catch (IndexOutOfBoundsException ioobe) {
 						throw new CsvParserException(ioobe.getMessage());
 					}
@@ -248,8 +288,8 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 				Spike spike = new Spike(number);
 
 				Collection<SpikeWordBundle> wordsNumbers = CsvParserUtils.getAsList(objects.get(1), splitter, parser);
-				//..numbers of words
 				for (SpikeWordBundle bundle : wordsNumbers) {
+
 					DenotationPoemModel.DenotationWord word = poemModel.getWord(bundle.wordNumber);
 					final DenotationPoemModel.DenotationSpikeNumber element = word.getElement(bundle.elementNumber);
 					spike.add(word, element);

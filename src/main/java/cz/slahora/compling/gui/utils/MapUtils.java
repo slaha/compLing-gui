@@ -36,10 +36,24 @@ public class MapUtils {
 	 * @return first value in the map
 	 * @throws java.lang.IllegalArgumentException if map is null or empty map
 	 */
-	public static Object getFirstValue(Map<?, ?> map) {
+	public static<T> T getFirstValue(Map<?, T> map) {
 		if (map == null || map.isEmpty()) {
 			throw new IllegalArgumentException("null or empty map supplied as parameter 'map'");
 		}
 		return map.values().iterator().next();
+	}
+
+	/**
+	 * Returns first value object in the map
+	 *
+	 * @param map map to find value in. Cannot be null or empty
+	 * @return first value in the map
+	 * @throws java.lang.IllegalArgumentException if map is null or empty map
+	 */
+	public static <T> T getFirstKey(Map<T, ?> map) {
+		if (map == null || map.isEmpty()) {
+			throw new IllegalArgumentException("null or empty map supplied as parameter 'map'");
+		}
+		return map.keySet().iterator().next();
 	}
 }
