@@ -8,6 +8,7 @@ import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.ColumnsAutoSizer;
 import cz.slahora.compling.gui.utils.FileChooserUtils;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
+import cz.slahora.compling.gui.utils.IconUtils;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.procedure.TIntObjectProcedure;
@@ -59,7 +60,7 @@ public class DenotationAnalysis {
 		private DenotationModel model;
 		private DenotationSpikesPanel denotationSpikesPanel;
 		private DenotationPoemPanel denotationPoemPanel;
-		private JSplitPane bottomPanel;
+		private JSplitPane middlePanel;
 
 		public DenotationPanel(WorkingText workingText) {
 			super(new GridBagLayout());
@@ -68,38 +69,57 @@ public class DenotationAnalysis {
 
 			JToolBar toolBar = new JToolBar(JToolBar.HORIZONTAL);
 			toolBar.setFloatable(false);
-			exportBtn = new JButton("Export");
-			importBtn = new JButton("Import");
+			exportBtn = new JButton("Export", IconUtils.getIcon(IconUtils.Icon.DOCUMENT_SAVE));
+			importBtn = new JButton("Import", IconUtils.getIcon(IconUtils.Icon.DOCUMENT_OPEN));
 			importBtn.addActionListener(this);
 			exportBtn.addActionListener(this);
 			toolBar.add(importBtn);
 			toolBar.add(exportBtn);
-			GridBagConstraints gbc = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
+			GridBagConstraints gbc;
+			gbc = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
 			add(toolBar, gbc);
 
 			setModel(new DenotationModel(workingText));
+
+
+			final JPanel bottomPanel = new JPanel(new GridBagLayout());
+			JButton cancelBtn = new JButton("Cancel", IconUtils.getIcon(IconUtils.Icon.CANCEL));
+			JButton doneBtn = new JButton("Hotovo", IconUtils.getIcon(IconUtils.Icon.NEXT));
+			doneBtn.setHorizontalTextPosition(JButton.LEFT);
+			cancelBtn.setEnabled(false);
+			doneBtn.setEnabled(false);
+			Insets insets = new Insets(3, 0, 3, 5);
+
+			JPanel buttonsPanel = new JPanel();
+			buttonsPanel.add(cancelBtn);
+			buttonsPanel.add(doneBtn);
+			gbc = new GridBagConstraintBuilder().gridxy(0, 0).insets(insets).anchor(GridBagConstraints.EAST).weightx(1).build();
+			bottomPanel.add(buttonsPanel, gbc);
+
+			gbc = new GridBagConstraintBuilder().gridxy(0, 2).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
+			add(bottomPanel, gbc);
 		}
 
 		private void setModel(DenotationModel denotationModel) {
 			this.model = denotationModel;
-			if (bottomPanel != null) {
-				remove(bottomPanel);
+			if (middlePanel != null) {
+				remove(middlePanel);
 			}
 
 			denotationPoemPanel = new DenotationPoemPanel(model, this);
 			denotationSpikesPanel = new DenotationSpikesPanel(model.getSpikesModel(), this);
 
-			bottomPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationSpikesPanel));
+			middlePanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationSpikesPanel));
 
 			GridBagConstraints gbc = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).build();
-			add(bottomPanel, gbc);
+			add(middlePanel, gbc);
 
 			validate();
 
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					bottomPanel.setDividerLocation(denotationPoemPanel.getWidth() + 50);
+					middlePanel.setDividerLocation(denotationPoemPanel.getWidth() + 50);
 					denotationPoemPanel.refresh(-1); //..refresh all
 					denotationSpikesPanel.refresh();
 				}
@@ -325,12 +345,14 @@ public class DenotationAnalysis {
 		}
 
 		private class WordPanelPopup extends JPopupMenu implements ActionListener {
+
+			public static final int SPIKES_PER_MENU = 20;
+
 			public static final String SPIKES_ADD_SUBMENU = "spikes_add_submenu";
 			public static final String SPIKES_REMOVE_SUBMENU = "spikes_remove_submenu";
 			public static final String SPIKE_KEY = "spike";
 
 			private final DenotationSpikesModel spikesModel;
-
 			private final JMenuItem ignore, addElement, removeElement, join, split;
 			private final JMenu spikesAddMenu, spikesRemoveMenu;
 
@@ -450,16 +472,31 @@ public class DenotationAnalysis {
 				spikesRemoveMenu.removeAll();
 				int menuPosition = 0;
 				if (spikesModel.hasSpikes() && !word.isIgnored() && word.hasFreeElement()) {
+
+					JMenu[] spikesSubMenus = createSpikesSubmenus();
+					System.out.println(spikesSubMenus.length);
 					for (DenotationSpikesModel.Spike spike : spikesModel.getSpikes()) {
 						if (!word.isInSpike(spike)) {
 							JMenuItem spikeItem = new JMenuItem("Přidat do hřebu č. " + spike.getNumber());
 							spikeItem.setName(SPIKES_ADD_SUBMENU);
 							spikeItem.putClientProperty(SPIKE_KEY, spike);
 							spikeItem.addActionListener(this);
-							spikesAddMenu.add(spikeItem);
+							int index = spike.getNumber() / SPIKES_PER_MENU;
+							//..we need to decrement index. But only if there is no not-full menu
+							if (spike.getNumber() % SPIKES_PER_MENU == 0) {
+								index--;
+							}
+							spikesSubMenus[index].add(spikeItem);
 						}
 					}
+					for (JMenu spikesSubMenu : spikesSubMenus) {
+						if (spikesSubMenu.getMenuComponentCount() > 0) {
+							spikesAddMenu.add(spikesSubMenu);
+						}
+					}
+					
 					add(spikesAddMenu, menuPosition++);
+
 				} else {
 					remove(spikesAddMenu);
 				}
@@ -477,6 +514,32 @@ public class DenotationAnalysis {
 				} else {
 					remove(spikesRemoveMenu);
 				}
+			}
+
+			private JMenu[] createSpikesSubmenus() {
+				final int spikesCount = countOfSpikesForWord();
+				final int lastMenuItems = spikesCount % SPIKES_PER_MENU;
+				//..count of spikes / spikes in one submenu + one menu if spikes count is not divided by spikesPerMenu
+				final int menusCount = spikesCount / SPIKES_PER_MENU + ((lastMenuItems > 0) ? 1 : 0);
+				JMenu[] menus = new JMenu[menusCount];
+				for (int i = 0; i < menus.length; i++) {
+					int l, h;
+					l = i * SPIKES_PER_MENU + 1;
+					h = l + SPIKES_PER_MENU - 1;
+					menus[i] = new JMenu("Hřeby č. " + l + " až " + h);
+				}
+
+				return menus;
+			}
+
+			private int countOfSpikesForWord() {
+				int count = 0;
+				for (DenotationSpikesModel.Spike spike : spikesModel.getSpikes()) {
+					if (!word.isInSpike(spike)) {
+						count++;
+					}
+				}
+				return count;
 			}
 
 			private void onElementChanged() {
@@ -542,8 +605,8 @@ public class DenotationAnalysis {
 
 			JToolBar toolBar = new JToolBar(JToolBar.HORIZONTAL);
 			toolBar.setFloatable(false);
-			addBtn = new JButton("Nový hřeb");
-			removeBtn = new JButton("Odstranit hřeb");
+			addBtn = new JButton("Nový hřeb", IconUtils.getIcon(IconUtils.Icon.ADD));
+			removeBtn = new JButton("Odstranit hřeb", IconUtils.getIcon(IconUtils.Icon.REMOVE));
 			removeBtn.setEnabled(false);
 			addBtn.addActionListener(this);
 			removeBtn.addActionListener(this);
@@ -587,13 +650,12 @@ public class DenotationAnalysis {
 				}
 			});
 
-			builder = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.NORTHWEST).weightx(1);
-			add(table.getTableHeader(), builder.build());
-
-			builder = new GridBagConstraintBuilder().gridxy(0, 2).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.NORTHWEST).weightx(1).weighty(1);
-			add(table, builder.copy().build());
+			builder = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).anchor(GridBagConstraints.NORTHWEST).weightx(1).weighty(1);
+			add(new JScrollPane(table), builder.copy().build());
 
 			ColumnsAutoSizer.sizeColumnsToFit(table, 10, SPIKE_WORDS_COLUMN);
+
+
 		}
 
 		@Override

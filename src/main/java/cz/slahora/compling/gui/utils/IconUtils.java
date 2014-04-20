@@ -19,6 +19,15 @@ public class IconUtils {
 
 	public enum Icon {
 		DOCUMENT_OPEN("document-open.png"),
+		DOCUMENT_SAVE("document-save.png"),
+
+		ADD("list-add.png"),
+		REMOVE("list-remove.png"),
+
+		NEXT("next.png"),
+
+
+		CANCEL("cancel.png"),
 		EXIT("exit.png"),
 		SETTINGS("settings.png"),
 		ABOUT("about.png");
