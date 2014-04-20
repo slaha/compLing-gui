@@ -157,7 +157,6 @@ public class DenotationAnalysis {
 
 		public void refreshSpikes(int number) {
 			denotationSpikesPanel.refresh(number);
-
 		}
 
 		public void refreshPoems(int number) {
@@ -216,7 +215,6 @@ public class DenotationAnalysis {
 				public boolean execute(int number, WordPanel wordPanel) {
 					if (number >= _number) {
 						wordPanel.refresh();
-
 					}
 
 					return true;
@@ -379,7 +377,7 @@ public class DenotationAnalysis {
 				if (source == ignore) {
 					final boolean isIgnoredNow = word.isIgnored();
 					if (!isIgnoredNow && word.isInSpike()) {
-						if (!notifyIsInSpike()) {
+						if (!MessagesUtils.notifyIsInSpike(this, word)) {
 							return;
 						}
 					}
@@ -390,8 +388,8 @@ public class DenotationAnalysis {
 
 				} else if (source == removeElement) {
 					final DenotationPoemModel.DenotationSpikeNumber highestNumber = word.getHighestNumber();
-					if (highestNumber.isInSpike()) {
-						if (!notifyIsInElement(highestNumber)) {
+					if (highestNumber.isInAnySpike()) {
+						if (!MessagesUtils.notifyIsInElement(this, highestNumber)) {
 							return;
 						}
 					}
@@ -413,15 +411,10 @@ public class DenotationAnalysis {
 
 						//..check if the word is already in any other spike. If so, ask for divide
 						if (word.getElements().size() > 1 && word.isInSpike()) {
-
 							String input = null;
 							do {
-								String msg = "Zadejte prosím [pomocí ( a )], které část slova '" + word.getWords() + "' nepatří do hřebu.";
-								if (input != null) {
-									msg += "\n\nDo textu vepiště pouze znak '(' a ')', tak aby v závorkách byla část slova, která do hřebu nepatří";
-								}
-								input = JOptionPane.showInputDialog(this, msg, word.getWords());
-							} while (input != null && !checkInput(input, word.getWords().toString()));
+								input = MessagesUtils.getDividedValue(this, word, input);
+							} while (input != null && !MessagesUtils.checkInput(input, word.getWords().toString()));
 							if (input == null) {
 								//..canceled
 								return;
@@ -450,84 +443,6 @@ public class DenotationAnalysis {
 					}
 				}
 				panel.refresh(WordPanel.this);
-			}
-
-			private boolean notifyIsInElement(DenotationPoemModel.DenotationSpikeNumber element) {
-				final int yesNo = JOptionPane.showConfirmDialog(this,
-					"Denotační element " + element + " je ve hřebu č. " + element.getSpike() + ". Budete-li pokračovat, bude z tohoto hřebu odstraněn.\n\nChcete pokračovat?",
-					"Odstranit denotační element?",
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE);
-				return yesNo == JOptionPane.YES_OPTION;
-			}
-
-			private boolean notifyIsInSpike() {
-				final int yesNo = JOptionPane.showConfirmDialog(this,
-					"Slovo '" + word + "' je ve hřebech č. " + word.getSpikes() + ". Budete-li pokračovat, bude z těchto hřebů odstraněno.\n\nChcete pokračovat?",
-					"Odstranit slovo ze hřebů?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-				return yesNo == JOptionPane.YES_OPTION;
-			}
-
-			private boolean checkInput(String input, String word) {
-				if (word.length() >= input.length()) {
-					return false;
-				}
-
-				StringBuilder  inputSb = new StringBuilder();
-				StringBuilder wordSb = new StringBuilder();
-				removeBraces(input, word, inputSb, wordSb);
-				input = inputSb.toString();
-				word = wordSb.toString();
-				//..check if there is one (, one ) and ( is before )
-				if (StringUtils.countMatches(input, ")") ==  1
-					&& StringUtils.countMatches(input, "(") == 1) {
-
-					int openingBracket = input.indexOf('(');
-					int closingBracket = input.indexOf(')');
-					if (openingBracket < closingBracket
-						&& (closingBracket - openingBracket) > 1) {
-
-						//..check if input without braces is the same as word
-						return input.replace("(", "").replace(")", "").equals(word);
-					}
-
-				}
-				return false;
-			}
-
-			/**
-			 * Removes ( and ) from {@code input} and {@code word} if the brace is on the same position in both words.
-			 *
-			 * <p>
-			 *     word=Succ(ess)
-			 *     input=(S)ucc(ess)
-			 *     wordSb=Success
-			 *     inputSb=(S)uccess
-			 */
-			private void removeBraces(String input, String word, StringBuilder inputSb, StringBuilder wordSb) {
-				int wordDiff = 0;
-				char inputChar, wordChar;
-				final int wordLength = word.length();
-				for (int i = 0; i < input.length(); i++) {
-					inputChar = input.charAt(i);
-					int wordCharIndex = i - wordDiff;
-					if (wordCharIndex < wordLength) {
-						wordChar = word.charAt(wordCharIndex);
-					} else {
-						wordChar = 0;
-					}
-					inputSb.append(inputChar);
-
-					if (wordChar > 0) {
-						if ((inputChar == '(' || inputChar == ')')
-							&& (wordChar != '(' && wordChar != ')')) {
-							//..new bracket in input
-							wordDiff++;
-						} else {
-							wordSb.append(wordChar);
-						}
-					}
-				}
 			}
 
 			private void loadSpikes() {
@@ -604,6 +519,8 @@ public class DenotationAnalysis {
 					ignore.setText("Ignorovat");
 				}
 			}
+
+
 		}
 	}
 
@@ -857,5 +774,96 @@ public class DenotationAnalysis {
 			}
 		}
 
+
+	}
+
+	private static class MessagesUtils {
+
+		private static boolean notifyIsInElement(Component parent, DenotationPoemModel.DenotationSpikeNumber element) {
+			final int yesNo = JOptionPane.showConfirmDialog(parent,
+				"Denotační element " + element + " je ve hřebu č. " + element.getSpike() + ". Budete-li pokračovat, bude z tohoto hřebu odstraněn.\n\nChcete pokračovat?",
+				"Odstranit denotační element?",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+			return yesNo == JOptionPane.YES_OPTION;
+		}
+
+		private static  boolean notifyIsInSpike(Component parent, DenotationPoemModel.DenotationWord word) {
+			final int yesNo = JOptionPane.showConfirmDialog(parent,
+				"Slovo '" + word + "' je ve hřebech č. " + word.getSpikes() + ". Budete-li pokračovat, bude z těchto hřebů odstraněno.\n\nChcete pokračovat?",
+				"Odstranit slovo ze hřebů?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			return yesNo == JOptionPane.YES_OPTION;
+		}
+
+
+		private static String getDividedValue(Component parent, DenotationPoemModel.DenotationWord word, String input) {
+			String msg = "Zadejte prosím [pomocí ( a )], které část slova '" + word.getWords() + "' nepatří do hřebu.";
+			if (input != null) {
+				msg += "\n\nDo textu vepiště pouze znak '(' a ')', tak aby v závorkách byla část slova, která do hřebu nepatří";
+			}
+			return JOptionPane.showInputDialog(parent, msg, word.getWords());
+		}
+
+		private static boolean checkInput(String input, String word) {
+			if (word.length() >= input.length()) {
+				return false;
+			}
+
+			StringBuilder  inputSb = new StringBuilder();
+			StringBuilder wordSb = new StringBuilder();
+			removeBraces(input, word, inputSb, wordSb);
+			input = inputSb.toString();
+			word = wordSb.toString();
+			//..check if there is one (, one ) and ( is before )
+			if (StringUtils.countMatches(input, ")") ==  1
+				&& StringUtils.countMatches(input, "(") == 1) {
+
+				int openingBracket = input.indexOf('(');
+				int closingBracket = input.indexOf(')');
+				if (openingBracket < closingBracket
+					&& (closingBracket - openingBracket) > 1) {
+
+					//..check if input without braces is the same as word
+					return input.replace("(", "").replace(")", "").equals(word);
+				}
+
+			}
+			return false;
+		}
+
+		/**
+		 * Removes ( and ) from {@code input} and {@code word} if the brace is on the same position in both words.
+		 *
+		 * <p>
+		 *     word=Succ(ess)
+		 *     input=(S)ucc(ess)
+		 *     wordSb=Success
+		 *     inputSb=(S)uccess
+		 */
+		private static void removeBraces(String input, String word, StringBuilder inputSb, StringBuilder wordSb) {
+			int wordDiff = 0;
+			char inputChar, wordChar;
+			final int wordLength = word.length();
+			for (int i = 0; i < input.length(); i++) {
+				inputChar = input.charAt(i);
+				int wordCharIndex = i - wordDiff;
+				if (wordCharIndex < wordLength) {
+					wordChar = word.charAt(wordCharIndex);
+				} else {
+					wordChar = 0;
+				}
+				inputSb.append(inputChar);
+
+				if (wordChar > 0) {
+					if ((inputChar == '(' || inputChar == ')')
+						&& (wordChar != '(' && wordChar != ')')) {
+						//..new bracket in input
+						wordDiff++;
+					} else {
+						wordSb.append(wordChar);
+					}
+				}
+			}
+		}
 	}
 }
