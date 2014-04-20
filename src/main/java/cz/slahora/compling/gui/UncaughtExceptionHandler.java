@@ -7,10 +7,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -72,14 +69,13 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 		JScrollPane allScroll = new JScrollPane(panel) {
 			@Override
 			public Dimension getPreferredSize() {
-				return new Dimension(800, 800);
+				Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+				return new Dimension((int)(screenSize.width * 0.75), (int)(screenSize.height * 0.75));
 			}
 		};
 		panel.setBorder(BORDER);
 
 		JOptionPane.showMessageDialog(null, allScroll, "Neočekávaná chyba", JOptionPane.ERROR_MESSAGE);
-
-
 	}
 
 	public boolean logStackTrace(Throwable t) {
