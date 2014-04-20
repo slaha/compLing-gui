@@ -4,6 +4,7 @@ import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.model.WorkingTexts;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.text.BadLocationException;
@@ -62,7 +63,9 @@ public class MainWindow implements ActionListener, TabHolder {
 		});
 
 		this.documentListener = new DocumentListener(controller);
+
 		textArea.getDocument().addDocumentListener(documentListener);
+		textArea.setBorder(new EmptyBorder(2, 7, 2, 7));
 	}
 
 	private void createUIComponents() {
