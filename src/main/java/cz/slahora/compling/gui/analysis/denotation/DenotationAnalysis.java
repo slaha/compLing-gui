@@ -544,11 +544,9 @@ public class DenotationAnalysis {
 					if (word.hasFreeElement()) {
 						menuItemMessage = "Přidat do hřebu č. ";
 						menuItemName = SPIKES_ADD_SUBMENU;
-					} else if (word.getElements().size() > 1) {
+					} else {
 						menuItemMessage = "Duplikovat do hřebu č. ";
 						menuItemName = SPIKES_DUPLICATE_SUBMENU;
-					} else {
-						menuItemName = menuItemMessage = "";
 					}
 
 					for (DenotationSpikesModel.Spike spike : spikesModel.getSpikes()) {
@@ -566,33 +564,25 @@ public class DenotationAnalysis {
 						}
 					}
 
+					final JMenu toAdd, toRemove;
 					if (word.hasFreeElement()) {
-						for (JMenu spikesSubMenu : spikesSubMenus) {
-							if (spikesSubMenu.getMenuComponentCount() > 0) {
-								spikesAddMenu.add(spikesSubMenu);
-							}
-						}
-						add(spikesAddMenu, menuPosition++);
-
+						toAdd = spikesAddMenu;
+						toRemove = spikesDuplicateMenu;
 					} else {
-						remove(spikesAddMenu);
+						toAdd = spikesDuplicateMenu;
+						toRemove = spikesAddMenu;
 					}
-
-					//..has more than one denotation element
-					if (word.getElements().size() > 1 && !word.hasFreeElement()) {
-						for (JMenu spikesSubMenu : spikesSubMenus) {
-							if (spikesSubMenu.getMenuComponentCount() > 0) {
-								spikesDuplicateMenu.add(spikesSubMenu);
-							}
+					for (JMenu spikesSubMenu : spikesSubMenus) {
+						if (spikesSubMenu.getMenuComponentCount() > 0) {
+							toAdd.add(spikesSubMenu);
 						}
-						add(spikesDuplicateMenu, menuPosition++);
-
-					} else {
-						remove(spikesDuplicateMenu);
 					}
-
+					add(toAdd, menuPosition++);
+					remove(toRemove);
 				} else {
 					remove(spikesAddMenu);
+					remove(spikesDuplicateMenu);
+					remove(spikesRemoveMenu);
 				}
 				if (spikesModel.hasSpikes() && !word.isIgnored() && word.isInSpike()) {
 					for (DenotationSpikesModel.Spike spike : word.getSpikes()) {
