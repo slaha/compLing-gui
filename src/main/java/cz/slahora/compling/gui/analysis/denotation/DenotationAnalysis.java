@@ -70,7 +70,6 @@ public class DenotationAnalysis {
 		private DenotationPoemPanel denotationPoemPanel;
 		private JSplitPane middlePanel;
 
-
 		public DenotationPanel(JFrame frame, WorkingText workingText) {
 			super(new GridBagLayout());
 
@@ -122,8 +121,8 @@ public class DenotationAnalysis {
 
 			denotationPoemPanel = new DenotationPoemPanel(model, this);
 			denotationSpikesPanel = new DenotationSpikesPanel(model.getSpikesModel(), this);
-
 			middlePanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationSpikesPanel));
+			middlePanel.setContinuousLayout(true);
 
 			GridBagConstraints gbc = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).build();
 			add(middlePanel, gbc);
@@ -133,7 +132,10 @@ public class DenotationAnalysis {
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					middlePanel.setDividerLocation(denotationPoemPanel.getWidth() + 50);
+					int location = (int) denotationPoemPanel.getPreferredSize().getWidth();
+					location += middlePanel.getDividerSize() * 2;
+					location += 50;
+					middlePanel.setDividerLocation(location);
 					denotationPoemPanel.refresh(-1); //..refresh all
 					denotationSpikesPanel.refresh();
 				}
@@ -238,6 +240,9 @@ public class DenotationAnalysis {
 
 	private static class DenotationPoemPanel extends JPanel {
 
+		private static final Insets STROPHE_INSETS = new Insets(1, 1, 25, 1);
+		private static final GridBagConstraintBuilder BUILDER = new GridBagConstraintBuilder().anchor(GridBagConstraints.LINE_START);
+
 		private final TIntObjectMap<WordPanel> wordPanels;
 
 		private final DenotationPanel denotationPanel;
@@ -278,9 +283,6 @@ public class DenotationAnalysis {
 
 			add(poemPanel, new GridBagConstraintBuilder().gridxy(0, 0).anchor(GridBagConstraints.NORTH).weighty(1).build());
 		}
-
-		private static final Insets STROPHE_INSETS = new Insets(1, 1, 25, 1);
-		private static final GridBagConstraintBuilder BUILDER = new GridBagConstraintBuilder().anchor(GridBagConstraints.LINE_START);
 
 		public void refresh(WordPanel wordPanel) {
 			refresh(wordPanel.word.getNumber());
