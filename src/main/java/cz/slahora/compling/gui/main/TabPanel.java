@@ -123,7 +123,7 @@ public class TabPanel extends JPanel {
 		closeButton.setMinimumSize(BUTTON_DIMENSION);
 		closeButton.addActionListener(CLOSE_LISTENER);
 		closeButton.setContentAreaFilled(false);
-		closeButton.setOpaque(true);
+		closeButton.setOpaque(false);
 		closeButton.addMouseListener(CLOSE_BUTTON_MOUSE_ADAPTER);
 
 		setPreferredSize(new Dimension(145, 25));
