@@ -458,7 +458,7 @@ public class DenotationAnalysis {
 				if (source == ignore) {
 					final boolean isIgnoredNow = word.isIgnored();
 					if (!isIgnoredNow && word.isInSpike()) {
-						if (!MessagesUtils.notifyIsInSpike(this, word)) {
+						if (!MessagesUtils.notifyIsInSpike(panel.denotationPanel, word)) {
 							return;
 						}
 					}
@@ -470,7 +470,7 @@ public class DenotationAnalysis {
 				} else if (source == removeElement) {
 					final DenotationPoemModel.DenotationSpikeNumber highestNumber = word.getHighestNumber();
 					if (highestNumber.isInAnySpike()) {
-						if (!MessagesUtils.notifyIsInElement(this, highestNumber)) {
+						if (!MessagesUtils.notifyIsInElement(panel.denotationPanel, highestNumber)) {
 							return;
 						}
 					}
@@ -494,7 +494,7 @@ public class DenotationAnalysis {
 						if (word.getElements().size() > 1 && word.isInSpike()) {
 							String input = null;
 							do {
-								input = MessagesUtils.getDividedValue(this, word, input);
+								input = MessagesUtils.getDividedValue(panel.denotationPanel, word, input);
 							} while (input != null && !MessagesUtils.checkInput(input, word.getWords().toString()));
 							if (input == null) {
 								//..canceled
