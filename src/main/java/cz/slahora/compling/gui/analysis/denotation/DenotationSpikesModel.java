@@ -29,7 +29,7 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 	private final TIntObjectMap<Spike> spikes;
 
 	/** no. of current spike (used for creating new spike) */
-	private int currentSpike = 0;
+	private int currentSpike;
 
 	public DenotationSpikesModel() {
 		spikes = new TIntObjectHashMap<Spike>();
@@ -290,6 +290,7 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 					}
 				}
 			};
+			int maxNumber = 0;
 			for (List<Object> objects : csv.getCurrentSection().getDataLines()) {
 				int number = CsvParserUtils.getAsInt(objects.get(0));
 				Spike spike = new Spike(number);
@@ -303,8 +304,11 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 					element.onAddToSpike(spike, bundle.wordAsString);
 				}
 				spikesModel.spikes.put(number, spike);
+				if (maxNumber < number) {
+					maxNumber = number;
+				}
 			}
-
+			spikesModel.currentSpike = maxNumber;
 		}
 	}
 }
