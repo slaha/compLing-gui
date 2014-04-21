@@ -49,14 +49,7 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis<Characte
 			@Override
 			public void windowClosing(WindowEvent e) {
 				if (denotationPanel.isAnySpikeInTheTable()) {
-					final int confirmDialog = JOptionPane.showConfirmDialog(null,
-						"Tabulka obsahuje denotační elementy. Skutečně chcete uzavřít okno?\n\n" +
-							"Kliknutím na 'ano' uložíte rozpracovanou analýzu,\n" +
-							"Kliknutím na 'ne' uzavřete okno,\n" +
-							"Kliknutím na 'cancel' uzavřete tento dialog, ale ne okno s analýzou.",
-						"Uzavřít okno?",
-						JOptionPane.YES_NO_CANCEL_OPTION
-					);
+					final int confirmDialog = showConfirmExitDialog(frame);
 
 					switch (confirmDialog) {
 						case JOptionPane.YES_OPTION:
@@ -76,6 +69,19 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis<Characte
 				handler.handleResult(DenotationSingleTextAnalysis.this);
 			}
 		});
+	}
+
+	private int showConfirmExitDialog(JFrame parent) {
+		return JOptionPane.showConfirmDialog(
+			parent,
+			"Tabulka obsahuje denotační elementy. Skutečně chcete uzavřít okno?\n\n" +
+				"Kliknutím na 'ano' nejprve uložíte rozpracovanou analýzu a poté bude okno uzavřeno,\n" +
+				"Kliknutím na 'ne' uzavřete okno bez uložení,\n" +
+				"Kliknutím na 'cancel' uzavřete tento dialog, ale ne okno s analýzou.\n\n" +
+				"Uložit před uzavřením?",
+			"Uložit před uzavřením?",
+			JOptionPane.YES_NO_CANCEL_OPTION
+		);
 	}
 
 	@Override
