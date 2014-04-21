@@ -185,7 +185,14 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 				return "–";
 			}
 
-			final Iterator<DenotationPoemModel.DenotationWord> iterator = keySet().iterator();
+			final List<DenotationPoemModel.DenotationWord> sorted = new ArrayList<DenotationPoemModel.DenotationWord>(keySet());
+			Collections.sort(sorted, new Comparator<DenotationPoemModel.DenotationWord>() {
+				@Override
+				public int compare(DenotationPoemModel.DenotationWord o1, DenotationPoemModel.DenotationWord o2) {
+					return o1.getNumber() - o2.getNumber();
+				}
+			});
+			final Iterator<DenotationPoemModel.DenotationWord> iterator = sorted.iterator();
 			StringBuilder sb = new StringBuilder();
 			appendWordSpike(sb, iterator.next(), s);
 			while (iterator.hasNext()) {

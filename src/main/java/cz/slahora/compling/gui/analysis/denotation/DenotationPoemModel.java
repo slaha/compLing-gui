@@ -11,10 +11,7 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.procedure.TObjectProcedure;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
@@ -488,7 +485,12 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 					spikes.add(spikeNumber.spike);
 				}
 			}
-			
+			Collections.sort(spikes, new Comparator<DenotationSpikesModel.Spike>() {
+				@Override
+				public int compare(DenotationSpikesModel.Spike o1, DenotationSpikesModel.Spike o2) {
+					return o1.getNumber() - o2.getNumber();
+				}
+			});
 			return spikes;
 		}
 
