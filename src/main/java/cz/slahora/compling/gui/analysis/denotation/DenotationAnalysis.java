@@ -254,6 +254,9 @@ public class DenotationAnalysis {
 
 			this.wordPanels = new TIntObjectHashMap<WordPanel>();
 
+			JPanel poemPanel = new JPanel(new GridBagLayout());
+			poemPanel.setBackground(Color.white);
+
 			final int countOfStrophes = poemModel.getCountOfStrophes();
 			for (int i = 1; i <= countOfStrophes; i++) {
 				DenotationPoemModel.DenotationStrophe strophe = poemModel.getStrophe(i);
@@ -270,8 +273,10 @@ public class DenotationAnalysis {
 					}
 					strophePanel.add(versePanel, BUILDER.copy().gridy(verseNumber++).build());
 				}
-				add(strophePanel, BUILDER.copy().insets(STROPHE_INSETS).gridxy(0, i - 1).build());
+				poemPanel.add(strophePanel, BUILDER.copy().insets(STROPHE_INSETS).gridxy(0, i - 1).build());
 			}
+
+			add(poemPanel, new GridBagConstraintBuilder().gridxy(0, 0).anchor(GridBagConstraints.NORTH).weighty(1).build());
 		}
 
 		private static final Insets STROPHE_INSETS = new Insets(1, 1, 25, 1);
