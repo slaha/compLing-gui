@@ -26,6 +26,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.awt.font.TextAttribute;
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,19 +54,29 @@ public class DenotationAnalysis {
 
 	public static class DenotationPanel extends JPanel implements ActionListener {
 
+		private final JFrame frame;
+
 		private final JButton exportBtn;
 		private final JButton importBtn;
+		private final JButton cancelBtn;
+		private final JButton doneBtn;
+
 		private final WorkingText workingText;
+
+		private final ImportExportHandler importExportHandler;
 
 		private DenotationModel model;
 		private DenotationSpikesPanel denotationSpikesPanel;
 		private DenotationPoemPanel denotationPoemPanel;
 		private JSplitPane middlePanel;
 
-		public DenotationPanel(WorkingText workingText) {
+
+		public DenotationPanel(JFrame frame, WorkingText workingText) {
 			super(new GridBagLayout());
 
+			this.frame = frame;
 			this.workingText = workingText;
+			this.importExportHandler = new ImportExportHandler(this, LastDirectory.getInstance());
 
 			JToolBar toolBar = new JToolBar(JToolBar.HORIZONTAL);
 			toolBar.setFloatable(false);
@@ -83,10 +94,13 @@ public class DenotationAnalysis {
 
 
 			final JPanel bottomPanel = new JPanel(new GridBagLayout());
-			JButton cancelBtn = new JButton("Cancel", IconUtils.getIcon(IconUtils.Icon.CANCEL));
-			JButton doneBtn = new JButton("Hotovo", IconUtils.getIcon(IconUtils.Icon.NEXT));
+
+			cancelBtn = new JButton("Cancel", IconUtils.getIcon(IconUtils.Icon.CANCEL));
+			cancelBtn.addActionListener(this);
+
+			doneBtn = new JButton("Hotovo", IconUtils.getIcon(IconUtils.Icon.NEXT));
+			doneBtn.addActionListener(this);
 			doneBtn.setHorizontalTextPosition(JButton.LEFT);
-			cancelBtn.setEnabled(false);
 			doneBtn.setEnabled(false);
 			Insets insets = new Insets(3, 0, 3, 5);
 
@@ -129,50 +143,21 @@ public class DenotationAnalysis {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			final Object source = e.getSource();
-			LastDirectory lastDir = LastDirectory.getInstance();
-			File lastDirectory = lastDir.getLastDirectory();
 			if (source == exportBtn) {
-				CsvExporter exporter = new CsvExporter(model.getCsvSaver().saveToCsv(model));
-				File csvFile = FileChooserUtils.getFileToSave(lastDirectory, this, "csv");
-				if (csvFile == null) {
-					return;
-				} else if (csvFile.exists()) {
-					int i = JOptionPane.showConfirmDialog(getParent(), "Soubor " + csvFile.getName() + " již existuje. Chcete jej přepsat?", "Soubor již existuje", JOptionPane.YES_NO_OPTION);
-					if (i != JOptionPane.YES_OPTION) {
-						return;
-					}
-				}
-				try {
-					exporter.export(csvFile);
-				} catch (IOException ex) {
-					JOptionPane.showMessageDialog(getParent(), "Chyba při ukládání souboru " + csvFile.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
-				} finally {
-					lastDir.setLastDirectory(csvFile.getParentFile());
-				}
+				importExportHandler.export(model);
 			}
 			else if (source == importBtn) {
-				File file = FileChooserUtils.getFileToOpen(lastDirectory, this, "csv");
-				if (file == null) {
-					return;
-				}
-				try {
-					List<String> lines = IOUtils.readLines(new FileInputStream(file));
-					CsvData csvData = new CsvData(lines);
-					Csv.CsvLoader<DenotationModel> csvLoader = this.model.getCsvLoader();
-					DenotationModel newModel = new DenotationModel(workingText);
-					csvLoader.loadFromCsv(csvData, newModel);
-					setModel(newModel);
-
-				} catch (IOException ex) {
-					JOptionPane.showMessageDialog(getParent(), "Chyba při čtení souboru " + file.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
-				} catch (Csv.CsvParserException pe) {
-					JOptionPane.showMessageDialog(getParent(), "Chyba při parsování souboru " + file.getName() + "\n\nChyba: " + pe.getMessage(), "Chyba", JOptionPane.ERROR_MESSAGE);
-					pe.printStackTrace();
-				} finally {
-					lastDir.setLastDirectory(file.getParentFile());
+				final DenotationModel denotationModel = importExportHandler.importCsv(model.getCsvLoader(), workingText);
+				if (denotationModel != null) {
+					setModel(denotationModel);
 				}
 			}
+			else if (source == doneBtn) {
 
+			}
+			else if (source == cancelBtn) {
+				closeWindow();
+			}
 		}
 
 		public void refreshSpikes(int number) {
@@ -188,10 +173,66 @@ public class DenotationAnalysis {
 		}
 
 		public void save() {
+			importExportHandler.export(model);
+		}
 
-			ActionEvent event = new ActionEvent(exportBtn, ActionEvent.ACTION_FIRST , exportBtn.getText());
-			actionPerformed(event);
+		public void closeWindow() {
+			frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+		}
+	}
 
+	private static class ImportExportHandler {
+
+		private final JComponent parent;
+		private final LastDirectory lastDir;
+
+		public ImportExportHandler(JComponent parent, LastDirectory instance) {
+			this.parent = parent;
+			this.lastDir = instance;
+		}
+
+		public void export(DenotationModel model) {
+			CsvExporter exporter = new CsvExporter(model.getCsvSaver().saveToCsv(model));
+			File csvFile = FileChooserUtils.getFileToSave(lastDir.getLastDirectory(), parent, "csv");
+			if (csvFile == null) {
+				return;
+			} else if (csvFile.exists()) {
+				int i = JOptionPane.showConfirmDialog(parent, "Soubor " + csvFile.getName() + " již existuje. Chcete jej přepsat?", "Soubor již existuje", JOptionPane.YES_NO_OPTION);
+				if (i != JOptionPane.YES_OPTION) {
+					return;
+				}
+			}
+			try {
+				exporter.export(csvFile);
+			} catch (IOException ex) {
+				JOptionPane.showMessageDialog(parent, "Chyba při ukládání souboru " + csvFile.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
+			} finally {
+				lastDir.setLastDirectory(csvFile.getParentFile());
+			}
+
+		}
+
+		public DenotationModel importCsv(Csv.CsvLoader<DenotationModel> csvLoader, WorkingText workingText) {
+			File file = FileChooserUtils.getFileToOpen(lastDir.getLastDirectory(), parent, "csv");
+			if (file == null) {
+				return null;
+			}
+			try {
+				List<String> lines = IOUtils.readLines(new FileInputStream(file));
+				CsvData csvData = new CsvData(lines);
+				DenotationModel newModel = new DenotationModel(workingText);
+				csvLoader.loadFromCsv(csvData, newModel);
+				return newModel;
+
+			} catch (IOException ex) {
+				JOptionPane.showMessageDialog(parent, "Chyba při čtení souboru " + file.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
+			} catch (Csv.CsvParserException pe) {
+				JOptionPane.showMessageDialog(parent, "Chyba při parsování souboru " + file.getName() + "\n\nChyba: " + pe.getMessage(), "Chyba", JOptionPane.ERROR_MESSAGE);
+				pe.printStackTrace();
+			} finally {
+				lastDir.setLastDirectory(file.getParentFile());
+			}
+			return null;
 		}
 	}
 

@@ -37,7 +37,7 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis<Characte
 
 		final JFrame frame = new JFrame("Denotační analýza");
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		final DenotationAnalysis.DenotationPanel denotationPanel = new DenotationAnalysis.DenotationPanel(text);
+		final DenotationAnalysis.DenotationPanel denotationPanel = new DenotationAnalysis.DenotationPanel(frame, text);
 		frame.setContentPane(denotationPanel);
 
 		frame.pack();
