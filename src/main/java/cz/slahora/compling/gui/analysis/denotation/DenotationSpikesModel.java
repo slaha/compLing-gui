@@ -291,7 +291,7 @@ public class DenotationSpikesModel implements Csv<DenotationSpikesModel> {
 				for (SpikeWordBundle bundle : wordsNumbers) {
 
 					DenotationPoemModel.DenotationWord word = poemModel.getWord(bundle.wordNumber);
-					final DenotationPoemModel.DenotationSpikeNumber element = word.getElement(bundle.elementNumber);
+					final DenotationPoemModel.DenotationSpikeNumber element = word.getFreeElement(bundle.elementNumber);
 					spike.add(word, element);
 					element.onAddToSpike(spike, bundle.wordAsString);
 				}

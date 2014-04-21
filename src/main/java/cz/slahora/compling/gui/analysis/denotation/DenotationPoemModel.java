@@ -269,13 +269,17 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				return;
 			}
 			DenotationSpikeNumber spikeNumber = new DenotationSpikeNumber(getHighestNumber().number + 1, word);
-			numbers.add(spikeNumber);
+			addElement(spikeNumber);
 			forEachValue(new ForEach(new ForEachRunner() {
 				@Override
 				public void run(DenotationWord word) {
 					word.incrementNumbers(1);
 				}
 			}));
+		}
+
+		/*package*/ void addElement(DenotationSpikeNumber spikeNumber) {
+			numbers.add(spikeNumber);
 		}
 
 		public void removeElement() {
@@ -524,9 +528,9 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			throw new IllegalStateException("Word " + words + " (number " + number + ") does not belong to spike " + spike);
 		}
 
-		/*package*/ DenotationSpikeNumber getElement(int number) {
+		/*package*/ DenotationSpikeNumber getFreeElement(int number) {
 			for (DenotationSpikeNumber spikeNumber : numbers) {
-				if (number == spikeNumber.number) {
+				if (number == spikeNumber.number && spikeNumber.spike == null) {
 					return spikeNumber;
 				}
 			}
@@ -620,6 +624,10 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 		public int getNumber() {
 			return number;
+		}
+
+		public DenotationSpikeNumber duplicate() {
+			return new DenotationSpikeNumber(this.number, this.word);
 		}
 	}
 

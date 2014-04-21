@@ -360,12 +360,13 @@ public class DenotationAnalysis {
 			public static final int SPIKES_PER_MENU = 20;
 
 			public static final String SPIKES_ADD_SUBMENU = "spikes_add_submenu";
+			public static final String SPIKES_DUPLICATE_SUBMENU = "spikes_duplicate_submenu";
 			public static final String SPIKES_REMOVE_SUBMENU = "spikes_remove_submenu";
 			public static final String SPIKE_KEY = "spike";
 
 			private final DenotationSpikesModel spikesModel;
 			private final JMenuItem ignore, addElement, removeElement, join, split;
-			private final JMenu spikesAddMenu, spikesRemoveMenu;
+			private final JMenu spikesAddMenu, spikesDuplicateMenu, spikesRemoveMenu;
 
 			private WordPanelPopup(DenotationSpikesModel spikesModel) {
 				this.spikesModel = spikesModel;
@@ -377,6 +378,7 @@ public class DenotationAnalysis {
 				split = new JMenuItem("Oddělit " + (word.hasJoinedAnotherWord() ? word.getLastJoined() :""));
 
 				spikesAddMenu = new JMenu("Přidat do hřebu");
+				spikesDuplicateMenu = new JMenu("Přidat do jiného hřebu");
 				spikesRemoveMenu = new JMenu("Odebrat z hřebu");
 
 				ignore.addActionListener(this);
@@ -462,6 +464,17 @@ public class DenotationAnalysis {
 						}
 						WordPanel.this.setToolTipText("Patří do hřebu č. " + word.getSpikes());
 						panel.refreshSpikes(spike.getNumber());
+
+					} else if (SPIKES_DUPLICATE_SUBMENU.equals(menuItem.getName())) {
+
+						DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) menuItem.getClientProperty(SPIKE_KEY);
+						final DenotationPoemModel.DenotationSpikeNumber duplicate = word.getHighestNumber().duplicate();
+						word.addElement(duplicate);
+						spike.add(word, duplicate);
+						duplicate.onAddToSpike(spike);
+						WordPanel.this.setToolTipText("Patří do hřebu č. " + word.getSpikes());
+						panel.refreshSpikes(spike.getNumber());
+
 					} else if (SPIKES_REMOVE_SUBMENU.equals(menuItem.getName())) {
 						DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) menuItem.getClientProperty(SPIKE_KEY);
 						spike.remove(word);
@@ -480,16 +493,29 @@ public class DenotationAnalysis {
 
 			private void loadSpikes() {
 				spikesAddMenu.removeAll();
+				spikesDuplicateMenu.removeAll();
 				spikesRemoveMenu.removeAll();
 				int menuPosition = 0;
-				if (spikesModel.hasSpikes() && !word.isIgnored() && word.hasFreeElement()) {
+				if (spikesModel.hasSpikes() && !word.isIgnored()) {
 
 					JMenu[] spikesSubMenus = createSpikesSubmenus();
-					System.out.println(spikesSubMenus.length);
+
+					String menuItemMessage;
+					String menuItemName;
+					if (word.hasFreeElement()) {
+						menuItemMessage = "Přidat do hřebu č. ";
+						menuItemName = SPIKES_ADD_SUBMENU;
+					} else if (word.getElements().size() > 1) {
+						menuItemMessage = "Duplikovat do hřebu č. ";
+						menuItemName = SPIKES_DUPLICATE_SUBMENU;
+					} else {
+						menuItemName = menuItemMessage = "";
+					}
+
 					for (DenotationSpikesModel.Spike spike : spikesModel.getSpikes()) {
 						if (!word.isInSpike(spike)) {
-							JMenuItem spikeItem = new JMenuItem("Přidat do hřebu č. " + spike.getNumber());
-							spikeItem.setName(SPIKES_ADD_SUBMENU);
+							JMenuItem spikeItem = new JMenuItem(menuItemMessage + spike.getNumber());
+							spikeItem.setName(menuItemName);
 							spikeItem.putClientProperty(SPIKE_KEY, spike);
 							spikeItem.addActionListener(this);
 							int index = spike.getNumber() / SPIKES_PER_MENU;
@@ -500,13 +526,31 @@ public class DenotationAnalysis {
 							spikesSubMenus[index].add(spikeItem);
 						}
 					}
-					for (JMenu spikesSubMenu : spikesSubMenus) {
-						if (spikesSubMenu.getMenuComponentCount() > 0) {
-							spikesAddMenu.add(spikesSubMenu);
+
+					if (word.hasFreeElement()) {
+						for (JMenu spikesSubMenu : spikesSubMenus) {
+							if (spikesSubMenu.getMenuComponentCount() > 0) {
+								spikesAddMenu.add(spikesSubMenu);
+							}
 						}
+						add(spikesAddMenu, menuPosition++);
+
+					} else {
+						remove(spikesAddMenu);
 					}
-					
-					add(spikesAddMenu, menuPosition++);
+
+					//..has more than one denotation element
+					if (word.getElements().size() > 1 && !word.hasFreeElement()) {
+						for (JMenu spikesSubMenu : spikesSubMenus) {
+							if (spikesSubMenu.getMenuComponentCount() > 0) {
+								spikesDuplicateMenu.add(spikesSubMenu);
+							}
+						}
+						add(spikesDuplicateMenu, menuPosition++);
+
+					} else {
+						remove(spikesDuplicateMenu);
+					}
 
 				} else {
 					remove(spikesAddMenu);
