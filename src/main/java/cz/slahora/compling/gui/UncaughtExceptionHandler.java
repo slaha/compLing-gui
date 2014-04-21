@@ -2,7 +2,6 @@ package cz.slahora.compling.gui;
 
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
@@ -10,7 +9,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -27,7 +25,6 @@ import java.util.Date;
  */
 public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 	private static final File LOG_FILE = new File(System.getProperty("user.home") + File.separator + "compLingGuiError.log");
-	private static final Charset UTF8 = Charset.forName(CharEncoding.UTF_8);
 	public static final EmptyBorder BORDER = new EmptyBorder(new Insets(10, 10, 10, 10));
 
 	@Override
@@ -95,7 +92,7 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 				throw new IOException("Cannot create log file " + LOG_FILE.getAbsolutePath());
 			}
 		}
-		FileUtils.write(LOG_FILE, createText(name, stackTrace), UTF8, true);
+		FileUtils.write(LOG_FILE, createText(name, stackTrace), cz.slahora.compling.gui.utils.FileUtils.UTF8, true);
 	}
 
 	private String createText(String name, String stackTrace) {

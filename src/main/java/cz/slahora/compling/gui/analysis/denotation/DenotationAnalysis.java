@@ -5,10 +5,7 @@ import cz.slahora.compling.gui.model.Csv;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.utils.ColumnsAutoSizer;
-import cz.slahora.compling.gui.utils.FileChooserUtils;
-import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
-import cz.slahora.compling.gui.utils.IconUtils;
+import cz.slahora.compling.gui.utils.*;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.procedure.TIntObjectProcedure;
@@ -220,7 +217,7 @@ public class DenotationAnalysis {
 				return null;
 			}
 			try {
-				List<String> lines = IOUtils.readLines(new FileInputStream(file));
+				List<String> lines = IOUtils.readLines(new FileInputStream(file), FileUtils.UTF8);
 				CsvData csvData = new CsvData(lines);
 				DenotationModel newModel = new DenotationModel(workingText);
 				csvLoader.loadFromCsv(csvData, newModel);

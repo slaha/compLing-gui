@@ -1,6 +1,7 @@
 package cz.slahora.compling.gui.analysis;
 
 import cz.slahora.compling.gui.model.CsvData;
+import cz.slahora.compling.gui.utils.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
@@ -26,6 +27,6 @@ public class CsvExporter {
 	}
 
 	public void export(File csvFile) throws IOException {
-		IOUtils.writeLines(csvData.toLines(), null, new FileOutputStream(csvFile));
+		IOUtils.writeLines(csvData.toLines(), null, new FileOutputStream(csvFile), FileUtils.UTF8);
 	}
 }
