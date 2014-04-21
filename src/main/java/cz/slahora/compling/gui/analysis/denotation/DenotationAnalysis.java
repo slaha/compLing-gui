@@ -287,6 +287,7 @@ public class DenotationAnalysis {
 				public boolean execute(int number, WordPanel wordPanel) {
 					if (number >= _number) {
 						wordPanel.refresh();
+
 					}
 
 					return true;
@@ -371,7 +372,6 @@ public class DenotationAnalysis {
 			DenotationPoemModel.DenotationWord denotationWord = model.getWord(wordNumber);
 			if (word != denotationWord) {
 				word = denotationWord;
-
 			}
 			String txt;
 			txt = word.getElements().toString();
@@ -381,6 +381,11 @@ public class DenotationAnalysis {
 			wordLabel.setText(StringUtils.isEmpty(txt) ? " " : txt);
 			setBorder(new EmptyBorder(word.isJoined() ? IGNORED_INSETS: INSETS));
 			changeFont(false);
+			if (word.isInSpike()) {
+				setToolTipText("Patří do hřebu č. " + word.getSpikes());
+			} else {
+				setToolTipText(null);
+			}
 		}
 
 		private class MouseAdapter extends java.awt.event.MouseAdapter {
@@ -503,7 +508,6 @@ public class DenotationAnalysis {
 							spike.add(word, spikeNumber);
 							spikeNumber.onAddToSpike(spike);
 						}
-						WordPanel.this.setToolTipText("Patří do hřebu č. " + word.getSpikes());
 						panel.refreshSpikes(spike.getNumber());
 
 					} else if (SPIKES_DUPLICATE_SUBMENU.equals(menuItem.getName())) {
@@ -513,7 +517,6 @@ public class DenotationAnalysis {
 						word.addElement(duplicate);
 						spike.add(word, duplicate);
 						duplicate.onAddToSpike(spike);
-						WordPanel.this.setToolTipText("Patří do hřebu č. " + word.getSpikes());
 						panel.refreshSpikes(spike.getNumber());
 
 					} else if (SPIKES_REMOVE_SUBMENU.equals(menuItem.getName())) {
@@ -521,11 +524,6 @@ public class DenotationAnalysis {
 						spike.remove(word);
 						DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getElementInSpike(spike);
 						spikeNumber.onRemoveFromSpike(spike);
-						if (word.isInSpike()) {
-							WordPanel.this.setToolTipText("Patří do hřebu č. " + word.getSpikes());
-						} else {
-							WordPanel.this.setToolTipText(null);
-						}
 						panel.refreshSpikes(spike.getNumber());
 					}
 				}
