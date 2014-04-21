@@ -1,11 +1,9 @@
 package cz.slahora.compling.gui.main;
 
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
+import cz.slahora.compling.gui.utils.IconUtils;
 
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -26,10 +24,8 @@ import java.awt.event.MouseEvent;
  */
 public class TabPanel extends JPanel {
 
-	private static final int BUTTON_SIZE = 21;
+	private static final int BUTTON_SIZE = 16;
 	private static final Dimension BUTTON_DIMENSION = new Dimension(BUTTON_SIZE, BUTTON_SIZE);
-	private static final Color CLOSE_BUTTON_NORMAL_COLOR = new Color(200, 0, 0);
-	private static final Color CLOSE_BUTTON_HOVER_COLOR =  new Color(128, 0, 0);
 
 	private static final ActionListener CLOSE_LISTENER = new ActionListener() {
 		@Override
@@ -74,7 +70,7 @@ public class TabPanel extends JPanel {
 		public void mouseEntered(MouseEvent e) {
 			if (e.getSource() instanceof JButton) {
 				JButton btn = (JButton)e.getSource();
-				btn.setBackground(CLOSE_BUTTON_HOVER_COLOR);
+				btn.setIcon(ICON_HOVERED);
 				btn.setFont(btn.getFont().deriveFont(Font.BOLD));
 				e.setSource(btn.getParent());
 				MOUSE_ADAPTER.mouseEntered(e);
@@ -85,13 +81,15 @@ public class TabPanel extends JPanel {
 		public void mouseExited(MouseEvent e) {
 			if (e.getSource() instanceof JButton) {
 				JButton btn = (JButton)e.getSource();
-				btn.setBackground(CLOSE_BUTTON_NORMAL_COLOR);
+				btn.setIcon(ICON_NORMAL);
 				btn.setFont(btn.getFont().deriveFont(Font.PLAIN));
 				e.setSource(btn.getParent());
 				MOUSE_ADAPTER.mouseExited(e);
 			}
 		}
 	};
+	public static final Icon ICON_NORMAL = IconUtils.getIcon(IconUtils.Icon.CLOSE);
+	public static final Icon ICON_HOVERED = IconUtils.getIcon(IconUtils.Icon.CLOSE_HOVERED);
 
 	private final JLabel nameLabel;
 	private final JButton closeButton;
@@ -119,15 +117,13 @@ public class TabPanel extends JPanel {
 		};
 		nameLabel.setOpaque(false);
 
-		this.closeButton = new JButton("\u00D7");
+		this.closeButton = new JButton(ICON_NORMAL);
 		closeButton.setPreferredSize(BUTTON_DIMENSION);
 		closeButton.setMaximumSize(BUTTON_DIMENSION);
 		closeButton.setMinimumSize(BUTTON_DIMENSION);
 		closeButton.addActionListener(CLOSE_LISTENER);
 		closeButton.setContentAreaFilled(false);
 		closeButton.setOpaque(true);
-		closeButton.setBackground(CLOSE_BUTTON_NORMAL_COLOR);
-		closeButton.setForeground(Color.white);
 		closeButton.addMouseListener(CLOSE_BUTTON_MOUSE_ADAPTER);
 
 		setPreferredSize(new Dimension(145, 25));

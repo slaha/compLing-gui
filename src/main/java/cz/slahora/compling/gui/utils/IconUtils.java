@@ -28,6 +28,8 @@ public class IconUtils {
 
 
 		CANCEL("cancel.png"),
+		CLOSE("close.png"),
+		CLOSE_HOVERED("close-hovered.png"),
 		EXIT("exit.png"),
 		SETTINGS("settings.png"),
 		ABOUT("about.png");
