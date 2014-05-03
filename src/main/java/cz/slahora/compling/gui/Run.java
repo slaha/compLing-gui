@@ -4,7 +4,6 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Frame;
-
 /**
  *
  * Executable class of CompLingGui
@@ -12,7 +11,7 @@ import java.awt.Frame;
  * <dl>
  * <dt>Created by:</dt>
  * <dd>slaha</dd>
- * <dt>On:</dt>mainWindow.
+ * <dt>On:</dt>
  * <dd> 22.3.14 7:31</dd>
  * </dl>
  */
@@ -41,6 +40,8 @@ public class Run {
 		};
 
 		final Application application = new Application(appContext);
+
+
 
 		SwingUtilities.invokeLater(new Runnable() {
 

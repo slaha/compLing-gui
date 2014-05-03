@@ -78,6 +78,12 @@
             <version>5.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.graphstream</groupId>
+            <artifactId>gs-core</artifactId>
+            <version>1.2</version>
+        </dependency>
+
         <!-- TEST SCOPE -->
         <!-- jUnit for tests-->
         <dependency>
@@ -91,6 +97,16 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+
             <!--Intellij GUI designer-->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

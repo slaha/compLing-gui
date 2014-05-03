@@ -15,29 +15,29 @@ import cz.slahora.compling.gui.model.WorkingText;
  * <dd>6.4.14 13:39</dd>
  * </dl>
  */
-public class DenotationModel implements Csv<DenotationModel> {
+public class GuiDenotationModel implements Csv<GuiDenotationModel> {
 
 	private final DenotationPoemModel poemModel;
-	private final DenotationSpikesModel spikesModel;
+	private final GuiDenotationSpikesModel spikesModel;
 
-	public DenotationModel(WorkingText text) {
+	public GuiDenotationModel(WorkingText text) {
 		this.poemModel = new DenotationPoemModel(text);
-		this.spikesModel = new DenotationSpikesModel();
+		this.spikesModel = new GuiDenotationSpikesModel(poemModel.getDenotation());
 	}
 
 	public DenotationPoemModel getPoemModel() {
 		return poemModel;
 	}
 
-	public DenotationSpikesModel getSpikesModel() {
+	public GuiDenotationSpikesModel getSpikesModel() {
 		return spikesModel;
 	}
 
 	@Override
-	public CsvSaver<DenotationModel> getCsvSaver() {
-		return new CsvSaver<DenotationModel>() {
+	public CsvSaver<GuiDenotationModel> getCsvSaver() {
+		return new CsvSaver<GuiDenotationModel>() {
 			@Override
-			public CsvData saveToCsv(DenotationModel object, Object... params) {
+			public CsvData saveToCsv(GuiDenotationModel object, Object... params) {
 				CsvData poemCsvData = object.poemModel.getCsvSaver().saveToCsv(object.poemModel, params);
 				CsvData spikesCsvData = object.spikesModel.getCsvSaver().saveToCsv(object.spikesModel, params);
 
@@ -52,10 +52,10 @@ public class DenotationModel implements Csv<DenotationModel> {
 	}
 
 	@Override
-	public CsvLoader<DenotationModel> getCsvLoader() {
-		return new CsvLoader<DenotationModel>() {
+	public CsvLoader<GuiDenotationModel> getCsvLoader() {
+		return new CsvLoader<GuiDenotationModel>() {
 			@Override
-			public void loadFromCsv(CsvData csv, DenotationModel objectToLoad, Object... params) throws CsvParserException {
+			public void loadFromCsv(CsvData csv, GuiDenotationModel objectToLoad, Object... params) throws CsvParserException {
 				CsvData sectionPoem = new CsvData(csv.getSection(0));
 				objectToLoad.getPoemModel().getCsvLoader().loadFromCsv(sectionPoem, objectToLoad.getPoemModel(), params);
 

@@ -1,5 +1,9 @@
 package cz.slahora.compling.gui.analysis.denotation;
 
+import cz.compling.analysis.analysator.poems.denotation.IDenotation;
+import cz.compling.model.denotation.DenotationElement;
+import cz.compling.model.denotation.DenotationWord;
+import cz.compling.model.denotation.Spike;
 import cz.slahora.compling.gui.analysis.CsvExporter;
 import cz.slahora.compling.gui.model.Csv;
 import cz.slahora.compling.gui.model.CsvData;
@@ -62,7 +66,7 @@ public class DenotationAnalysis {
 
 		private final ImportExportHandler importExportHandler;
 
-		private DenotationModel model;
+		private GuiDenotationModel model;
 		private DenotationSpikesPanel denotationSpikesPanel;
 		private DenotationPoemPanel denotationPoemPanel;
 		private JSplitPane middlePanel;
@@ -86,7 +90,7 @@ public class DenotationAnalysis {
 			gbc = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
 			add(toolBar, gbc);
 
-			setModel(new DenotationModel(workingText));
+			setModel(new GuiDenotationModel(workingText));
 
 
 			final JPanel bottomPanel = new JPanel(new GridBagLayout());
@@ -110,7 +114,7 @@ public class DenotationAnalysis {
 			add(bottomPanel, gbc);
 		}
 
-		private void setModel(DenotationModel denotationModel) {
+		private void setModel(GuiDenotationModel denotationModel) {
 			this.model = denotationModel;
 			if (middlePanel != null) {
 				remove(middlePanel);
@@ -146,7 +150,7 @@ public class DenotationAnalysis {
 				importExportHandler.export(model);
 			}
 			else if (source == importBtn) {
-				final DenotationModel denotationModel = importExportHandler.importCsv(model.getCsvLoader(), workingText);
+				final GuiDenotationModel denotationModel = importExportHandler.importCsv(model.getCsvLoader(), workingText);
 				if (denotationModel != null) {
 					setModel(denotationModel);
 				}
@@ -190,7 +194,7 @@ public class DenotationAnalysis {
 			this.lastDir = instance;
 		}
 
-		public void export(DenotationModel model) {
+		public void export(GuiDenotationModel model) {
 			CsvExporter exporter = new CsvExporter(model.getCsvSaver().saveToCsv(model));
 			File csvFile = FileChooserUtils.getFileToSave(lastDir.getLastDirectory(), parent, "csv");
 			if (csvFile == null) {
@@ -211,7 +215,7 @@ public class DenotationAnalysis {
 
 		}
 
-		public DenotationModel importCsv(Csv.CsvLoader<DenotationModel> csvLoader, WorkingText workingText) {
+		public GuiDenotationModel importCsv(Csv.CsvLoader<GuiDenotationModel> csvLoader, WorkingText workingText) {
 			File file = FileChooserUtils.getFileToOpen(lastDir.getLastDirectory(), parent, "csv");
 			if (file == null) {
 				return null;
@@ -219,7 +223,7 @@ public class DenotationAnalysis {
 			try {
 				List<String> lines = IOUtils.readLines(new FileInputStream(file), FileUtils.UTF8);
 				CsvData csvData = new CsvData(lines);
-				DenotationModel newModel = new DenotationModel(workingText);
+				GuiDenotationModel newModel = new GuiDenotationModel(workingText);
 				csvLoader.loadFromCsv(csvData, newModel);
 				return newModel;
 
@@ -243,9 +247,9 @@ public class DenotationAnalysis {
 		private final TIntObjectMap<WordPanel> wordPanels;
 
 		private final DenotationPanel denotationPanel;
-		private final DenotationSpikesModel spikesModel;
+		private final GuiDenotationSpikesModel spikesModel;
 
-		public DenotationPoemPanel(DenotationModel denotationModel, DenotationPanel denotationPanel) {
+		public DenotationPoemPanel(GuiDenotationModel denotationModel, DenotationPanel denotationPanel) {
 			super(new GridBagLayout());
 
 			setBackground(Color.white);
@@ -259,30 +263,43 @@ public class DenotationAnalysis {
 			JPanel poemPanel = new JPanel(new GridBagLayout());
 			poemPanel.setBackground(Color.white);
 
-			final int countOfStrophes = poemModel.getCountOfStrophes();
-			for (int i = 1; i <= countOfStrophes; i++) {
-				DenotationPoemModel.DenotationStrophe strophe = poemModel.getStrophe(i);
-				JPanel strophePanel = new JPanel(new GridBagLayout());
-				strophePanel.setBackground(Color.white);
-				int verseNumber = 0;
-				for (DenotationPoemModel.DenotationVerse verse : strophe.verses) {
-					JPanel versePanel = new JPanel(new GridBagLayout());
+			int currentStrophe = 0;
+			int currentStropheInPoem = 0;
+			int currentVerse = 0;
+			int currentVerseInStrophe = 0;
+			JPanel strophePanel = null;
+			JPanel versePanel = null;
+			WordPanel.parent = this;
+			for (int wordIndex = 1; wordIndex <= poemModel.getCountOfWords(); wordIndex++) {
+				//..get word from poem
+				DenotationWord word = poemModel.getWord(wordIndex);
 
-					for (DenotationPoemModel.DenotationWord word : verse.words) {
-						WordPanel wordPanel = new WordPanel(poemModel, word.getNumber(), this, spikesModel);
-						wordPanels.put(word.getNumber(), wordPanel);
-						versePanel.add(wordPanel, BUILDER.copy().build());
-					}
-					strophePanel.add(versePanel, BUILDER.copy().gridy(verseNumber++).build());
+				//..new strophe → we need new panel
+				if (currentStrophe != word.getStropheNumber() || strophePanel == null) {
+					strophePanel = new JPanel(new GridBagLayout());
+					strophePanel.setBackground(Color.white);
+					poemPanel.add(strophePanel, BUILDER.copy().insets(STROPHE_INSETS).gridy(currentStropheInPoem++).build());
+					currentStrophe = word.getStropheNumber();
+					currentVerseInStrophe = 0;
 				}
-				poemPanel.add(strophePanel, BUILDER.copy().insets(STROPHE_INSETS).gridxy(0, i - 1).build());
+
+				if (currentVerse != word.getVerseNumber() || versePanel == null) {
+					versePanel = new JPanel(new GridBagLayout());
+					strophePanel.add(versePanel, BUILDER.copy().gridy(currentVerseInStrophe++).build());
+					currentVerse = word.getVerseNumber();
+				}
+
+
+				WordPanel wordPanel = new WordPanel(new GuiDenotationWord(word, poemModel.getDenotation()));
+				wordPanels.put(word.getNumber(), wordPanel);
+				versePanel.add(wordPanel, BUILDER.copy().build());
 			}
 
 			add(poemPanel, new GridBagConstraintBuilder().gridxy(0, 0).anchor(GridBagConstraints.NORTH).weighty(1).build());
 		}
 
 		public void refresh(WordPanel wordPanel) {
-			refresh(wordPanel.word.getNumber());
+			refresh(wordPanel.word.getDenotationWord().getNumber());
 		}
 
 		public void refresh(final int _number) {
@@ -306,29 +323,27 @@ public class DenotationAnalysis {
 	}
 	private static class WordPanel extends JPanel {
 
+		static DenotationPoemPanel parent;
+
 		private static final Insets INSETS = new Insets(1, 7, 1, 1);
 		private static final Insets IGNORED_INSETS = new Insets(1, 0, 1, 0);
 
 		final JLabel numberLabel, wordLabel;
-		final DenotationPoemPanel panel;
 		final Font _font;
 
-		private DenotationPoemModel.DenotationWord word;
-		private final DenotationPoemModel model;
+		private GuiDenotationWord word;
 		private final int wordNumber;
 
-		public WordPanel(DenotationPoemModel model, int number, DenotationPoemPanel panel, DenotationSpikesModel spikesModel) {
+		public WordPanel(GuiDenotationWord guiDenotationWord) {
 			super(new GridBagLayout());
 			setBackground(Color.white);
 			setBorder(new EmptyBorder(INSETS));
 
-			this.model = model;
-			this.wordNumber = number;
-			this.word = model.getWord(number);
-			this.panel = panel;
+			this.word = guiDenotationWord;
+			this.wordNumber = guiDenotationWord.getDenotationWord().getNumber();
 
-			numberLabel = new JLabel(word.getElements().toString());
-			wordLabel = new JLabel(word.getWords().toString());
+			numberLabel = new JLabel(word.getDenotationElementsAsString());
+			wordLabel = new JLabel(word.getDenotationWordsAsString());
 			_font = wordLabel.getFont();
 
 			add(numberLabel, new GridBagConstraintBuilder().gridxy(0, 0).anchor(GridBagConstraints.NORTH).build());
@@ -336,7 +351,7 @@ public class DenotationAnalysis {
 
 			addMouseListener(new MouseAdapter());
 
-			setComponentPopupMenu(new WordPanelPopup(spikesModel));
+			setComponentPopupMenu(new WordPanelPopup(guiDenotationWord.getDenotation()));
 		}
 
 		private void changeFont(boolean hovered) {
@@ -347,7 +362,7 @@ public class DenotationAnalysis {
 				font = _font.deriveFont(Font.PLAIN);
 			}
 			Map<TextAttribute, Object> attributes;
-			if (word.getWords().size() > 1) {
+			if (word.getDenotationWord().getWords().size() > 1) {
 				attributes = new HashMap<TextAttribute, Object>();
 				attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
 			} else {
@@ -355,10 +370,10 @@ public class DenotationAnalysis {
 			}
 			final Font underlineFont =  font.deriveFont(attributes);
 			final Color wordColor, numberColor;
-			if (word.isIgnored()) {
+			if (word.getDenotationWord().isIgnored()) {
 				numberColor = wordColor = Color.gray;
 
-			} else if (!word.hasFreeElement()) {
+			} else if (!word.getDenotationWord().hasFreeElement()) {
 				numberColor = Color.gray;
 				wordColor = Color.black;
 			} else {
@@ -373,20 +388,21 @@ public class DenotationAnalysis {
 		}
 
 		public void refresh() {
-			DenotationPoemModel.DenotationWord denotationWord = model.getWord(wordNumber);
-			if (word != denotationWord) {
-				word = denotationWord;
+			DenotationWord denotationWord = word.getDenotation().getWord(wordNumber);
+			if (!word.getDenotationWord().equals(denotationWord)) {
+				word = new GuiDenotationWord(denotationWord, word.getDenotation());
 			}
 			String txt;
-			txt = word.getElements().toString();
+			txt = word.getDenotationElementsAsString();
 			numberLabel.setText(StringUtils.isEmpty(txt) ? " " : txt);
 
-			txt = word.getWords().toString();
+			txt = word.getDenotationWordsAsString();
 			wordLabel.setText(StringUtils.isEmpty(txt) ? " " : txt);
-			setBorder(new EmptyBorder(word.isJoined() ? IGNORED_INSETS: INSETS));
+			setBorder(new EmptyBorder(word.getDenotationWord().isJoined() ? IGNORED_INSETS: INSETS));
+			setVisible(!word.getDenotationWord().isJoined());
 			changeFont(false);
-			if (word.isInSpike()) {
-				setToolTipText("Patří do hřebu č. " + word.getSpikes());
+			if (word.getDenotationWord().isInSpike()) {
+				setToolTipText("Patří do hřebu č. " + word.getDenotationWord().getSpikes());
 			} else {
 				setToolTipText(null);
 			}
@@ -414,18 +430,18 @@ public class DenotationAnalysis {
 			public static final String SPIKES_REMOVE_SUBMENU = "spikes_remove_submenu";
 			public static final String SPIKE_KEY = "spike";
 
-			private final DenotationSpikesModel spikesModel;
+			private final IDenotation denotation;
 			private final JMenuItem ignore, addElement, removeElement, join, split;
 			private final JMenu spikesAddMenu, spikesDuplicateMenu, spikesRemoveMenu;
 
-			private WordPanelPopup(DenotationSpikesModel spikesModel) {
-				this.spikesModel = spikesModel;
+			private WordPanelPopup(IDenotation denotation) {
+				this.denotation = denotation;
 
 				ignore = new JMenuItem("Ignorovat");
 				addElement = new JMenuItem("Přidat denotační element");
 				removeElement = new JMenuItem("Odebrat denotační element");
-				join = new JMenuItem("Sloučit s " + (word.getNextWord() != null ? word.getNextWord().getWords() : ""));
-				split = new JMenuItem("Oddělit " + (word.hasJoinedAnotherWord() ? word.getLastJoined() :""));
+				join = new JMenuItem("Sloučit s " + (word.getNextWordToJoin() != null ? word.getNextWordToJoin().getWords() : ""));
+				split = new JMenuItem("Oddělit " + (word.hasJoinedWords() ? word.getLastJoinedWord() :""));
 
 				spikesAddMenu = new JMenu("Přidat do hřebu");
 				spikesDuplicateMenu = new JMenu("Přidat do jiného hřebu");
@@ -460,26 +476,26 @@ public class DenotationAnalysis {
 			public void actionPerformed(ActionEvent e) {
 				Object source = e.getSource();
 				if (source == ignore) {
-					final boolean isIgnoredNow = word.isIgnored();
-					if (!isIgnoredNow && word.isInSpike()) {
-						if (!MessagesUtils.notifyIsInSpike(panel.denotationPanel, word)) {
+					final boolean isIgnoredNow = word.getDenotationWord().isIgnored();
+					if (!isIgnoredNow && word.getDenotationWord().isInSpike()) {
+						if (!MessagesUtils.notifyIsInSpike(parent, word)) {
 							return;
 						}
 					}
-					word.setIgnored(!word.isIgnored());
+					word.setIgnored(!word.getDenotationWord().isIgnored());
 
 				} else if (source == addElement) {
 					word.addElement();
 
 				} else if (source == removeElement) {
-					final DenotationPoemModel.DenotationSpikeNumber highestNumber = word.getHighestNumber();
-					if (highestNumber.isInAnySpike()) {
-						if (!MessagesUtils.notifyIsInElement(panel.denotationPanel, highestNumber)) {
+					final DenotationElement highestNumber = word.getHighestDenotationElement();
+					if (highestNumber.isInSpike()) {
+						if (!MessagesUtils.notifyIsInElement(parent, highestNumber)) {
 							return;
 						}
 					}
 
-					word.removeElement();
+					word.removeElement(highestNumber);
 
 				} else if (source == join) {
 					word.joinNext();
@@ -491,47 +507,45 @@ public class DenotationAnalysis {
 					JMenuItem menuItem = (JMenuItem) source;
 					if (SPIKES_ADD_SUBMENU.equals(menuItem.getName())) {
 
-						DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) menuItem.getClientProperty(SPIKE_KEY);
-						DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getFreeElement();
+						Spike spike = (Spike) menuItem.getClientProperty(SPIKE_KEY);
+						DenotationElement spikeNumber = word.getDenotationWord().getFreeElement();
 
 						//..check if the word is already in any other spike. If so, ask for divide
-						if (word.getElements().size() > 1 && word.isInSpike()) {
+						if (word.getDenotationWord().getDenotationElements().size() > 1
+							&& word.getDenotationWord().isInSpike()) {
+
 							String input = null;
 							do {
-								input = MessagesUtils.getDividedValue(panel.denotationPanel, word, input);
-							} while (input != null && !MessagesUtils.checkInput(input, word.getWords().toString()));
+								input = MessagesUtils.getDividedValue(parent.denotationPanel, word.getDenotationWord(), input);
+							} while (input != null && !MessagesUtils.checkInput(input, word.getDenotationWord().getWords().toString()));
 							if (input == null) {
 								//..canceled
 								return;
 							}
-							spike.add(word, spikeNumber);
+							spike.addWord(word.getDenotationWord());
 							spikeNumber.onAddToSpike(spike, input);
 						}
 						else {
 
-							spike.add(word, spikeNumber);
+							spike.addWord(word.getDenotationWord());
 							spikeNumber.onAddToSpike(spike);
 						}
-						panel.refreshSpikes(spike.getNumber());
+						parent.refreshSpikes(spike.getNumber());
 
 					} else if (SPIKES_DUPLICATE_SUBMENU.equals(menuItem.getName())) {
 
-						DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) menuItem.getClientProperty(SPIKE_KEY);
-						final DenotationPoemModel.DenotationSpikeNumber duplicate = word.getHighestNumber().duplicate();
-						word.addElement(duplicate);
-						spike.add(word, duplicate);
-						duplicate.onAddToSpike(spike);
-						panel.refreshSpikes(spike.getNumber());
+						Spike spike = (Spike) menuItem.getClientProperty(SPIKE_KEY);
+						word.duplicate(word.getHighestDenotationElement());
+						parent.refreshSpikes(spike.getNumber());
 
 					} else if (SPIKES_REMOVE_SUBMENU.equals(menuItem.getName())) {
-						DenotationSpikesModel.Spike spike = (DenotationSpikesModel.Spike) menuItem.getClientProperty(SPIKE_KEY);
-						spike.remove(word);
-						DenotationPoemModel.DenotationSpikeNumber spikeNumber = word.getElementInSpike(spike);
-						spikeNumber.onRemoveFromSpike(spike);
-						panel.refreshSpikes(spike.getNumber());
+						Spike spike = (Spike) menuItem.getClientProperty(SPIKE_KEY);
+						spike.remove(word.getDenotationWord());
+
+						parent.refreshSpikes(spike.getNumber());
 					}
 				}
-				panel.refresh(WordPanel.this);
+				parent.refresh(WordPanel.this);
 			}
 
 			private void loadSpikes() {
@@ -539,13 +553,13 @@ public class DenotationAnalysis {
 				spikesDuplicateMenu.removeAll();
 				spikesRemoveMenu.removeAll();
 				int menuPosition = 0;
-				if (spikesModel.hasSpikes() && !word.isIgnored()) {
+				if (denotation.getSpikes().size() > 0 && !word.getDenotationWord().isIgnored()) {
 
 					JMenu[] spikesSubMenus = createSpikesSubmenus();
 
 					String menuItemMessage;
 					String menuItemName;
-					if (word.hasFreeElement()) {
+					if (word.getDenotationWord().hasFreeElement()) {
 						menuItemMessage = "Přidat do hřebu č. ";
 						menuItemName = SPIKES_ADD_SUBMENU;
 					} else {
@@ -553,8 +567,8 @@ public class DenotationAnalysis {
 						menuItemName = SPIKES_DUPLICATE_SUBMENU;
 					}
 
-					for (DenotationSpikesModel.Spike spike : spikesModel.getSpikes()) {
-						if (!word.isInSpike(spike)) {
+					for (Spike spike : denotation.getSpikes()) {
+						if (!word.getDenotationWord().isInSpike(spike)) {
 							JMenuItem spikeItem = new JMenuItem(menuItemMessage + spike.getNumber());
 							spikeItem.setName(menuItemName);
 							spikeItem.putClientProperty(SPIKE_KEY, spike);
@@ -569,7 +583,7 @@ public class DenotationAnalysis {
 					}
 
 					final JMenu toAdd, toRemove;
-					if (word.hasFreeElement()) {
+					if (word.getDenotationWord().hasFreeElement()) {
 						toAdd = spikesAddMenu;
 						toRemove = spikesDuplicateMenu;
 					} else {
@@ -588,9 +602,9 @@ public class DenotationAnalysis {
 					remove(spikesDuplicateMenu);
 					remove(spikesRemoveMenu);
 				}
-				if (spikesModel.hasSpikes() && !word.isIgnored() && word.isInSpike()) {
-					for (DenotationSpikesModel.Spike spike : word.getSpikes()) {
-						if (word.isInSpike(spike)) {
+				if (denotation.getSpikes().size() > 0 && !word.getDenotationWord().isIgnored() && word.getDenotationWord().isInSpike()) {
+					for (Spike spike : denotation.getSpikes()) {
+						if (word.getDenotationWord().isInSpike(spike)) {
 							JMenuItem spikeItem = new JMenuItem("Odebrat z hřebu č. " + spike.getNumber());
 							spikeItem.setName(SPIKES_REMOVE_SUBMENU);
 							spikeItem.putClientProperty(SPIKE_KEY, spike);
@@ -622,8 +636,8 @@ public class DenotationAnalysis {
 
 			private int countOfSpikesForWord() {
 				int count = 0;
-				for (DenotationSpikesModel.Spike spike : spikesModel.getSpikes()) {
-					if (!word.isInSpike(spike)) {
+				for (Spike spike : denotation.getSpikes()) {
+					if (!word.getDenotationWord().isInSpike(spike)) {
 						count++;
 					}
 				}
@@ -632,7 +646,7 @@ public class DenotationAnalysis {
 
 			private void onElementChanged() {
 
-				if (word.isIgnored()) {
+				if (word.getDenotationWord().isIgnored()) {
 					remove(addElement);
 					return;
 				}
@@ -646,8 +660,8 @@ public class DenotationAnalysis {
 			}
 
 			private void onWordJoined() {
-				DenotationPoemModel.DenotationWord nextWord = word.getNextWord();
-				if (nextWord == null || word.isIgnored())  {
+				DenotationWord nextWord = word.getNextWordToJoin();
+				if (nextWord == null)  {
 					remove(join);
 				} else {
 					join.setText("Sloučit s " + nextWord.getWords());
@@ -655,8 +669,8 @@ public class DenotationAnalysis {
 
 					onElementChanged();
 				}
-				if (word.hasJoinedAnotherWord()) {
-					split.setText("Oddělit " + word.getLastJoined());
+				if (word.hasJoinedWords()) {
+					split.setText("Oddělit " + word.getLastJoinedWord());
 					add(split);
 				}
 			}
@@ -664,7 +678,7 @@ public class DenotationAnalysis {
 			private void onWordIgnored() {
 
 				add(ignore, 0);
-				if (word.isIgnored()) {
+				if (word.getDenotationWord().isIgnored()) {
 					ignore.setText("Brát v potaz");
 				} else {
 					ignore.setText("Ignorovat");
@@ -676,7 +690,7 @@ public class DenotationAnalysis {
 	}
 
 	private static class DenotationSpikesPanel extends JPanel implements ActionListener {
-		private final DenotationSpikesModel model;
+		private final GuiDenotationSpikesModel model;
 		private final DenotationSpikesTableModel tableModel;
 
 		private final JButton addBtn;
@@ -684,7 +698,7 @@ public class DenotationAnalysis {
 		private final JTable table;
 		private final DenotationPanel panel;
 
-		public DenotationSpikesPanel(DenotationSpikesModel model, DenotationPanel denotationPanel) {
+		public DenotationSpikesPanel(GuiDenotationSpikesModel model, DenotationPanel denotationPanel) {
 			super(new GridBagLayout());
 
 			this.panel = denotationPanel;
@@ -750,7 +764,7 @@ public class DenotationAnalysis {
 		public void actionPerformed(ActionEvent e) {
 			final Object source = e.getSource();
 			if (source == addBtn) {
-				model.addNewSpike();
+				model.createNewSpike();
 			} else if (source == removeBtn) {
 				Object selected = table.getValueAt(table.getSelectedRow(), 0);
 				if (selected != null) {
@@ -786,7 +800,7 @@ public class DenotationAnalysis {
 		}
 
 		public boolean isAnySpikeInTheTable() {
-			return model.hasSpikes();
+			return !model.isAnySpikeInTheTable();
 		}
 
 		private static class MultilineCellRenderer extends JTextArea implements TableCellRenderer {
@@ -867,9 +881,9 @@ public class DenotationAnalysis {
 
 	private static class DenotationSpikesTableModel extends AbstractTableModel {
 
-		private final DenotationSpikesModel model;
+		private final GuiDenotationSpikesModel model;
 
-		public DenotationSpikesTableModel(DenotationSpikesModel model) {
+		public DenotationSpikesTableModel(GuiDenotationSpikesModel model) {
 			this.model = model;
 		}
 
@@ -885,7 +899,7 @@ public class DenotationAnalysis {
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
-			DenotationSpikesModel.Spike spike = model.getSpikeOnRow(rowIndex);
+			Spike spike = model.getSpikeOnRow(rowIndex);
 			if (spike == null) {
 				return null;
 			}
@@ -895,7 +909,7 @@ public class DenotationAnalysis {
 				case SPIKE_SIZE_COLUMN:
 					return spike.getWords().size();
 				case SPIKE_WORDS_COLUMN:
-					return spike.getWords().toStringForSpike(spike);
+					return model.toStringForSpike(spike);
 				default:
 					return null;
 			}
@@ -933,7 +947,7 @@ public class DenotationAnalysis {
 
 	private static class MessagesUtils {
 
-		private static boolean notifyIsInElement(Component parent, DenotationPoemModel.DenotationSpikeNumber element) {
+		private static boolean notifyIsInElement(Component parent, DenotationElement element) {
 			final int yesNo = JOptionPane.showConfirmDialog(parent,
 				"Denotační element " + element + " je ve hřebu č. " + element.getSpike() + ". Budete-li pokračovat, bude z tohoto hřebu odstraněn.\n\nChcete pokračovat?",
 				"Odstranit denotační element?",
@@ -942,15 +956,15 @@ public class DenotationAnalysis {
 			return yesNo == JOptionPane.YES_OPTION;
 		}
 
-		private static  boolean notifyIsInSpike(Component parent, DenotationPoemModel.DenotationWord word) {
+		private static  boolean notifyIsInSpike(Component parent, GuiDenotationWord word) {
 			final int yesNo = JOptionPane.showConfirmDialog(parent,
-				"Slovo '" + word + "' je ve hřebech č. " + word.getSpikes() + ". Budete-li pokračovat, bude z těchto hřebů odstraněno.\n\nChcete pokračovat?",
+				"Slovo '" + word + "' je ve hřebech č. " + word.getDenotationWord().getSpikes() + ". Budete-li pokračovat, bude z těchto hřebů odstraněno.\n\nChcete pokračovat?",
 				"Odstranit slovo ze hřebů?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 			return yesNo == JOptionPane.YES_OPTION;
 		}
 
 
-		private static String getDividedValue(Component parent, DenotationPoemModel.DenotationWord word, String input) {
+		private static String getDividedValue(Component parent, DenotationWord word, String input) {
 			String msg = "Zadejte prosím [pomocí ( a )], které část slova '" + word.getWords() + "' nepatří do hřebu.";
 			if (input != null) {
 				msg += "\n\nDo textu vepiště pouze znak '(' a ')', tak aby v závorkách byla část slova, která do hřebu nepatří";
