@@ -1,6 +1,8 @@
 package cz.slahora.compling.gui.analysis.denotation;
 
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
+import cz.compling.model.denotation.DenotationElement;
+import cz.compling.model.denotation.DenotationWord;
 import cz.compling.text.poem.Poem;
 import cz.compling.text.poem.Verse;
 import cz.slahora.compling.gui.model.Csv;
@@ -9,8 +11,7 @@ import cz.slahora.compling.gui.model.PipeArrayList;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.CsvParserUtils;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
@@ -30,14 +31,14 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		return denotation.getCountOfWords();
 	}
 
-	public cz.compling.model.denotation.DenotationWord getWord(int wordNumber) {
+	public DenotationWord getWord(int wordNumber) {
 		return denotation.getWord(wordNumber);
 	}
 
 	/*********************************/
-	/*
-	/* CSV
-	/*
+	/*                               */
+	/*              CSV              */
+	/*                               */
 	/*********************************/
 	@Override
 	public CsvSaver<DenotationPoemModel> getCsvSaver() {
@@ -59,24 +60,8 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		return denotation;
 	}
 
-	public static class DenotationSpikeNumber {
-		/** String value of the word. Can be different than in poem for example when the word has more denotation elements */
-		private String word;
-
-		/** Number of the spike number */
-		private int number;
-
-//		private GuiDenotationSpikesModel.Spike spike;
-
-		public DenotationSpikeNumber(int number, String word) {
-			this.number = number;
-			this.word = word;
-		}
-	}
-
-
-
 	private static class DenotationPoemModelSaver extends CsvSaver<DenotationPoemModel> {
+
 		@Override
 		public CsvData saveToCsv(DenotationPoemModel object, Object... params) {
 			CsvData csvData = new CsvData();
@@ -89,22 +74,34 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			csvData.getCurrentSection().addHeader("Denotation element(s)");
 			csvData.getCurrentSection().addHeader("Joined");
 			csvData.getCurrentSection().addHeader("Ignored");
-			//TODO
-			/*
-			for (int stropheNmbr = 1; stropheNmbr <= object.getCountOfWords(); stropheNmbr++) {
 
-				DenotationStrophe strophe = object.getStrophe(stropheNmbr);
-				for (DenotationVerse verse : strophe.verses) {
-					for (DenotationWord word : verse.words) {
-						csvData.getCurrentSection().startNewLine();
-						strophe.toCsv(csvData);
-						verse.toCsv(csvData);
-						word.toCsv(csvData);
-					}
-				}
+
+			final IDenotation denotation = object.denotation;
+
+			for (int wordNumber = 1; wordNumber <= object.getCountOfWords(); wordNumber++) {
+
+				DenotationWord word = denotation.getWord(wordNumber);
+				final CsvData.CsvDataSection section = csvData.getCurrentSection();
+				section.startNewLine();
+				section.addData(word.getStropheNumber());
+				section.addData(word.getVerseNumber());
+				section.addData(word.getWord());
+				section.addData(word.getNumber());
+				section.addData(toNumberPipeList(word.getWords()));
+				section.addData(new PipeArrayList<DenotationElement>(word.getDenotationElements()));
+				section.addData(word.isJoined());
+				section.addData(word.isIgnored());
 			}
-			 */
+
 			return csvData;
+		}
+
+		private PipeArrayList<Integer> toNumberPipeList(List<DenotationWord> words) {
+			PipeArrayList<Integer> list = new PipeArrayList<Integer>(words.size());
+			for (DenotationWord word : words) {
+				list.add(word.getNumber());
+			}
+			return list;
 		}
 	}
 
@@ -118,104 +115,129 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 			}
 		};
 
-		/** parser for parsing DenotationSpikeNumbers */
-		private static final CsvParserUtils.CollectionParser<DenotationSpikeNumber> PARSER = new CsvParserUtils.CollectionParser<DenotationSpikeNumber>() {
-					@Override
-					public void parse(String toParse, Collection<DenotationSpikeNumber> toAdd) throws CsvParserException {
-						try {
-							int number = Integer.parseInt(toParse);
-							toAdd.add(new DenotationSpikeNumber(number, null));
-						} catch (NumberFormatException nfe) {
-							throw new CsvParserException(nfe.getMessage());
-						}
+		/** parser for parsing DenotationElementd */
+
+		private static final CsvParserUtils.CollectionParser<DenotationElement> PARSER = new CsvParserUtils.CollectionParser<DenotationElement>() {
+
+				@Override
+				public void parse(String toParse, Collection<DenotationElement> toAdd) throws CsvParserException {
+					try {
+						int number = Integer.parseInt(toParse);
+						toAdd.add(new DenotationElement(null, number));
+					} catch (NumberFormatException nfe) {
+						throw new CsvParserException(nfe.getMessage());
 					}
-				};
+				}
+			};
+
+		private class WordHolder {
+			private final DenotationWord word;
+			private final Collection<Integer> joinedWords;
+			private final Collection<Integer> denotationElements;
+
+			public WordHolder(DenotationWord word, Collection<Integer> words, Collection<Integer> numbers) {
+				this.word = word;
+				this.joinedWords = words;
+				this.denotationElements = numbers;
+			}
+		}
+
 
 		@Override
 		public void loadFromCsv(CsvData csv, DenotationPoemModel model, Object... params)
 				throws CsvParserException {
-			//TODO
-			/*
-			int currentStropheNumber = -1;
-			int currentVerseNumber = -1;
-			int maxWordNumber = -1;
 
-			DenotationStrophe currentStrophe = null;
-			DenotationVerse currentVerse = null;
+			final Map<Integer, WordHolder> allParsedWords = new LinkedHashMap<Integer, WordHolder>();
+			final IDenotation denotation = model.denotation;
+			denotation.clearAllWords();
 
-			int wordInVerseNumber = 0;
-			int verseNumberInStrophe = 0;
-			DenotationWord word;
-
-			final Poem poem = model.poem;
-
+			verseInStrophe = -1;
+			wordInVerseNumber = 0;
+			lastVerse = Integer.MIN_VALUE;
+			lastStrophe = Integer.MIN_VALUE;
 			for (List<Object> dataLine : csv.getSection(0).getDataLines()) {
 
 				int column = 0;
 				int stropheNumber = CsvParserUtils.getAsInt(dataLine.get(column++));
 				int verseNumber = CsvParserUtils.getAsInt(dataLine.get(column++));
-				if (currentStropheNumber != stropheNumber) {
-					//..new strophe
-					verseNumberInStrophe = -1; //..set to -1 because it will be incremented
-
-					//..add current strophe to strophes
-					if (currentStrophe != null) {
-						model.strophes.put(currentStropheNumber, currentStrophe);
-					}
-					currentStrophe = new DenotationStrophe(stropheNumber);
-					currentStropheNumber = stropheNumber;
-				}
-				if (currentVerseNumber != verseNumber) {
-					//..new verse
-					wordInVerseNumber = 0;
-					verseNumberInStrophe++;
-
-					currentVerse = new DenotationVerse(verseNumber);
-					currentVerseNumber = verseNumber;
-					if (currentStrophe == null) {
-						throw new CsvParserException("Current strophe is null when attempting to add verse");
-					}
-					currentStrophe.add(currentVerse);
-
-				} else {
-					//..next word in old verse
-					wordInVerseNumber++;
-				}
-
-				String wordString = CsvParserUtils.getAsString(dataLine.get(column++));
-				checkWord(poem, wordString, stropheNumber, verseNumberInStrophe, wordInVerseNumber);
-
+				String wordValue = CsvParserUtils.getAsString(dataLine.get(column++));
 				int wordNumber = CsvParserUtils.getAsInt(dataLine.get(column++));
-				Collection<String> words = CsvParserUtils.getAsStringList(dataLine.get(column++), SPLITTER);
-				Collection<DenotationSpikeNumber> numbers = CsvParserUtils.getAsList(dataLine.get(column++), SPLITTER, PARSER);
+
+				checkWord(model.poem, wordValue, stropheNumber, verseNumber);
+
+				Collection<Integer> words = CsvParserUtils.getAsIntList(dataLine.get(column++), SPLITTER);
+				Collection<Integer> numbers = CsvParserUtils.getAsIntList(dataLine.get(column++), SPLITTER);
 
 				boolean joined = CsvParserUtils.getAsBool(dataLine.get(column++));
 				boolean ignored = CsvParserUtils.getAsBool(dataLine.get(column));
 
-				word = new DenotationWord(wordString, wordNumber, words, numbers, joined, ignored, model);
+				DenotationWord word = new DenotationWord(wordValue, wordNumber, verseNumber, stropheNumber);
+				allParsedWords.put(wordNumber, new WordHolder(word, words, numbers));
 
-				//..set word value in DenotationSpikeNumber to value from words (it is null from parsing
-				for (DenotationSpikeNumber number : numbers) {
-					number.word = word.getWords().toString();
+				denotation.addNewWord(wordNumber, word);
+				denotation.ignoreWord(wordNumber, ignored);
+			}
+
+
+
+			for (WordHolder holder : allParsedWords.values()) {
+				final int thisNumber = holder.word.getNumber();
+
+				if (holder.word.isIgnored()) {
+					final List<DenotationElement> elements = holder.word.getDenotationElements();
+					for (int i = 0; i < elements.size(); i++) {
+						denotation.removeElement(thisNumber, elements.get(0));
+					}
+					continue;
 				}
 
-				if (currentVerse == null) {
-					throw new CsvParserException("Current verse is null when attempting to add word");
+				final int addElements = countElements(holder.denotationElements);
+				for (int i = 0; i < addElements; i++) {
+					denotation.addNewElementTo(holder.word.getNumber());
 				}
-				currentVerse.add(word);
-				if (maxWordNumber < wordNumber) {
-					maxWordNumber = wordNumber;
+
+				for (Integer joinedWord : holder.joinedWords) {
+					if (thisNumber != joinedWord) {
+						denotation.joinWords(thisNumber, joinedWord);
+					}
 				}
 			}
-			if (currentStrophe != null) {
-				//..add last strophe
-				model.strophes.put(currentStropheNumber, currentStrophe);
-			}
-			model.maxWordNumber = maxWordNumber;
-			*/
 		}
 
-		private void checkWord(Poem poem, String wordString, int stropheNumber, int verseNumberInStrophe, int wordInVerseNumber) throws CsvParserException {
+		private int countElements(Collection<Integer> denotationElements) {
+
+			final HashSet<Integer> elementNumbers = new HashSet<Integer>();
+			for (Integer element : denotationElements) {
+				elementNumbers.add(element);
+			}
+
+			return elementNumbers.size() - 1;
+		}
+
+		int verseInStrophe = -1;
+		int wordInVerseNumber = 0;
+		int lastVerse = Integer.MIN_VALUE;
+		int lastStrophe = Integer.MIN_VALUE;
+
+		private void checkWord(Poem poem, String wordValue, int stropheNumber, int verseNumber) throws CsvParserException {
+			if (lastStrophe != stropheNumber) {
+				lastStrophe = stropheNumber;
+				verseInStrophe = -1;
+			}
+
+			if (lastVerse != verseNumber) {
+				lastVerse = verseNumber;
+				wordInVerseNumber = 0;
+				verseInStrophe++;
+			} else {
+				wordInVerseNumber++;
+			}
+			doCheck(poem, wordValue, stropheNumber, verseInStrophe, wordInVerseNumber);
+		}
+
+		private void doCheck(Poem poem, String wordString, int stropheNumber, int verseNumberInStrophe, int wordInVerseNumber) throws CsvParserException {
+
+
 			try {
 				final Collection<Verse> verses = poem.getVersesOfStrophe(stropheNumber);
 				final Verse verse = ((List<Verse>)verses).get(verseNumberInStrophe);
