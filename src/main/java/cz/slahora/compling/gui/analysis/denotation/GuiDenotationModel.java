@@ -17,15 +17,15 @@ import cz.slahora.compling.gui.model.WorkingText;
  */
 public class GuiDenotationModel implements Csv<GuiDenotationModel> {
 
-	private final DenotationPoemModel poemModel;
+	private final GuiDenotationPoemModel poemModel;
 	private final GuiDenotationSpikesModel spikesModel;
 
 	public GuiDenotationModel(WorkingText text) {
-		this.poemModel = new DenotationPoemModel(text);
+		this.poemModel = new GuiDenotationPoemModel(text);
 		this.spikesModel = new GuiDenotationSpikesModel(poemModel.getDenotation());
 	}
 
-	public DenotationPoemModel getPoemModel() {
+	public GuiDenotationPoemModel getPoemModel() {
 		return poemModel;
 	}
 

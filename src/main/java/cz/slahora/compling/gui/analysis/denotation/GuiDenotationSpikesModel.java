@@ -177,7 +177,7 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 		@Override
 		public void loadFromCsv(CsvData csv, GuiDenotationSpikesModel objectToLoad, Object... params) throws CsvParserException {
 			GuiDenotationSpikesModel spikesModel = (GuiDenotationSpikesModel) params[0];
-			DenotationPoemModel poemModel = (DenotationPoemModel) params[1];
+			GuiDenotationPoemModel poemModel = (GuiDenotationPoemModel) params[1];
 			final CsvParserUtils.CollectionSplitter splitter = new CsvParserUtils.CollectionSplitter() {
 				@Override
 				public String getSplitter() {
@@ -205,21 +205,18 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 			for (List<Object> objects : csv.getCurrentSection().getDataLines()) {
 				int number = CsvParserUtils.getAsInt(objects.get(0));
 				Spike spike = new Spike(number);
+				spikesModel.addSpike(spike);
 
 				Collection<GuiSpikeWordsBundle> wordsNumbers = CsvParserUtils.getAsList(objects.get(1), splitter, parser);
 				for (GuiSpikeWordsBundle bundle : wordsNumbers) {
 
 					DenotationWord word = poemModel.getWord(bundle.wordNumber);
-
-					final DenotationElement element = word.getFreeElement(bundle.elementNumber);
-					spike.addWord(word);
-					element.onAddToSpike(spike, bundle.wordAsString);
+					spike.addWord(word, bundle.wordAsString);
 				}
 				if (maxNumber < number) {
 					maxNumber = number;
 				}
 
-				spikesModel.addSpike(spike);
 			}
 			spikesModel.currentSpike = maxNumber;
 		}

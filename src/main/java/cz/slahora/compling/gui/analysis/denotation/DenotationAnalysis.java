@@ -90,9 +90,6 @@ public class DenotationAnalysis {
 			gbc = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
 			add(toolBar, gbc);
 
-			setModel(new GuiDenotationModel(workingText));
-
-
 			final JPanel bottomPanel = new JPanel(new GridBagLayout());
 
 			cancelBtn = new JButton("Cancel", IconUtils.getIcon(IconUtils.Icon.CANCEL));
@@ -112,6 +109,8 @@ public class DenotationAnalysis {
 
 			gbc = new GridBagConstraintBuilder().gridxy(0, 2).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
 			add(bottomPanel, gbc);
+
+			setModel(new GuiDenotationModel(workingText));
 		}
 
 		private void setModel(GuiDenotationModel denotationModel) {
@@ -141,6 +140,8 @@ public class DenotationAnalysis {
 					denotationSpikesPanel.refresh();
 				}
 			});
+
+			onElementAssigned();
 		}
 
 		@Override
@@ -153,6 +154,7 @@ public class DenotationAnalysis {
 				final GuiDenotationModel denotationModel = importExportHandler.importCsv(model.getCsvLoader(), workingText);
 				if (denotationModel != null) {
 					setModel(denotationModel);
+
 				}
 			}
 			else if (source == doneBtn) {
@@ -181,6 +183,10 @@ public class DenotationAnalysis {
 
 		public void closeWindow() {
 			frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+		}
+
+		public void onElementAssigned() {
+			doneBtn.setEnabled(denotationPoemPanel.hasEveryWordSpike());
 		}
 	}
 
@@ -256,7 +262,7 @@ public class DenotationAnalysis {
 
 			this.denotationPanel = denotationPanel;
 			this.spikesModel = denotationModel.getSpikesModel();
-			DenotationPoemModel poemModel = denotationModel.getPoemModel();
+			GuiDenotationPoemModel poemModel = denotationModel.getPoemModel();
 
 			this.wordPanels = new TIntObjectHashMap<WordPanel>();
 
@@ -319,6 +325,22 @@ public class DenotationAnalysis {
 
 		public void refreshSpikes(int number) {
 			denotationPanel.refreshSpikes(number);
+		}
+
+		public boolean hasEveryWordSpike() {
+			for (WordPanel wordPanel : wordPanels.valueCollection()) {
+				final DenotationWord word = wordPanel.word.getDenotationWord();
+
+				if (!word.isIgnored() && !word.isJoined() && !word.isInSpike()) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		public void onElementAssigned() {
+			denotationPanel.onElementAssigned();
+
 		}
 	}
 	private static class WordPanel extends JPanel {
@@ -522,14 +544,15 @@ public class DenotationAnalysis {
 								//..canceled
 								return;
 							}
-							spike.addWord(word.getDenotationWord());
-							spikeNumber.onAddToSpike(spike, input);
+							spike.addWord(word.getDenotationWord(), input);
+
 						}
 						else {
 
-							spike.addWord(word.getDenotationWord());
+							spike.addWord(word.getDenotationWord(), null);
 							spikeNumber.onAddToSpike(spike);
 						}
+						parent.onElementAssigned();
 						parent.refreshSpikes(spike.getNumber());
 
 					} else if (SPIKES_DUPLICATE_SUBMENU.equals(menuItem.getName())) {
@@ -538,10 +561,11 @@ public class DenotationAnalysis {
 						word.duplicate(word.getHighestDenotationElement());
 						parent.refreshSpikes(spike.getNumber());
 
+
 					} else if (SPIKES_REMOVE_SUBMENU.equals(menuItem.getName())) {
 						Spike spike = (Spike) menuItem.getClientProperty(SPIKE_KEY);
 						spike.remove(word.getDenotationWord());
-
+						parent.onElementAssigned();
 						parent.refreshSpikes(spike.getNumber());
 					}
 				}
@@ -684,7 +708,6 @@ public class DenotationAnalysis {
 					ignore.setText("Ignorovat");
 				}
 			}
-
 
 		}
 	}

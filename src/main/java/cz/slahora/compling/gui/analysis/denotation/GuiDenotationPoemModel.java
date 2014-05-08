@@ -13,16 +13,16 @@ import cz.slahora.compling.gui.utils.CsvParserUtils;
 
 import java.util.*;
 
-public class DenotationPoemModel implements Csv<DenotationPoemModel> {
+public class GuiDenotationPoemModel implements Csv<GuiDenotationPoemModel> {
 
 	private final Poem poem;
 	private final IDenotation denotation;
 
-	public DenotationPoemModel(WorkingText text) {
+	public GuiDenotationPoemModel(WorkingText text) {
 		this(text, true);
 	}
 
-	private DenotationPoemModel(WorkingText text, boolean compute) {
+	private GuiDenotationPoemModel(WorkingText text, boolean compute) {
 		this.poem = text.getCompLing().poemAnalysis().poem;
 		this.denotation = text.getCompLing().poemAnalysis().denotationAnalysis();
 	}
@@ -41,7 +41,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 	/*                               */
 	/*********************************/
 	@Override
-	public CsvSaver<DenotationPoemModel> getCsvSaver() {
+	public CsvSaver<GuiDenotationPoemModel> getCsvSaver() {
 		return new DenotationPoemModelSaver();
 	}
 
@@ -51,7 +51,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 	}
 
 	@Override
-	public CsvLoader<DenotationPoemModel> getCsvLoader() {
+	public CsvLoader<GuiDenotationPoemModel> getCsvLoader() {
 		return new DenotationPoemModelLoader();
 	}
 
@@ -60,10 +60,10 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		return denotation;
 	}
 
-	private static class DenotationPoemModelSaver extends CsvSaver<DenotationPoemModel> {
+	private static class DenotationPoemModelSaver extends CsvSaver<GuiDenotationPoemModel> {
 
 		@Override
-		public CsvData saveToCsv(DenotationPoemModel object, Object... params) {
+		public CsvData saveToCsv(GuiDenotationPoemModel object, Object... params) {
 			CsvData csvData = new CsvData();
 			csvData.addSection();
 			csvData.getCurrentSection().addHeader("Number of strophe");
@@ -105,7 +105,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 		}
 	}
 
-	private static class DenotationPoemModelLoader extends CsvLoader<DenotationPoemModel> {
+	private static class DenotationPoemModelLoader extends CsvLoader<GuiDenotationPoemModel> {
 
 		/** splitter for splitting lists */
 		private static final CsvParserUtils.CollectionSplitter SPLITTER = new CsvParserUtils.CollectionSplitter() {
@@ -144,7 +144,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 
 		@Override
-		public void loadFromCsv(CsvData csv, DenotationPoemModel model, Object... params)
+		public void loadFromCsv(CsvData csv, GuiDenotationPoemModel model, Object... params)
 				throws CsvParserException {
 
 			final Map<Integer, WordHolder> allParsedWords = new LinkedHashMap<Integer, WordHolder>();
