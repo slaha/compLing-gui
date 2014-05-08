@@ -1,17 +1,18 @@
 package cz.slahora.compling.gui.analysis.denotation;
 
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
+import cz.compling.model.denotation.DenotationElement;
+import cz.compling.model.denotation.DenotationWord;
 import cz.compling.model.denotation.Spike;
 import cz.slahora.compling.gui.model.Csv;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.PipeArrayList;
 import cz.slahora.compling.gui.utils.CsvParserUtils;
-import org.apache.commons.lang.text.StrBuilder;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -96,47 +97,45 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 		denotation.createNewSpike();
 	}
 
+	private void addSpike(Spike spike) {
+		denotation.addSpike(spike);
+
+	}
+
 	public String toStringForSpike(Spike spike) {
 		if (spike.getWords().isEmpty()) {
 			return "-";
 		}
-		StrBuilder b = new StrBuilder();
-		b.appendWithSeparators(spike.getWords().keySet(), ", ");
+		final TIntObjectMap<String> map = getElementsInSpike(spike);
+		final int[] keys = map.keys();
+		Arrays.sort(keys);
+		StringBuilder b = new StringBuilder();
+		b.append(map.get(keys[0]));
+		for (int i = 1; i < keys.length; i++) {
+			b
+				.append(", ")
+				.append(map.get(keys[i]));
+		}
+
 		return b.toString();
 	}
 
-	/**
-	 * This is helper class for saving
-	 * <ul>
-	 *     <li>Number of word</li>
-	 *     <li>Number of denotation element</li>
-	 *     <li>String which represents the DenotationWord</li>
-	 * </ul>
-	 * into csv file
-	 */
-	private static class SpikeWordBundle {
-
-		/** splitter for values - when saving */
-		public static final char SPLITTER_CHAR = '\\';
-		/** splitter for values - when loading */
-		public static final String SPLITTER = "\\\\";
-
-
-		private final int wordNumber;
-		private final int elementNumber;
-		private final String wordAsString;
-
-		public SpikeWordBundle(int wordNumber, int elementNumber, String elementInSpike) {
-			this.wordNumber = wordNumber;
-			this.elementNumber = elementNumber;
-			this.wordAsString = elementInSpike;
+	private TIntObjectMap<String> getElementsInSpike(Spike spike) {
+		TIntObjectMap<String> map = new TIntObjectHashMap<String>();
+		for (DenotationWord dw : spike.getWords().values()) {
+			for (DenotationElement element : dw.getDenotationElements()) {
+				if (element.getSpike().getNumber() == spike.getNumber()) {
+					String s;
+					if (StringUtils.isEmpty(element.getText())) {
+						s = dw.toString();
+					} else {
+						s = element.getText();
+					}
+					map.put(dw.getNumber(), (s + " " + element.getNumber()));
+				}
+			}
 		}
-
-
-		@Override
-		public String toString() {
-			return "[" + wordNumber + SPLITTER_CHAR + elementNumber + SPLITTER_CHAR + wordAsString + "]";
-		}
+		return map;
 	}
 
 	private static class DenotationSpikesModelSaver extends CsvSaver<GuiDenotationSpikesModel> {
@@ -145,13 +144,28 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 		public CsvData saveToCsv(GuiDenotationSpikesModel object, Object... params) {
 			CsvData data = new CsvData();
 			data.addSection();
-			data.getCurrentSection().addHeader("Spike number");
-			data.getCurrentSection().addHeader("Word number(s) [word number\\denotation element\\value]");
+			final CsvData.CsvDataSection section = data.getCurrentSection();
+			section.addHeader("Spike number");
+			section.addHeader("Word number(s) [word number\\denotation element\\value]");
 			for (Spike spike : object.getSpikes()) {
-				data.getCurrentSection().startNewLine();
-//				spike.toCsv(data);
+				section.startNewLine();
+				for (DenotationWord w : spike.getWords().values()) {
+					if (w.isInSpike(spike)) {
+						section.addData(new GuiSpikeWordsBundle(w.getNumber(), spike.getNumber(), getAlias(spike, w)));
+					}
+				}
+
 			}
 			return data;
+		}
+
+		String getAlias(Spike spike, DenotationWord word) {
+			for (DenotationElement element : word.getDenotationElements()) {
+				if (word.isInSpike(spike)) {
+					return element.getText();
+				}
+			}
+			throw new IllegalArgumentException("word " + word + " (" + word.getNumber() + ") is not in spike " + spike + " (" + spike.getNumber() + ")");
 		}
 	}
 
@@ -170,45 +184,44 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 					return PipeArrayList.SPLITTER;
 				}
 			};
-			final CsvParserUtils.CollectionParser<SpikeWordBundle> parser = new CsvParserUtils.CollectionParser<SpikeWordBundle>() {
+			final CsvParserUtils.CollectionParser<GuiSpikeWordsBundle> parser = new CsvParserUtils.CollectionParser<GuiSpikeWordsBundle>() {
 				@Override
-				public void parse(String toParse, Collection<SpikeWordBundle> toAdd) throws CsvParserException {
+				public void parse(String toParse, Collection<GuiSpikeWordsBundle> toAdd) throws CsvParserException {
 					try {
 						toParse = toParse.substring(1, toParse.length() - 1); //..remove [ and ]
-						String[] split = toParse.split(SpikeWordBundle.SPLITTER);
+						String[] split = toParse.split(GuiSpikeWordsBundle.SPLITTER);
 						int wordNumber = Integer.parseInt(split[0]);
 						int elementNumber = Integer.parseInt(split[1]);
 						String word = split[2];
-						toAdd.add(new SpikeWordBundle(wordNumber, elementNumber, word));
+						toAdd.add(new GuiSpikeWordsBundle(wordNumber, elementNumber, word));
 					} catch (NumberFormatException nfe) {
 						throw new CsvParserException(nfe.getMessage());
 					} catch (IndexOutOfBoundsException ioobe) {
 						throw new CsvParserException(ioobe.getMessage());
 					}
 				}
-			};//TODO
-			/*
+			};
 			int maxNumber = 0;
 			for (List<Object> objects : csv.getCurrentSection().getDataLines()) {
 				int number = CsvParserUtils.getAsInt(objects.get(0));
 				Spike spike = new Spike(number);
 
-				Collection<SpikeWordBundle> wordsNumbers = CsvParserUtils.getAsList(objects.get(1), splitter, parser);
-				for (SpikeWordBundle bundle : wordsNumbers) {
+				Collection<GuiSpikeWordsBundle> wordsNumbers = CsvParserUtils.getAsList(objects.get(1), splitter, parser);
+				for (GuiSpikeWordsBundle bundle : wordsNumbers) {
 
 					DenotationWord word = poemModel.getWord(bundle.wordNumber);
 
-					final DenotationPoemModel.DenotationSpikeNumber element = word.getFreeElement(bundle.elementNumber);
-					spike.add(word, element);
+					final DenotationElement element = word.getFreeElement(bundle.elementNumber);
+					spike.addWord(word);
 					element.onAddToSpike(spike, bundle.wordAsString);
 				}
-				spikesModel.spikes.put(number, spike);
 				if (maxNumber < number) {
 					maxNumber = number;
 				}
+
+				spikesModel.addSpike(spike);
 			}
 			spikesModel.currentSpike = maxNumber;
-			*/
 		}
 	}
 }

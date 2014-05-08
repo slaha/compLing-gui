@@ -182,18 +182,17 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 
 			for (WordHolder holder : allParsedWords.values()) {
 				final int thisNumber = holder.word.getNumber();
+				final List<DenotationElement> elements = holder.word.getDenotationElements();
+				for (int i = 0; i < elements.size(); i++) {
+					denotation.removeElement(thisNumber, elements.get(0));
+				}
 
 				if (holder.word.isIgnored()) {
-					final List<DenotationElement> elements = holder.word.getDenotationElements();
-					for (int i = 0; i < elements.size(); i++) {
-						denotation.removeElement(thisNumber, elements.get(0));
-					}
 					continue;
 				}
 
-				final int addElements = countElements(holder.denotationElements);
-				for (int i = 0; i < addElements; i++) {
-					denotation.addNewElementTo(holder.word.getNumber());
+				for (int element : holder.denotationElements) {
+					denotation.addNewElementTo(thisNumber, element);
 				}
 
 				for (Integer joinedWord : holder.joinedWords) {
@@ -211,7 +210,7 @@ public class DenotationPoemModel implements Csv<DenotationPoemModel> {
 				elementNumbers.add(element);
 			}
 
-			return elementNumbers.size() - 1;
+			return denotationElements.size() - 1;
 		}
 
 		int verseInStrophe = -1;
