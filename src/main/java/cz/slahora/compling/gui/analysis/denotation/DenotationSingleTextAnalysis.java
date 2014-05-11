@@ -1,6 +1,7 @@
 package cz.slahora.compling.gui.analysis.denotation;
 
 import cz.compling.CompLing;
+import cz.compling.analysis.analysator.poems.denotation.IDenotation;
 import cz.compling.model.CharacterFrequency;
 import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.analysis.ResultsHandler;
@@ -30,14 +31,19 @@ import java.util.Map;
  */
 public class DenotationSingleTextAnalysis implements SingleTextAnalysis<CharacterFrequency> {
 
+	JFrame frame;
+	private final DenotationSingleTextAnalysisResults results = new DenotationSingleTextAnalysisResults();
+	private WorkingText text;
+	private DenotationAnalysis.DenotationPanel denotationPanel;
+
 	@Override
 	public void analyse(JPanel mainPanel, final ResultsHandler handler, Map<WorkingText, CompLing> texts) {
 
-		final WorkingText text = MapUtils.getFirstKey(texts);
+		this.text = MapUtils.getFirstKey(texts);
 
-		final JFrame frame = new JFrame("Denotační analýza");
+	    frame = new JFrame("Denotační analýza");
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		final DenotationAnalysis.DenotationPanel denotationPanel = new DenotationAnalysis.DenotationPanel(frame, text);
+		denotationPanel = new DenotationAnalysis.DenotationPanel(this, frame, text);
 		frame.setContentPane(denotationPanel);
 
 		frame.pack();
@@ -69,6 +75,7 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis<Characte
 				handler.handleResult(DenotationSingleTextAnalysis.this);
 			}
 		});
+
 	}
 
 	private int showConfirmExitDialog(JFrame parent) {
@@ -86,13 +93,24 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis<Characte
 
 	@Override
 	public Results getResults() {
-		return new DenotationSingleTextAnalysisResults();
+		return results;
+	}
+
+	public void done() {
+		results.analysisComplete = true;
+		results.text = text;
+		results.denotation = denotationPanel.getDenotation();
+		frame.dispose();
 	}
 
 	private static class DenotationSingleTextAnalysisResults implements Results {
+		private boolean analysisComplete;
+		private WorkingText text;
+		private IDenotation denotation;
+
 		@Override
 		public boolean resultsOk() {
-			return false;
+			return analysisComplete;
 		}
 
 		@Override
@@ -100,7 +118,7 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis<Characte
 			return new ResultsPanel() {
 				@Override
 				public JPanel getPanel() {
-					return new JPanel();
+					return new GuiDenotationResults(text, denotation).getPanel();
 				}
 
 				@Override

@@ -1,5 +1,6 @@
 package cz.slahora.compling.gui.analysis.denotation;
 
+import cz.compling.analysis.analysator.poems.denotation.IDenotation;
 import cz.slahora.compling.gui.model.Csv;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
@@ -49,6 +50,10 @@ public class GuiDenotationModel implements Csv<GuiDenotationModel> {
 	@Override
 	public boolean supportsCsvImport() {
 		return true;
+	}
+
+	public IDenotation getDenotation() {
+		return poemModel.getDenotation();
 	}
 
 	@Override

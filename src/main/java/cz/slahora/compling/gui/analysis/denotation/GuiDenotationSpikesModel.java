@@ -122,7 +122,7 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 
 	private TIntObjectMap<String> getElementsInSpike(Spike spike) {
 		TIntObjectMap<String> map = new TIntObjectHashMap<String>();
-		for (DenotationWord dw : spike.getWords().values()) {
+		for (DenotationWord dw : spike.getWords()) {
 			for (DenotationElement element : dw.getDenotationElements()) {
 				if (element.getSpike().getNumber() == spike.getNumber()) {
 					String s;
@@ -149,7 +149,7 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 			section.addHeader("Word number(s) [word number\\denotation element\\value]");
 			for (Spike spike : object.getSpikes()) {
 				section.startNewLine();
-				for (DenotationWord w : spike.getWords().values()) {
+				for (DenotationWord w : spike.getWords()) {
 					if (w.isInSpike(spike)) {
 						section.addData(new GuiSpikeWordsBundle(w.getNumber(), spike.getNumber(), getAlias(spike, w)));
 					}
@@ -211,7 +211,7 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 				for (GuiSpikeWordsBundle bundle : wordsNumbers) {
 
 					DenotationWord word = poemModel.getWord(bundle.wordNumber);
-					spike.addWord(word, bundle.wordAsString);
+					spike.addWord(word, bundle.wordAsString, bundle.elementNumber);
 				}
 				if (maxNumber < number) {
 					maxNumber = number;

@@ -55,6 +55,7 @@ public class DenotationAnalysis {
 
 	public static class DenotationPanel extends JPanel implements ActionListener {
 
+		private final DenotationSingleTextAnalysis denotationAnalysis;
 		private final JFrame frame;
 
 		private final JButton exportBtn;
@@ -71,9 +72,10 @@ public class DenotationAnalysis {
 		private DenotationPoemPanel denotationPoemPanel;
 		private JSplitPane middlePanel;
 
-		public DenotationPanel(JFrame frame, WorkingText workingText) {
+		public DenotationPanel(DenotationSingleTextAnalysis denotationAnalysis, JFrame frame, WorkingText workingText) {
 			super(new GridBagLayout());
 
+			this.denotationAnalysis = denotationAnalysis;
 			this.frame = frame;
 			this.workingText = workingText;
 			this.importExportHandler = new ImportExportHandler(this, LastDirectory.getInstance());
@@ -158,11 +160,15 @@ public class DenotationAnalysis {
 				}
 			}
 			else if (source == doneBtn) {
-
+				denotationAnalysis.done();
 			}
 			else if (source == cancelBtn) {
 				closeWindow();
 			}
+		}
+
+		public IDenotation getDenotation() {
+			return model.getDenotation();
 		}
 
 		public void refreshSpikes(int number) {
