@@ -61,4 +61,9 @@ public class HtmlLabelBuilder {
 		return this;
 
 	}
+
+	public HtmlLabelBuilder b(String s) {
+		builder.append("<b>").append(s).append("</b>");
+		return this;
+	}
 }

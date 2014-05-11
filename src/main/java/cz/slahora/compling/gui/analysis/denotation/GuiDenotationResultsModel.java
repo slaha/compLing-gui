@@ -52,6 +52,32 @@ public class GuiDenotationResultsModel {
 		return core;
 	}
 
+	public double computeTopikalnost(Spike spike) {
+		final double cardinalNumber = (double) core.getCoreCardinalNumber();
+
+		return denotation.computeTopikalnost(spike, cardinalNumber);
+	}
+
+	public double getTextCompactness() {
+		return denotation.getTextCompactness();
+	}
+
+	public double getTextCentralization() {
+		return denotation.getTextCentralization();
+	}
+
+	public double getMacIntosh() {
+		return denotation.getMacIntosh();
+	}
+
+	public double getDiffusionFor(int spike) {
+		return denotation.getDiffusionFor(spike);
+	}
+
+	public int getSpikeSize(int spike) {
+		return denotation.getSpike(spike).size();
+	}
+
 	class TextCore {
 		private final List<Spike> core = new ArrayList<Spike>();
 		private final List<Spike> outsideCore = new ArrayList<Spike>();
@@ -110,6 +136,10 @@ public class GuiDenotationResultsModel {
 				i += spike.getWords().size();
 			}
 			return i;
+		}
+
+		public int getCoreSize() {
+			return 0;
 		}
 	}
 }
