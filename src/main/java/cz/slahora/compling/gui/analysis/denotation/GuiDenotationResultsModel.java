@@ -78,6 +78,40 @@ public class GuiDenotationResultsModel {
 		return denotation.getSpike(spike).size();
 	}
 
+	public List<Spike> getSpikesInExtendedCore() {
+		final Spike coreSpiceMaxDiffusion = findCoreWithMaxDiffusion();
+		if (coreSpiceMaxDiffusion == null) {
+			return null;
+		}
+		final double maxDiffusion = getDiffusionFor(coreSpiceMaxDiffusion.getNumber());
+
+		List<Spike> spikes = new ArrayList<Spike>();
+		for (Spike spike : denotation.getSpikes()) {
+			if (getDiffusionFor(spike.getNumber()) <= maxDiffusion) {
+				spikes.add(spike);
+			}
+		}
+		return spikes;
+	}
+
+	public Spike findCoreWithMaxDiffusion() {
+		final List<Spike> core = getTextCoreSpikes().getCore();
+		if (core.isEmpty()) {
+			return null;
+		}
+
+		Spike maxDiffusionSpike = core.get(0);
+		double maxDiffusion = getDiffusionFor(maxDiffusionSpike.getNumber());
+		for (int i = 1; i < core.size(); i++) {
+			final double currentDiffusion = getDiffusionFor(core.get(i).getNumber());
+			if (maxDiffusion < currentDiffusion) {
+				maxDiffusion = currentDiffusion;
+				maxDiffusionSpike = core.get(i);
+			}
+		}
+		return maxDiffusionSpike;
+	}
+
 	class TextCore {
 		private final List<Spike> core = new ArrayList<Spike>();
 		private final List<Spike> outsideCore = new ArrayList<Spike>();

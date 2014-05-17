@@ -6,6 +6,7 @@ import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 import org.apache.commons.lang.text.StrBuilder;
+import org.javatuples.Pair;
 import org.jdesktop.swingx.JXCollapsiblePane;
 
 import javax.swing.Action;
@@ -16,6 +17,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -95,8 +98,7 @@ public class GuiDenotationResults {
 				new GridBagConstraintBuilder().gridxy(0, spike).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
 			);
 		}
-		toggle = new ToggleHeader(positionSpikes.getActionMap().get("toggle"),
-			new HtmlLabelBuilder().hx(2, "Poziční hřeby").build().getText());
+		toggle = new ToggleHeader(positionSpikes, new HtmlLabelBuilder().hx(2, "Poziční hřeby").build().getText());
 
 		panel.add(
 			toggle,
@@ -127,6 +129,18 @@ public class GuiDenotationResults {
 			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
+
+		ExtendedCorePanel extendedCore = new ExtendedCorePanel(model.findCoreWithMaxDiffusion(), model.getSpikesInExtendedCore());
+		coreSpikePanel.addObserver(extendedCore);
+		toggle = new ToggleHeader(extendedCore, "Rozšířené jádro textu");
+		panel.add(
+			toggle,
+			new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).anchor(GridBagConstraints.WEST).build()
+		);
+		panel.add(
+			extendedCore,
+			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+		);
 		//..last panel for align another components to the top
 		JPanel dummyPanel = new JPanel();
 		dummyPanel.setBackground(Color.WHITE);
@@ -141,6 +155,10 @@ public class GuiDenotationResults {
 	}
 
 	private static class ToggleHeader extends JButton {
+
+		private ToggleHeader(JXCollapsiblePane panel, String text) {
+			this(panel.getActionMap().get("toggle"), text);
+		}
 
 		private ToggleHeader(Action action, String text) {
 			setHideActionText(true);
@@ -173,13 +191,13 @@ public class GuiDenotationResults {
 		}
 	}
 
-	private class CoreSpikePanel extends JPanel {
+	private class CoreSpikePanel extends JPanel implements SpikeDetailsCollapsiblePanelMouseListener {
 		private final GuiDenotationResultsModel.TextCore core;
-		final Insets insets = new Insets(0, 0, 0, 25);
 		final JLabel spikeLabel;
-		private JXCollapsiblePane outsideCorePanel;
-		private JXCollapsiblePane corePanel;
-		private JXCollapsiblePane coreTopikalnostPanel;
+		private SpikeDetailsCollapsiblePanel outsideCorePanel;
+		private SpikeDetailsCollapsiblePanel corePanel;
+		private SpikeDetailsCollapsiblePanel coreTopikalnostPanel;
+		private final Observable observable;
 
 		public CoreSpikePanel(GuiDenotationResultsModel.TextCore core, JLabel spikeLabel) {
 			super(new GridBagLayout());
@@ -188,6 +206,16 @@ public class GuiDenotationResults {
 			this.spikeLabel = spikeLabel;
 
 			setBackground(Color.white);
+
+			observable = new Observable() {
+				@Override
+				public void notifyObservers(Object arg) {
+					setChanged();
+					super.notifyObservers(arg);
+
+				}
+			};
+
 
 			refresh();
 		}
@@ -198,9 +226,10 @@ public class GuiDenotationResults {
 			boolean collapseTopikalnostCore = coreTopikalnostPanel == null || coreTopikalnostPanel.isCollapsed();
 			removeAll();
 
-			corePanel = new JXCollapsiblePane();
+			//..panel hřebů, které patří do jádra
+			corePanel = new SpikeDetailsCollapsiblePanel();
 			corePanel.setCollapsed(collapseCore);
-			addSpikes(corePanel, core.getCore());
+			corePanel.addSpikes(core.getCore(), this);
 			Action action = corePanel.getActionMap().get("toggle");
 			ToggleHeader toggleHeader = new ToggleHeader(action, new HtmlLabelBuilder().hx(3, "Jádro textu").build().getText());
 			add(
@@ -213,10 +242,11 @@ public class GuiDenotationResults {
 				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.HORIZONTAL).weightx(1).gridxy(1, 0).build()
 			);
 
-			outsideCorePanel = new JXCollapsiblePane();
+			//..panel hřebů, které jsou mimo jádro
+			outsideCorePanel = new SpikeDetailsCollapsiblePanel();
 			outsideCorePanel.setCollapsed(collapseOutsideCore);
 			outsideCorePanel.setLayout(new GridBagLayout());
-			addSpikes(outsideCorePanel, core.getNotInCore());
+			outsideCorePanel.addSpikes(core.getNotInCore(), this);
 
 			action = outsideCorePanel.getActionMap().get("toggle");
 			toggleHeader = new ToggleHeader(action, new HtmlLabelBuilder().hx(3, "Hřeby mimo jádro").build().getText());
@@ -229,10 +259,11 @@ public class GuiDenotationResults {
 				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).gridxy(1, 1).build()
 			);
 
-			coreTopikalnostPanel = new JXCollapsiblePane();
+			//...topikalnosť
+			coreTopikalnostPanel = new SpikeDetailsCollapsiblePanel();
 			coreTopikalnostPanel.setLayout(new GridBagLayout());
 			coreTopikalnostPanel.setCollapsed(collapseTopikalnostCore);
-			computeTopikalnost();
+			coreTopikalnostPanel.addSpikes(computeTopikalnost(), null);
 
 			action = coreTopikalnostPanel.getActionMap().get("toggle");
 			toggleHeader = new ToggleHeader(action, new HtmlLabelBuilder().hx(3, "Topikálnost jádrových hřebů").build().getText());
@@ -249,63 +280,30 @@ public class GuiDenotationResults {
 			spikeLabel.setText(String.format("Jádro textu obsahuje %d %s. Kardinální číslo jádra je %d.", core.size(), spikeLbl, core.getCoreCardinalNumber()));
 		}
 
-		private void computeTopikalnost() {
-			int y = 0;
+		private Map<Spike, String> computeTopikalnost() {
+			Map<Spike, String> map = new LinkedHashMap<Spike, String>(core.getCore().size());
 			for (Spike spike : core.getCore()) {
 				double topikalnost = model.computeTopikalnost(spike);
-				JPanel p = new JPanel(new GridBagLayout());
-				p.setBackground(Color.white);
-
-				JLabel spikeNumber = new HtmlLabelBuilder().hx(3, String.valueOf(spike.getNumber())).build();
-				JLabel topikalnostLbl = new JLabel(String.format("%.2f", topikalnost));
-
-				p.add(
-					spikeNumber,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).insets(insets).weighty(1).gridxy(0, 0).build()
-				);
-				p.add(
-					topikalnostLbl,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).weighty(1).gridxy(1, 0).build()
-				);
-				coreTopikalnostPanel.add(
-					p,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).weightx(1).gridxy(0, y++).build()
-				);
+				map.put(spike, String.format("%.2f", topikalnost));
 			}
-
+			return map;
 		}
 
-		private void addSpikes(JPanel panel, List<Spike> spikes) {
-			int y = 0;
-			for (Spike spike : spikes) {
-				JPanel spikePanel = createSpikePanel(spike);
-				spikePanel.setBackground(Color.white);
-
-				JLabel spikeNumber = new HtmlLabelBuilder().hx(3, String.valueOf(spike.getNumber())).build();
-				String content = new StrBuilder().append("<html>").appendWithSeparators(spike.getWords(), ", ").append("</html>").toString();
-				JLabel spikeContent = new JLabel(content);
-
-				spikePanel.add(
-					spikeNumber,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).insets(insets).weighty(1).gridxy(0, 0).build()
-				);
-
-				spikePanel.add(
-					spikeContent,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.BOTH).weightx(1).weighty(1).gridxy(1, 0).build()
-				);
-
-				panel.add(
-					spikePanel,
-					new GridBagConstraintBuilder().weightx(1).fill(GridBagConstraints.HORIZONTAL).gridxy(0, y++).build()
-				);
-			}
+		private void addObserver(Observer observer) {
+			observable.addObserver(observer);
 		}
 
-		private JPanel createSpikePanel(final Spike spike) {
-			final JPanel panel = new JPanel(new GridBagLayout());
+		private void removeObserver(Observer observer) {
+			observable.deleteObserver(observer);
+		}
 
-			panel.addMouseListener(new MouseAdapter() {
+		private void notifyObservers() {
+			observable.notifyObservers(new Pair<Spike, List<Spike>>(model.findCoreWithMaxDiffusion(), model.getSpikesInExtendedCore()));
+		}
+
+		@Override
+		public MouseListener getListenerFor(final Spike spike) {
+			return new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					if (core.isInCore(spike)) {
@@ -313,6 +311,7 @@ public class GuiDenotationResults {
 					} else {
 						core.add(spike);
 					}
+					notifyObservers();
 					refresh();
 					validate();
 				}
@@ -326,8 +325,128 @@ public class GuiDenotationResults {
 				public void mouseExited(MouseEvent e) {
 					panel.setBackground(Color.white);
 				}
-			});
+			};
+		}
+	}
+
+
+
+	private static class ExtendedCorePanel extends JXCollapsiblePane implements Observer {
+
+		public ExtendedCorePanel(Spike maxDiffusionSpike, List<Spike> spikesInExtendedCore) {
+			setCollapsed(true);
+			addDescriptions(maxDiffusionSpike);
+			fill(spikesInExtendedCore);
+		}
+
+		private void addDescriptions(Spike maxDiffusionSpike) {
+			if (maxDiffusionSpike != null) {
+				add(new HtmlLabelBuilder()
+					.p("Jádrový hřeb s nejvyšší difuzností je hřeb číslo %d", maxDiffusionSpike.getNumber())
+					.setToolTipText(maxDiffusionSpike.getWords().toString())
+					.build());
+			}
+		}
+
+		private void fill(List<Spike> spikesInExtendedCore) {
+			if (spikesInExtendedCore == null) {
+				return;
+			}
+			final int size = spikesInExtendedCore.size();
+			for (int i = 0; i < size; i++) {
+				Spike s = spikesInExtendedCore.get(i);
+				HtmlLabelBuilder labelBuilder = new HtmlLabelBuilder().normal(String.valueOf(s.getNumber()));
+				if (i < size - 1) {
+					labelBuilder.normal(", ");
+				}
+				JPanel spikePanel = new JPanel();
+				spikePanel.add(labelBuilder.build());
+				spikePanel.setToolTipText(s.getWords().toString());
+				add(spikePanel);
+			}
+
+		}
+
+		@Override
+		public void update(Observable o, Object arg) {
+			removeAll();
+			Pair<Spike, List<Spike>> p =(Pair<Spike, List<Spike>>)arg;
+			addDescriptions(p.getValue0());
+			fill(p.getValue1());
+
+		}
+	}
+
+	private static class SpikeDetailsCollapsiblePanel extends JXCollapsiblePane {
+
+		private static final Insets INSETS = new Insets(0, 0, 0, 25);
+
+		public void addSpikes(List<Spike> spikes, SpikeDetailsCollapsiblePanelMouseListener spikePanelListener) {
+			int y = 0;
+			for (Spike spike : spikes) {
+				JPanel spikePanel = createSpikePanel(spike, spikePanelListener);
+				spikePanel.setBackground(Color.white);
+
+				JLabel spikeNumber = new HtmlLabelBuilder().hx(3, String.valueOf(spike.getNumber())).build();
+				String content = new StrBuilder().append("<html>").appendWithSeparators(spike.getWords(), ", ").append("</html>").toString();
+				JLabel spikeContent = new JLabel(content);
+
+				spikePanel.add(
+					spikeNumber,
+					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).insets(INSETS).weighty(1).gridxy(0, 0).build()
+				);
+
+				spikePanel.add(
+					spikeContent,
+					new GridBagConstraintBuilder().fill(GridBagConstraints.BOTH).weightx(1).weighty(1).gridxy(1, 0).build()
+				);
+
+				add(
+					spikePanel,
+					new GridBagConstraintBuilder().weightx(1).fill(GridBagConstraints.HORIZONTAL).gridxy(0, y++).build()
+				);
+			}
+		}
+
+		public void addSpikes(Map<Spike, String> spikes, SpikeDetailsCollapsiblePanelMouseListener spikePanelListener) {
+			int y = 0;
+			for (Map.Entry<Spike, String> entry : spikes.entrySet()) {
+				JPanel spikePanel = createSpikePanel(entry.getKey(), spikePanelListener);
+				spikePanel.setBackground(Color.white);
+
+				JLabel spikeNumber = new HtmlLabelBuilder().hx(3, String.valueOf(entry.getKey().getNumber())).build();
+				String content = new StrBuilder().append("<html>").append(entry.getValue()).append("</html>").toString();
+				JLabel spikeContent = new JLabel(content);
+
+				spikePanel.add(
+					spikeNumber,
+					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).insets(INSETS).weighty(1).gridxy(0, 0).build()
+				);
+
+				spikePanel.add(
+					spikeContent,
+					new GridBagConstraintBuilder().fill(GridBagConstraints.BOTH).weightx(1).weighty(1).gridxy(1, 0).build()
+				);
+
+				add(
+					spikePanel,
+					new GridBagConstraintBuilder().weightx(1).fill(GridBagConstraints.HORIZONTAL).gridxy(0, y++).build()
+				);
+			}
+		}
+
+		private JPanel createSpikePanel(final Spike spike, SpikeDetailsCollapsiblePanelMouseListener spikePanelListener) {
+			final JPanel panel = new JPanel(new GridBagLayout());
+			if (spikePanelListener != null) {
+				panel.addMouseListener(spikePanelListener.getListenerFor(spike));
+			}
 			return panel;
 		}
+	}
+
+	private static interface SpikeDetailsCollapsiblePanelMouseListener  {
+
+		MouseListener getListenerFor(Spike spike);
+
 	}
 }

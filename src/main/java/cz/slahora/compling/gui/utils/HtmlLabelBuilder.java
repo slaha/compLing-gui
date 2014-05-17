@@ -19,6 +19,7 @@ public class HtmlLabelBuilder {
 	public static final String HTML_END = "</html>";
 
 	private final StringBuilder builder;
+	private String toolTip;
 
 	public HtmlLabelBuilder() {
 		builder = new StringBuilder(HTML);
@@ -26,7 +27,9 @@ public class HtmlLabelBuilder {
 
 	public JLabel build() {
 		builder.append(HTML_END);
-		return new JLabel(builder.toString());
+		JLabel lbl = new JLabel(builder.toString());
+		lbl.setToolTipText(toolTip);
+		return lbl;
 	}
 
 	public HtmlLabelBuilder hx(int level, String text, Object... params) {
@@ -39,6 +42,10 @@ public class HtmlLabelBuilder {
 		return this;
 	}
 
+	public HtmlLabelBuilder normal(String text, Object... params) {
+		builder.append(String.format(text, params));
+		return this;
+	}
 
 
 	public HtmlLabelBuilder startBulletList() {
@@ -64,6 +71,11 @@ public class HtmlLabelBuilder {
 
 	public HtmlLabelBuilder b(String s) {
 		builder.append("<b>").append(s).append("</b>");
+		return this;
+	}
+
+	public HtmlLabelBuilder setToolTipText(String toolTip) {
+		this.toolTip = toolTip;
 		return this;
 	}
 }
