@@ -4,6 +4,7 @@ import cz.compling.analysis.analysator.poems.denotation.IDenotation;
 import cz.compling.model.denotation.DenotationElement;
 import cz.compling.model.denotation.DenotationWord;
 import cz.compling.model.denotation.Spike;
+import org.javatuples.Pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,6 +25,24 @@ import java.util.List;
 public class GuiDenotationResultsModel {
 	private final IDenotation denotation;
 	private final TextCore core;
+
+	private final Comparator<Spike> SPIKE_NUMBER_COMPARATOR = new Comparator<Spike>() {
+		@Override
+		public int compare(Spike o1, Spike o2) {
+			return o1.getNumber() - o2.getNumber();
+		}
+	};
+
+	private final Comparator<Spike> SPIKE_DIFFUSION_COMPARATOR = new Comparator<Spike>() {
+		@Override
+		public int compare(Spike o1, Spike o2) {
+			double d = getDiffusionFor(o1.getNumber()) - getDiffusionFor(o2.getNumber());
+			if (d != 0) {
+				return d < 0 ? -1 : 1;
+			}
+			return SPIKE_NUMBER_COMPARATOR.compare(o1, o2);
+		}
+	};
 
 	public GuiDenotationResultsModel(IDenotation denotation) {
 		this.denotation = denotation;
@@ -87,10 +106,13 @@ public class GuiDenotationResultsModel {
 
 		List<Spike> spikes = new ArrayList<Spike>();
 		for (Spike spike : denotation.getSpikes()) {
-			if (getDiffusionFor(spike.getNumber()) <= maxDiffusion) {
+			if (getSpikeSize(spike.getNumber()) > 1 && getDiffusionFor(spike.getNumber()) <= maxDiffusion) {
 				spikes.add(spike);
 			}
 		}
+
+		Collections.sort(spikes, SPIKE_DIFFUSION_COMPARATOR);
+
 		return spikes;
 	}
 
@@ -110,6 +132,25 @@ public class GuiDenotationResultsModel {
 			}
 		}
 		return maxDiffusionSpike;
+	}
+
+	public List<Pair<Spike, Double> > getDiffusionForAll() {
+		List<Pair<Spike, Double> > list = new ArrayList<Pair<Spike, Double>>();
+		for (int spike = 1; spike <= getSpikesCount(); spike++) {
+			if (getSpikeSize(spike) > 1) {
+				Pair<Spike, Double> pair = new Pair<Spike, Double>(denotation.getSpike(spike), getDiffusionFor(spike));
+				list.add(pair);
+			}
+		}
+
+		Collections.sort(list, new Comparator<Pair<Spike, Double>>() {
+			@Override
+			public int compare(Pair<Spike, Double> o1, Pair<Spike, Double> o2) {
+				return SPIKE_DIFFUSION_COMPARATOR.compare(o1.getValue0(), o2.getValue0());
+			}
+		});
+
+		return list;
 	}
 
 	class TextCore {
@@ -141,22 +182,12 @@ public class GuiDenotationResultsModel {
 		}
 
 		public List<Spike> getCore() {
-			Collections.sort(core, new Comparator<Spike>() {
-				@Override
-				public int compare(Spike o1, Spike o2) {
-					return o1.getNumber() - o2.getNumber();
-				}
-			});
+			Collections.sort(core, SPIKE_NUMBER_COMPARATOR);
 			return core;
 		}
 
 		public List<Spike> getNotInCore() {
-			Collections.sort(outsideCore, new Comparator<Spike>() {
-				@Override
-				public int compare(Spike o1, Spike o2) {
-					return o1.getNumber() - o2.getNumber();
-				}
-			});
+			Collections.sort(outsideCore, SPIKE_NUMBER_COMPARATOR);
 			return outsideCore;
 		}
 

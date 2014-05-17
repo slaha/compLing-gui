@@ -14,12 +14,14 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.*;
-import java.util.List;
 
 /**
  *
@@ -65,19 +67,37 @@ public class GuiDenotationResults {
 
 		JXCollapsiblePane diffusionSpikes = new JXCollapsiblePane();
 		diffusionSpikes.setBackground(Color.WHITE);
-		diffusionSpikes.setLayout(new GridLayout(0, 5, 1, 1));
+		diffusionSpikes.setLayout(new GridBagLayout());
 		diffusionSpikes.setCollapsed(true);
 
-		for (int spike = 1; spike <= model.getSpikesCount(); spike++) {
-			if (model.getSpikeSize(spike) > 1) {
-				JPanel p = new JPanel();
-				p.add(new HtmlLabelBuilder().b(String.valueOf(spike)).build());
-				p.add(new JLabel(String.format("%.2f", model.getDiffusionFor(spike))));
-				diffusionSpikes.add(
-					p
-				);
+		final List<Pair<Spike, Double>> diffusions = model.getDiffusionForAll();
+		final int rowsPerColumn = diffusions.size() / 5;
+		final int biggerColumns = diffusions.size() % 5;
+
+		int row = 0;
+		int column = 0;
+		for (Pair<Spike, Double> pair : diffusions) {
+			JPanel p = new JPanel();
+			p.add(new HtmlLabelBuilder().b(String.valueOf(pair.getValue0().getNumber())).build());
+			p.add(new JLabel(String.format("%.2f", pair.getValue1())));
+
+			diffusionSpikes.add(p,
+				new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).weightx(1).gridxy(column, row).build()
+			);
+			row++;
+			if (column < biggerColumns) {
+				if (row > rowsPerColumn) {
+					row = 0;
+					column++;
+				}
+			} else {
+				if (row == rowsPerColumn) {
+					row = 0;
+					column++;
+				}
 			}
 		}
+
 		ToggleHeader toggle = new ToggleHeader(diffusionSpikes.getActionMap().get("toggle"),
 			new HtmlLabelBuilder().hx(2, "Difuznost hřebů").build().getText());
 
@@ -132,7 +152,7 @@ public class GuiDenotationResults {
 
 		ExtendedCorePanel extendedCore = new ExtendedCorePanel(model.findCoreWithMaxDiffusion(), model.getSpikesInExtendedCore());
 		coreSpikePanel.addObserver(extendedCore);
-		toggle = new ToggleHeader(extendedCore, "Rozšířené jádro textu");
+		toggle = new ToggleHeader(extendedCore, new HtmlLabelBuilder().hx(2, "Rozšířené jádro textu").build().getText());
 		panel.add(
 			toggle,
 			new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).anchor(GridBagConstraints.WEST).build()
@@ -302,7 +322,7 @@ public class GuiDenotationResults {
 		}
 
 		@Override
-		public MouseListener getListenerFor(final Spike spike) {
+		public MouseListener getListenerFor(final Spike spike, final JPanel panel) {
 			return new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
@@ -334,6 +354,7 @@ public class GuiDenotationResults {
 	private static class ExtendedCorePanel extends JXCollapsiblePane implements Observer {
 
 		public ExtendedCorePanel(Spike maxDiffusionSpike, List<Spike> spikesInExtendedCore) {
+			setBackground(Color.white);
 			setCollapsed(true);
 			addDescriptions(maxDiffusionSpike);
 			fill(spikesInExtendedCore);
@@ -342,9 +363,9 @@ public class GuiDenotationResults {
 		private void addDescriptions(Spike maxDiffusionSpike) {
 			if (maxDiffusionSpike != null) {
 				add(new HtmlLabelBuilder()
-					.p("Jádrový hřeb s nejvyšší difuzností je hřeb číslo %d", maxDiffusionSpike.getNumber())
-					.setToolTipText(maxDiffusionSpike.getWords().toString())
-					.build());
+						.p("Jádrový hřeb s nejvyšší difuzností je hřeb číslo %d", maxDiffusionSpike.getNumber())
+						.setToolTipText(maxDiffusionSpike.getWords().toString())
+						.build());
 			}
 		}
 
@@ -352,19 +373,26 @@ public class GuiDenotationResults {
 			if (spikesInExtendedCore == null) {
 				return;
 			}
-			final int size = spikesInExtendedCore.size();
-			for (int i = 0; i < size; i++) {
-				Spike s = spikesInExtendedCore.get(i);
-				HtmlLabelBuilder labelBuilder = new HtmlLabelBuilder().normal(String.valueOf(s.getNumber()));
-				if (i < size - 1) {
-					labelBuilder.normal(", ");
-				}
-				JPanel spikePanel = new JPanel();
-				spikePanel.add(labelBuilder.build());
-				spikePanel.setToolTipText(s.getWords().toString());
-				add(spikePanel);
-			}
 
+			SpikeDetailsCollapsiblePanel extendedCore = new SpikeDetailsCollapsiblePanel();
+			ToggleHeader toggleHeader = new ToggleHeader(extendedCore, new HtmlLabelBuilder().hx(3, "Rozšířené jádro textu").build().getText());
+
+			extendedCore.addSpikes(spikesInExtendedCore, null);
+
+			JPanel coverPanel = new JPanel(new GridBagLayout());
+			coverPanel.setBackground(Color.white);
+			coverPanel.add(
+				toggleHeader,
+				new GridBagConstraintBuilder().weighty(1).weightx(1).gridxy(0, 0).anchor(GridBagConstraints.NORTHWEST).build()
+			);
+			coverPanel.add(
+				extendedCore,
+				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).gridxy(1, 0).build()
+			);
+
+			add(coverPanel,
+				new GridBagConstraintBuilder().gridxy(0, 1).weighty(1).weightx(1).anchor(GridBagConstraints.NORTHWEST).build()
+			);
 		}
 
 		@Override
@@ -380,6 +408,10 @@ public class GuiDenotationResults {
 	private static class SpikeDetailsCollapsiblePanel extends JXCollapsiblePane {
 
 		private static final Insets INSETS = new Insets(0, 0, 0, 25);
+
+		private SpikeDetailsCollapsiblePanel() {
+			setBackground(Color.white);
+		}
 
 		public void addSpikes(List<Spike> spikes, SpikeDetailsCollapsiblePanelMouseListener spikePanelListener) {
 			int y = 0;
@@ -438,7 +470,7 @@ public class GuiDenotationResults {
 		private JPanel createSpikePanel(final Spike spike, SpikeDetailsCollapsiblePanelMouseListener spikePanelListener) {
 			final JPanel panel = new JPanel(new GridBagLayout());
 			if (spikePanelListener != null) {
-				panel.addMouseListener(spikePanelListener.getListenerFor(spike));
+				panel.addMouseListener(spikePanelListener.getListenerFor(spike, panel));
 			}
 			return panel;
 		}
@@ -446,7 +478,7 @@ public class GuiDenotationResults {
 
 	private static interface SpikeDetailsCollapsiblePanelMouseListener  {
 
-		MouseListener getListenerFor(Spike spike);
+		MouseListener getListenerFor(final Spike spike, final JPanel panel);
 
 	}
 }
