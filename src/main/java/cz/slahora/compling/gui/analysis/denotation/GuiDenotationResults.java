@@ -1,27 +1,30 @@
 package cz.slahora.compling.gui.analysis.denotation;
 
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
+import cz.compling.model.denotation.Coincidence;
+import cz.compling.model.denotation.GuiPoemAsSpikeNumbers;
 import cz.compling.model.denotation.Spike;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 import org.apache.commons.lang.text.StrBuilder;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiGraph;
+import org.graphstream.ui.swingViewer.Viewer;
 import org.javatuples.Pair;
 import org.jdesktop.swingx.JXCollapsiblePane;
+import org.jdesktop.swingx.JXTable;
 
-import javax.swing.Action;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.Color;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.*;
+import java.util.List;
 
 /**
  *
@@ -161,6 +164,32 @@ public class GuiDenotationResults {
 			extendedCore,
 			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
 		);
+
+		CoincidencePanel poemAsSpikeNumbersPanel = new CoincidencePanel(model.getPoemAsSpikeNumbers());
+		poemAsSpikeNumbersPanel.setBackground(Color.WHITE);
+		toggle = new ToggleHeader(poemAsSpikeNumbersPanel, new HtmlLabelBuilder().hx(2, "Koincidence").build().getText());
+		panel.add(
+			toggle,
+			new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).anchor(GridBagConstraints.WEST).build()
+		);
+		panel.add(
+			poemAsSpikeNumbersPanel,
+			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+		);
+		final List<Coincidence> coincidenceFor14 = model.getCoincidenceFor(14);
+		panel.add(
+			new CoincidenceDetailPanel(coincidenceFor14),
+			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+		);
+
+		final JPanel graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()));
+		JPanel graphPanel = new JPanel();
+		graphPanel.setBackground(Color.WHITE);
+		panel.add(
+			graph,
+			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).anchor(GridBagConstraints.NORTH).build()
+		);
+
 		//..last panel for align another components to the top
 		JPanel dummyPanel = new JPanel();
 		dummyPanel.setBackground(Color.WHITE);
@@ -168,6 +197,42 @@ public class GuiDenotationResults {
 			dummyPanel,
 			new GridBagConstraintBuilder().gridxy(0, y).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).anchor(GridBagConstraints.NORTH).build()
 		);
+	}
+
+	private Map<Spike, List<Coincidence>> createCoincidenceMap(List<Spike> allSpikes) {
+		Map<Spike, List<Coincidence>> map = new HashMap<Spike, List<Coincidence>>();
+
+		for (Spike spike : allSpikes) {
+			map.put(spike, model.getCoincidenceFor(spike.getNumber()));
+		}
+
+		return map;
+	}
+
+	private JPanel createGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor) {
+		Graph graph = new MultiGraph("Koincidence pro hřeb č. 14");
+
+		final double alpha = 0.1d;
+
+		for (Spike spike : allSpikes) {
+			final String s = String.valueOf(spike.getNumber());
+			Node node = graph.addNode(s);
+			node.addAttribute("ui.label", s);
+		}
+
+		for (Map.Entry<Spike, List<Coincidence>> entry : coincidenceFor.entrySet()) {
+			for (Coincidence coincidence : entry.getValue()) {
+				final String one = String.valueOf(entry.getKey().getNumber());
+				if (coincidence.probability <= alpha) {
+					final String another = String.valueOf(coincidence.anotherSpike.getNumber());
+					graph.addEdge(one+another, one, another);
+				}
+			}
+		}
+		Viewer viewer  = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
+		viewer.addDefaultView(false);
+		return viewer.getDefaultView();
+//		graph.display();
 	}
 
 	public JPanel getPanel() {
@@ -405,6 +470,79 @@ public class GuiDenotationResults {
 		}
 	}
 
+	private static class CoincidencePanel extends JXCollapsiblePane {
+
+		private final JPanel poemPanel;
+
+		public CoincidencePanel(GuiPoemAsSpikeNumbers poemAsSpikeNumbers) {
+			this.poemPanel = new JPanel();
+			poemPanel.setLayout(new BoxLayout(poemPanel, BoxLayout.Y_AXIS));
+			poemPanel.setBackground(Color.WHITE);
+			setLayout(new GridBagLayout());
+
+			fill(poemAsSpikeNumbers);
+
+			add(poemPanel);
+		}
+
+		private void fill(GuiPoemAsSpikeNumbers poem) {
+			int lastStrophe = 1;
+
+			for (GuiPoemAsSpikeNumbers.Strophe strophe : poem.getStrophes()) {
+				if (lastStrophe != strophe.getNumber()) {
+					JPanel betweenStrophes = new JPanel() {
+						@Override
+						public Dimension getPreferredSize() {
+							return new Dimension(10, 25);
+						}
+					};
+					poemPanel.add(betweenStrophes);
+					lastStrophe = strophe.getNumber();
+				}
+				for (GuiPoemAsSpikeNumbers.Strophe.Verse verse : strophe.getVerses()) {
+					String verseString = new StrBuilder().appendWithSeparators(verse.getSpikes(), ", ").toString();
+					JLabel lbl = new JLabel(verseString);
+					poemPanel.add(lbl);
+				}
+			}
+		}
+	}
+
+	private static class CoincidenceDetailPanel extends JPanel {
+		JXTable table;
+		DefaultTableModel model;
+		private CoincidenceDetailPanel(final List<Coincidence> coincidences) {
+			super(new BorderLayout());
+			setBackground(Color.white);
+			final String header[] = {"Koincidence s hřebem č.", "Počet koincidencí","Pravěpodobnost"};
+			model = new DefaultTableModel(header, coincidences.size()) {
+
+				@Override
+				public int getColumnCount() {
+					return 3;
+				}
+
+				@Override
+				public Object getValueAt(int rowIndex, int columnIndex) {
+					final Coincidence coincidence = coincidences.get(rowIndex);
+					switch (columnIndex) {
+						case 0:
+							return coincidence.anotherSpike;
+						case 1:
+							return coincidence.coincidenceCount;
+						case 2:
+							return String.format("%.4f", coincidence.probability);
+					}
+					return null;
+				}
+
+			};
+			table = new JXTable(model);
+			table.setSortable(false);
+			add(table.getTableHeader(), BorderLayout.NORTH);
+			add(table, BorderLayout.CENTER);
+		}
+	}
 	private static class SpikeDetailsCollapsiblePanel extends JXCollapsiblePane {
 
 		private static final Insets INSETS = new Insets(0, 0, 0, 25);

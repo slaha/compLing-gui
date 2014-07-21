@@ -1,9 +1,7 @@
 package cz.slahora.compling.gui.analysis.denotation;
 
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
-import cz.compling.model.denotation.DenotationElement;
-import cz.compling.model.denotation.DenotationWord;
-import cz.compling.model.denotation.Spike;
+import cz.compling.model.denotation.*;
 import org.javatuples.Pair;
 
 import java.util.ArrayList;
@@ -151,6 +149,18 @@ public class GuiDenotationResultsModel {
 		});
 
 		return list;
+	}
+
+	public GuiPoemAsSpikeNumbers getPoemAsSpikeNumbers() {
+		return denotation.getPoemAsSpikeNumbers();
+	}
+
+	public List<Coincidence> getCoincidenceFor(int spikeNumber) {
+		return denotation.getCoincidenceFor(spikeNumber);
+	}
+
+	public List<Spike> getAllSpikes() {
+		return new ArrayList<Spike>(denotation.getSpikes());
 	}
 
 	class TextCore {
