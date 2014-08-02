@@ -1,5 +1,11 @@
 package cz.slahora.compling.gui.utils;
 
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.procedure.TIntProcedure;
+import gnu.trove.procedure.TObjectIntProcedure;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,5 +61,40 @@ public class MapUtils {
 			throw new IllegalArgumentException("null or empty map supplied as parameter 'map'");
 		}
 		return map.keySet().iterator().next();
+	}
+
+	/**
+	 * Finds max value in TObjectIntMap<?>
+	 *
+	 * @param map map to find maximum value in
+	 * @return maximum value from values in map
+	 */
+	public static int findMaxValue(TObjectIntMap<?> map) {
+		final int max[] = new int[] { map.values()[0] };
+
+		map.forEachValue(new TIntProcedure() {
+			@Override
+			public boolean execute(int i) {
+				if (i > max[0]) {
+					max[0] = i;
+				}
+				return true;
+			}
+		});
+		return max[0];
+	}
+
+	public static <T> List<T> getAllKeysWithValue(TObjectIntMap<T> map, final int value) {
+		final List<T> list = new ArrayList<T>();
+		map.forEachEntry(new TObjectIntProcedure<T>() {
+			@Override
+			public boolean execute(T s, int i) {
+				if (i == value) {
+					list.add(s);
+				}
+				return true;
+			}
+		});
+		return list;
 	}
 }

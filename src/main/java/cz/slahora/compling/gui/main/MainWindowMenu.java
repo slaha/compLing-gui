@@ -5,6 +5,8 @@ import cz.slahora.compling.gui.about.Licence;
 import cz.slahora.compling.gui.analysis.character.CharacterMultipleTextsAnalysis;
 import cz.slahora.compling.gui.analysis.character.CharacterSingleTextAnalysis;
 import cz.slahora.compling.gui.analysis.denotation.DenotationSingleTextAnalysis;
+import cz.slahora.compling.gui.analysis.words.WordMultipleTextsAnalysis;
+import cz.slahora.compling.gui.analysis.words.WordSingleTextAnalysis;
 import cz.slahora.compling.gui.model.WorkingTexts;
 import cz.slahora.compling.gui.utils.IconUtils;
 import org.jfree.ui.about.ProjectInfo;
@@ -35,7 +37,9 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 	private static final int OPEN = 1;
 	private static final int CHARACTER_COUNTS_ONE = 10;
 	private static final int CHARACTER_COUNTS_ALL = 11;
-	private static final int DENOTATION = 15;
+	private static final int WORD_COUNTS_ONE = 15;
+	private static final int WORD_COUNTS_ALL = 16;
+	private static final int DENOTATION = 99;
 	private static final int APP_SETTINGS = 100;
 	private static final int APP_ABOUT = 101;
 
@@ -79,14 +83,13 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 	private JMenu createAnalyzeMenu() {
 		JMenu characterCountMenu = new JMenu("Četnost znaků");
 
-		JMenuItem forActual = createMenuItem("Pro aktuální text '%s'", CHARACTER_COUNTS_ONE, null);
-		characterCountMenu.add(forActual);
-		forActualTextMenus.add(forActual);
-
-		JMenuItem forAll = createMenuItem("Pro všechny text", CHARACTER_COUNTS_ALL, null);
-		characterCountMenu.add(forAll);
-
+		createCharacterCountMenu(characterCountMenu);
 		analyzeMenu.add(characterCountMenu);
+
+		JMenu wordCountMenu = new JMenu("Četnost slov");
+
+		createWordCountMenu(wordCountMenu);
+		analyzeMenu.add(wordCountMenu);
 
 		JMenuItem denotation = createMenuItem("Denotační analýza pro '%s'", DENOTATION, null);
 		analyzeMenu.add(denotation);
@@ -95,6 +98,25 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 		analyzeMenu.setEnabled(false);
 
 		return analyzeMenu;
+	}
+
+	private void createCharacterCountMenu(JMenu parent) {
+		JMenuItem forActual = createMenuItem("Pro aktuální text '%s'", CHARACTER_COUNTS_ONE, null);
+		parent.add(forActual);
+		forActualTextMenus.add(forActual);
+
+		JMenuItem forAll = createMenuItem("Pro všechny texty", CHARACTER_COUNTS_ALL, null);
+		parent.add(forAll);
+	}
+
+	private void createWordCountMenu(JMenu parent) {
+
+		JMenuItem forActual = createMenuItem("Pro aktuální text '%s'", WORD_COUNTS_ONE, null);
+		parent.add(forActual);
+		forActualTextMenus.add(forActual);
+
+		JMenuItem forAll = createMenuItem("Pro všechny texty", WORD_COUNTS_ALL, null);
+		parent.add(forAll);
 	}
 
 	private JMenu createFileMenu() {
@@ -121,6 +143,12 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 				controller.analyse(new CharacterMultipleTextsAnalysis());
 				break;
 
+			case WORD_COUNTS_ONE:
+				controller.analyse(new WordSingleTextAnalysis());
+				break;
+			case WORD_COUNTS_ALL:
+				controller.analyse(new WordMultipleTextsAnalysis());
+				break;
 			case DENOTATION:
 				controller.analyse(new DenotationSingleTextAnalysis());
 				break;

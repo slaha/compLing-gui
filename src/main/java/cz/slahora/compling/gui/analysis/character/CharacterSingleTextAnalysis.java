@@ -38,7 +38,6 @@ public class CharacterSingleTextAnalysis extends AbstractCharacterAnalysis imple
 
 		this.text = MapUtils.getFirstKey(texts);
 		CompLing compLing = MapUtils.getFirstValue(texts);
-
 		OptionPanel optionPanel = new OptionPanel();
 		int result = JOptionPane.showConfirmDialog(mainPanel, optionPanel, "Nastavení analýzy četnosti znaků pro " + text.getName(), JOptionPane.OK_CANCEL_OPTION);
 		if (result != JOptionPane.OK_OPTION) {

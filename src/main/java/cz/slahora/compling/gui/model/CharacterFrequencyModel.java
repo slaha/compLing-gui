@@ -12,7 +12,7 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
 
-import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import java.util.*;
 
@@ -269,7 +269,7 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 		}
 	}
 
-	private static class CharacterFrequencyTableModel implements TableModel {
+	private static class CharacterFrequencyTableModel extends AbstractTableModel {
 
 		private final List<String> rows;
 		private final List<WorkingText> workingTexts;
@@ -330,18 +330,6 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 
 		@Override
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-
-		}
-
-		@Override
-		public void addTableModelListener(TableModelListener l) {
-			//TODO implement
-
-		}
-
-		@Override
-		public void removeTableModelListener(TableModelListener l) {
-			//TODO implement
 
 		}
 	}

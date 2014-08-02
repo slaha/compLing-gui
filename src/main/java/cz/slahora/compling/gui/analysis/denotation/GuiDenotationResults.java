@@ -11,6 +11,7 @@ import org.apache.commons.lang.text.StrBuilder;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
+import org.graphstream.ui.swingViewer.View;
 import org.graphstream.ui.swingViewer.Viewer;
 import org.javatuples.Pair;
 import org.jdesktop.swingx.JXCollapsiblePane;
@@ -182,14 +183,30 @@ public class GuiDenotationResults {
 			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
-		final JPanel graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()));
-		JPanel graphPanel = new JPanel();
-		graphPanel.setBackground(Color.WHITE);
 		panel.add(
-			graph,
+			new HtmlLabelBuilder().hx(2, "Graf").build(),
+			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+		);
+
+
+		final Graph graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()));
+		Viewer v = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
+		v.enableAutoLayout();
+		View view = v.addDefaultView(false);
+		final JPanel graphPanel = new JPanel();
+		graphPanel.setPreferredSize(new Dimension(1600, 900));
+		graphPanel.setLayout(new BorderLayout());
+		graphPanel.add(view, BorderLayout.CENTER);
+
+		panel.add(
+			graphPanel,
 			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
+
+//		JFrame f = new JFrame("Graf");
+//		f.setContentPane(graphPanel);
+//		f.setVisible(true);
 		//..last panel for align another components to the top
 		JPanel dummyPanel = new JPanel();
 		dummyPanel.setBackground(Color.WHITE);
@@ -197,6 +214,8 @@ public class GuiDenotationResults {
 			dummyPanel,
 			new GridBagConstraintBuilder().gridxy(0, y).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).anchor(GridBagConstraints.NORTH).build()
 		);
+
+
 	}
 
 	private Map<Spike, List<Coincidence>> createCoincidenceMap(List<Spike> allSpikes) {
@@ -209,7 +228,7 @@ public class GuiDenotationResults {
 		return map;
 	}
 
-	private JPanel createGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor) {
+	private Graph createGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor) {
 		Graph graph = new MultiGraph("Koincidence pro hřeb č. 14");
 
 		final double alpha = 0.1d;
@@ -229,10 +248,7 @@ public class GuiDenotationResults {
 				}
 			}
 		}
-		Viewer viewer  = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
-		viewer.addDefaultView(false);
-		return viewer.getDefaultView();
-//		graph.display();
+		return graph;
 	}
 
 	public JPanel getPanel() {
