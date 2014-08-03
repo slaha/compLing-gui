@@ -3,6 +3,7 @@ package cz.slahora.compling.gui.panels;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 
 import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 
@@ -13,6 +14,7 @@ public abstract class AbstractResultsPanel {
 	protected AbstractResultsPanel(JPanel panel) {
 		this.panel = panel;
 		panel.setBackground(Color.WHITE);
+		panel.setBorder(new EmptyBorder(10, 10, 10, 10)); //..padding
 	}
 
 	protected void putChartPanel(int y, ChartPanelWrapper chartPanel) {

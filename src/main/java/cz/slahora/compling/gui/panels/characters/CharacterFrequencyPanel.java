@@ -4,19 +4,18 @@ import cz.compling.model.CharacterFrequency;
 import cz.slahora.compling.gui.model.CharacterFrequencyModel;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.panels.AbstractResultsPanel;
+import cz.slahora.compling.gui.panels.ChartPanelWrapper;
 import cz.slahora.compling.gui.panels.ChartType;
 import cz.slahora.compling.gui.panels.ResultsPanel;
-import cz.slahora.compling.gui.utils.ChartUtils;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -25,14 +24,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class CharacterFrequencyPanel implements ResultsPanel {
-
-	/** The whole panel */
-	private final JPanel panel;
+public class CharacterFrequencyPanel extends AbstractResultsPanel implements ResultsPanel {
 
 	/** Just model */
 	private final CharacterFrequencyModel model;
@@ -41,18 +36,20 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 	private int y = 0;
 
 	/** Panel for displaying pie or bar plot with sums of characters occurrences */
-	private ChartPanel allCharactersChartPanel;
+	private ChartPanelWrapper allCharactersChartPanel;
 
 	/** Panel for displaying bar plot for selected characters */
-	private ChartPanel compareChartPanel;
+	private ChartPanelWrapper compareChartPanel;
+
+	private final CharacterFrequencyChartFactory chartFactory;
 
 	public CharacterFrequencyPanel(Map<WorkingText, CharacterFrequency> characterFrequency) {
-		this.panel = new JPanel(new GridBagLayout());
-		panel.setBorder(new EmptyBorder(10, 10, 10, 10)); //..padding
+		super(new JPanel(new GridBagLayout()));
 
 		this.model = new CharacterFrequencyModel(characterFrequency);
+		final String chartTitle = "Zastoupení jednotlivých znaků";
+		chartFactory = new CharacterFrequencyChartFactory(model, chartTitle);
 
-		panel.setBackground(Color.WHITE);
 		//..top headline
 		panel.add(
 			new HtmlLabelBuilder().hx(1, "Analýza četností znaků").build(),
@@ -62,7 +59,7 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 
 		//..some info text
 		panel.add(
-			createIntroLabel(),
+			new JLabel(model.getIntroLabelText()),
 			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL)
 				.weightx(1).anchor(GridBagConstraints.NORTH).build()
 		);
@@ -101,8 +98,10 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).build()
 		);
 
-		allCharactersChartPanel = createPlot(ChartType.PIE);
-		changeChartPanel(null, allCharactersChartPanel);
+		final ChartPanel plot = createPlot(ChartType.PIE);
+		allCharactersChartPanel = wrap(plot);
+		putChartPanel(y, allCharactersChartPanel);
+		y++;
 
 		//bar plot with selected characters
 		panel.add(
@@ -130,6 +129,12 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 		comboPanel.add(minusComboButton);
 		minusComboButton.setVisible(false);
 		comboPanel.validate();
+	}
+
+	private ChartPanelWrapper wrap(ChartPanel plot) {
+		final ChartPanelWrapper wrapper = new ChartPanelWrapper(plot);
+		wrapper.add(plot);
+		return wrapper;
 	}
 
 	private JComboBox createCharacterComboBox(String[] characters) {
@@ -160,109 +165,21 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 	}
 
 	private void refreshPlot() {
-		ChartPanel plot = createPlot(model.getAllCompareChartCategories());
-		changeChartPanel(compareChartPanel, plot);
-		compareChartPanel = plot;
-	}
-
-	private void changeChartPanel(ChartPanel old, final ChartPanel chartPanel) {
-		int currentY;
-		if (old == null) {
-			currentY = y++;
- 		} else {
-			currentY = (Integer)old.getClientProperty("y");
-			panel.remove(old);
+		ChartPanel plot = chartFactory.createComparePlot();
+		ChartPanelWrapper wrap = wrap(plot);
+		if (compareChartPanel == null) {
+			putChartPanel(y, wrap);
+			y++;
+		} else {
+			changeChartPanel(compareChartPanel, wrap);
 		}
-
-		chartPanel.putClientProperty("y", currentY);
-		panel.add(
-			chartPanel,
-			new GridBagConstraintBuilder().gridxy(0, currentY).fill(GridBagConstraints.BOTH).anchor(GridBagConstraints.NORTH)
-				.weightx(1).weighty(1).build()
-		);
-		panel.validate();
+		compareChartPanel = wrap;
 	}
 
 	private ChartPanel createPlot(ChartType type) {
-		final String chartTitle = "Zastoupení jednotlivých znaků";
-		JFreeChart chart;
-		switch (type) {
-			case PIE:
-				chart = ChartUtils.createPieChart(chartTitle, model.getPieDataSet(), true, true, true, Locale.getDefault());
-				break;
-			case XY_ABSOLUTE:
-				chart = ChartUtils.createBarChart(chartTitle, "Jednotlivé znaky", "Absolutní četnost", model.getAbsoluteBarDataSet(), PlotOrientation.VERTICAL, true, true, true, true);
-				break;
-			case XY_RELATIVE:
-				chart = ChartUtils.createBarChart(chartTitle, "Jednotlivé znaky", "Relativní četnost [%]", model.getRelativeBarDataSet(), PlotOrientation.VERTICAL, true, true, true, true);
-				break;
-			default:
-				throw new IllegalArgumentException("WTF?? ChartType " + type + " not recognized");
-		}
+		JFreeChart chart = chartFactory.createChart(type);
 
-		final ChartPanel newChartPanel = ChartUtils.createPanel(chart);
-		newChartPanel.putClientProperty("type", type);
-		newChartPanel.addChartMouseListener(new ChartMouseListener() {
-			@Override
-			public void chartMouseClicked(ChartMouseEvent chartMouseEvent) {
-				ChartPanel old = allCharactersChartPanel;
-				final ChartType type = (ChartType)newChartPanel.getClientProperty("type");
-				final ChartType nextType = ChartType.values()[ (type.ordinal() + 1) % ChartType.values().length  ];
-				ChartPanel newOne = createPlot(nextType);
-				changeChartPanel(old, newOne);
-				allCharactersChartPanel = newOne;
-			}
-
-			@Override
-			public void chartMouseMoved(ChartMouseEvent chartMouseEvent) {
-			}
-		});
-
-		return newChartPanel;
-	}
-
-	private ChartPanel createPlot(Set<String> set) {
-		String chartTitle = "Srovnání zastoupení znaku " + set.toString();
-		JFreeChart chart = ChartUtils.createBarChart(chartTitle, "Četnost", "Texty", model.getBarDataSetFor(set.toArray(new String[set.size()])), PlotOrientation.VERTICAL, false, true, true, true);
-		return ChartUtils.createPanel(chart);
-	}
-
-	private JLabel createIntroLabel() {
-		String str = model.getTextsCount() == 1 ? "Byl analyzován %d text" :
-			model.getTextsCount() >= 5 ? "Bylo analyzováno %d textů" : "Byly analyzovány %d texty";
-
-		str += ":";
-		HtmlLabelBuilder builder = new HtmlLabelBuilder()
-			.p(str, model.getTextsCount())
-			.startBulletList();
-
-		for (WorkingText wt : model.getWorkingTexts()) {
-			builder.li(wt.getName());
-		}
-		builder.stopBulletList();
-
-		str = "V " +  (model.getTextsCount() == 1 ? "tomto textu" : "těchto textech");
-		str += (model.getCharactersCount() == 1 ? " byl nalezen"
-				: model.getCharactersCount() >= 5 ? " bylo nalezeno" : " byly nalezeny"
-		) + " %d" + (model.getCharactersCount() == 1 ? " znak"
-				: model.getCharactersCount() >= 5 ? " různých znaků" : " různé znaky");
-
-		builder.p(str, model.getCharactersCount());
-
-
-		java.util.List<String> mostOftenCharacters = model.getMostOftenCharacter();
-		StringBuilder sb = new StringBuilder();
-		for (String s : mostOftenCharacters) {
-			sb.append('\'').append(s).append("', ");
-		}
-		if (sb.length() >= 2) {
-			sb.setLength(sb.length() - 2);
-		}
-		str = "Nejčastěji nalezeným znakem " + (mostOftenCharacters.size() == 1 ? "byl znak" : "byly znaky") + " %s";
-		str += ", " + (mostOftenCharacters.size() == 1 ? "který byl nalezen celkem %d×." : "které se vyskytly celkem  %d×.");
-		builder.p(str, sb.toString(), model.getMaxOccurrence());
-
-		return builder.margin(20).build();
+		return chartFactory.createChartPanel(chart, type, this);
 	}
 
 	@Override
@@ -273,6 +190,25 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 	@Override
 	public CsvData getCsvData() {
 		return model.getCsvSaver().saveToCsv(model);
+	}
+
+	public ChartMouseListener createChartMouseListener(final ChartPanel newChartPanel) {
+		return new ChartMouseListener() {
+			@Override
+			public void chartMouseClicked(ChartMouseEvent chartMouseEvent) {
+				ChartPanelWrapper old = allCharactersChartPanel;
+				final ChartType type = (ChartType)newChartPanel.getClientProperty("type");
+				final ChartType nextType = ChartType.values()[ (type.ordinal() + 1) % ChartType.values().length  ];
+				ChartPanel newOne = createPlot(nextType);
+				ChartPanelWrapper wrapper = wrap(newOne);
+				changeChartPanel(old, wrapper);
+				allCharactersChartPanel = wrapper;
+			}
+
+			@Override
+			public void chartMouseMoved(ChartMouseEvent chartMouseEvent) {
+			}
+		};
 	}
 
 	private class PlusMinusButtonListener implements ActionListener {

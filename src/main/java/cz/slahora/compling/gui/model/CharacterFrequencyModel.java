@@ -227,6 +227,51 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 		return selectedCharacters.contains(item);
 	}
 
+	public String getIntroLabelText() {
+
+		StringBuilder str = new StringBuilder("<html>");
+
+		String intro = String.format(
+			getTextsCount() == 1 ? "Byl analyzován %d text" :
+				getTextsCount() >= 5 ? "Bylo analyzováno %d textů" : "Byly analyzovány %d texty"
+
+			, getTextsCount()
+		);
+
+		str.append(intro).append(": ");
+		str.append("<ul>");
+
+		for (WorkingText wt : getWorkingTexts()) {
+			str.append("<li>").append(wt.getName());
+		}
+		str.append("</ul>");
+
+		String text = "V " +  (getTextsCount() == 1 ? "tomto textu" : "těchto textech");
+		text += (getCharactersCount() == 1 ? " byl nalezen"
+			: getCharactersCount() >= 5 ? " bylo nalezeno" : " byly nalezeny"
+		) + " %d" + (getCharactersCount() == 1 ? " znak"
+			: getCharactersCount() >= 5 ? " různých znaků" : " různé znaky");
+
+
+		str.append("<p>").append(String.format(text, getCharactersCount()));
+
+		java.util.List<String> mostOftenCharacters = getMostOftenCharacter();
+		StringBuilder mostOftenCharsBuilder = new StringBuilder();
+		for (String s : mostOftenCharacters) {
+			mostOftenCharsBuilder.append('\'').append(s).append("', ");
+		}
+		if (mostOftenCharsBuilder.length() >= 2) {
+			mostOftenCharsBuilder.setLength(mostOftenCharsBuilder.length() - 2);
+		}
+		String mostOftenChar = "Nejčastěji nalezeným znakem " + (mostOftenCharacters.size() == 1 ? "byl znak" : "byly znaky") + " %s";
+		mostOftenChar += ", " + (mostOftenCharacters.size() == 1 ? "který byl nalezen celkem %d×." : "které se vyskytly celkem  %d×.");
+
+		str.append("<p>").append(String.format(mostOftenChar, mostOftenCharsBuilder.toString(), getMaxOccurrence()));
+
+		return str.append("</html>").toString();
+
+	}
+
 	private static class SelectedCharacters {
 
 		/** Selected characters for displaying on {@code compareChartPanel} plot */
