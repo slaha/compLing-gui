@@ -33,14 +33,17 @@ public class ChartUtils {
 	 * @param pieDataSet the pie data set
 	 * @param legend the legend
 	 * @param tooltips the tooltips
-	 * @param locale the locale
-	 * @return created chart
+	 * @param drawLabels
+	 *@param locale the locale  @return created chart
 	 */
-	public static JFreeChart createPieChart(String chartTitle, PieDataset pieDataSet, boolean legend, boolean tooltips, Locale locale) {
-		JFreeChart chart = ChartFactory.createPieChart(chartTitle, pieDataSet, legend, tooltips,locale);
+	public static JFreeChart createPieChart(String chartTitle, PieDataset pieDataSet, boolean legend, boolean tooltips, boolean drawLabels, Locale locale) {
+		JFreeChart chart = ChartFactory.createPieChart(chartTitle, pieDataSet, legend, tooltips, locale);
 		//..remove shadows
 		PiePlot piePlot = (PiePlot) chart.getPlot();
 		piePlot.setShadowPaint(null);
+		if (!drawLabels) {
+			piePlot.setLabelGenerator(null);
+		}
 		return prepareChart(chart);
 	}
 

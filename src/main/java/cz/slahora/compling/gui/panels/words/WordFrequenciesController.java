@@ -5,7 +5,12 @@ import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.MapUtils;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
+import gnu.trove.procedure.TObjectIntProcedure;
 import org.javatuples.Pair;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.general.PieDataset;
 
 import java.util.HashSet;
 import java.util.List;
@@ -14,9 +19,11 @@ import java.util.Set;
 
 public class WordFrequenciesController {
 	private final Map<WorkingText, IWordFrequency> wordFrequencies;
+	private final TObjectIntMap<String> wordsToFrequencies;
 
 	public WordFrequenciesController(Map<WorkingText, IWordFrequency> wordFrequencies) {
 		this.wordFrequencies = wordFrequencies;
+		this.wordsToFrequencies = mapWordsToFrequencies();
 	}
 
 	public String getMainParagraphText() {
@@ -63,10 +70,9 @@ public class WordFrequenciesController {
 
 	public FrequencyWordPair getMostFrequentWord() {
 
-		TObjectIntMap<String> maxFreqWords = mapWordsToFrequencies();
-		final int max = MapUtils.findMaxValue(maxFreqWords);
+		final int max = MapUtils.findMaxValue(wordsToFrequencies);
 
-		final List<String> maxWords = MapUtils.getAllKeysWithValue(maxFreqWords, max);
+		final List<String> maxWords = MapUtils.getAllKeysWithValue(wordsToFrequencies, max);
 
 		return new FrequencyWordPair(max, maxWords);
 	}
@@ -91,6 +97,62 @@ public class WordFrequenciesController {
 	}
 
 	public WordFrequencyTableModel getTableModel() {
-		return new WordFrequencyTableModel(mapWordsToFrequencies(), wordFrequencies);
+		return new WordFrequencyTableModel(wordsToFrequencies, wordFrequencies);
+	}
+
+	public PieDataset getPieDataSet(final int lowerBound) {
+
+		final DefaultPieDataset dataset = new DefaultPieDataset();
+
+		wordsToFrequencies.forEachEntry(new TObjectIntProcedure<String>() {
+			@Override
+			public boolean execute(String word, int sum) {
+				if (sum < lowerBound) {
+					return true;
+				}
+				dataset.setValue(word, sum);
+				return true;
+			}
+		});
+
+		return dataset;
+	}
+
+	public CategoryDataset getAbsoluteBarDataSet(final int lowerBound) {
+		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+		wordsToFrequencies.forEachEntry(new TObjectIntProcedure<String>() {
+			@Override
+			public boolean execute(String word, int sum) {
+				if (sum < lowerBound) {
+					return true;
+				}
+				dataset.setValue(sum, "Četnost", word);
+				return true;
+			}
+		});
+		return dataset;
+	}
+
+	public CategoryDataset getRelativeBarDataSet(final int lowerBound) {
+		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+		final double allCharactersInAllTexts = (double) this.getTotalWordsCount();
+		wordsToFrequencies.forEachEntry(new TObjectIntProcedure<String>() {
+			@Override
+			public boolean execute(String character, int sum) {
+				if (sum < lowerBound) {
+					return true;
+				}
+				double perc = (sum / allCharactersInAllTexts) * 100.0d;
+				dataset.setValue(perc, "Relativní četnost", character);
+				return true;
+			}
+		});
+		return dataset;
+	}
+
+	public int getMaxOccurence() {
+		return getMostFrequentWord().getFrequency();
 	}
 }

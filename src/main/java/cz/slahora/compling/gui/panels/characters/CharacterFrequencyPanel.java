@@ -4,6 +4,7 @@ import cz.compling.model.CharacterFrequency;
 import cz.slahora.compling.gui.model.CharacterFrequencyModel;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.panels.ChartType;
 import cz.slahora.compling.gui.panels.ResultsPanel;
 import cz.slahora.compling.gui.utils.ChartUtils;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
@@ -29,10 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class CharacterFrequencyPanel implements ResultsPanel {
-
-	private enum ChartType {
-		PIE, XY_ABSOLUTE, XY_RELATIVE
-	}
 
 	/** The whole panel */
 	private final JPanel panel;
@@ -191,7 +188,7 @@ public class CharacterFrequencyPanel implements ResultsPanel {
 		JFreeChart chart;
 		switch (type) {
 			case PIE:
-				chart = ChartUtils.createPieChart(chartTitle, model.getPieDataSet(), true, true, Locale.getDefault());
+				chart = ChartUtils.createPieChart(chartTitle, model.getPieDataSet(), true, true, true, Locale.getDefault());
 				break;
 			case XY_ABSOLUTE:
 				chart = ChartUtils.createBarChart(chartTitle, "Jednotlivé znaky", "Absolutní četnost", model.getAbsoluteBarDataSet(), PlotOrientation.VERTICAL, true, true, true, true);
