@@ -26,12 +26,12 @@ public class WordFrequenciesCsvSaver extends Csv.CsvSaver<WordFrequenciesModel> 
 		for (String word : allWords) {
 			csvData.getCurrentSection().startNewLine();
 
-			csvData.getCurrentSection().addData(word);
+			csvData.getCurrentSection().addData(word); //..add word to first column
 
 			for (String textName : namesOfTexts) {
-				final WorkingText text = namesToTexts.get(textName);
-				final WordFrequency wordFrequency = allFrequencies.get(text).getWordFrequency();
-				csvData.getCurrentSection().addData(wordFrequency.getFrequencyFor(word));
+				final WorkingText text = namesToTexts.get(textName); //..get WorkingText by its exported name
+				final WordFrequency wordFrequency = allFrequencies.get(text).getWordFrequency(); //..get WordFrequency
+				csvData.getCurrentSection().addData(wordFrequency.getFrequencyFor(word)); //..add freq of the word
 			}
 		}
 		csvData.getCurrentSection().addHeader(0, "Slovo");
