@@ -7,6 +7,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 
 import java.util.Locale;
+import java.util.Set;
 
 /**
  *
@@ -21,9 +22,9 @@ import java.util.Locale;
  */
 public class WordFrequencyChartFactory {
 	private final String chartTitle;
-	private final WordFrequenciesController controller;
+	private final WordFrequenciesModel controller;
 
-	public WordFrequencyChartFactory(WordFrequenciesController controller, String chartTitle) {
+	public WordFrequencyChartFactory(WordFrequenciesModel controller, String chartTitle) {
 		this.controller = controller;
 		this.chartTitle = chartTitle;
 	}
@@ -64,5 +65,12 @@ public class WordFrequencyChartFactory {
 		final ChartType type = (ChartType)chartPanel.getClientProperty("type");
 		chartPanel.setChart(createChart(type, lowerBound));
 
+	}
+
+	public ChartPanel createComparePlot() {
+		final Set<String> categories = controller.getAllCompareChartCategories();
+		String chartTitle = "Srovnání zastoupení znaku " + categories.toString();
+		JFreeChart chart = ChartUtils.createBarChart(chartTitle, "Četnost", "Texty", controller.getBarDataSetFor(categories.toArray(new String[categories.size()])), PlotOrientation.VERTICAL, false, true, true, true);
+		return ChartUtils.createPanel(chart);
 	}
 }

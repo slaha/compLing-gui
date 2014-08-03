@@ -10,17 +10,6 @@ import org.jfree.chart.plot.PlotOrientation;
 import java.util.Locale;
 import java.util.Set;
 
-/**
- *
- * TODO 
- *
- * <dl>
- * <dt>Created by:</dt>
- * <dd>slaha</dd>
- * <dt>On:</dt>
- * <dd> 3.8.14 13:30</dd>
- * </dl>
- */
 public class CharacterFrequencyChartFactory {
 	private final CharacterFrequencyModel model;
 	private final String chartTitle;

@@ -21,14 +21,24 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.text.Collator;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class WordFrequencyResultsPanel extends AbstractResultsPanel implements ResultsPanel {
 
 
-	private final WordFrequenciesController controller;
+	private final WordFrequenciesModel model;
 
 	private ChartPanelWrapper allWordsChartPanel;
+	private ChartPanelWrapper compareChartPanel;
+
 	private final WordFrequencyChartFactory chartFactory;
 	private final JSpinner lowerFreqBound;
 	private int y;
@@ -36,10 +46,10 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 
 	public WordFrequencyResultsPanel(Map<WorkingText, IWordFrequency> wordFrequencies) {
 		super(new JPanel(new GridBagLayout()));
-		this.controller = new WordFrequenciesController(wordFrequencies);
+		this.model = new WordFrequenciesModel(wordFrequencies);
 		final String chartTitle = "Zastoupení jednotlivých slov";
-		this.chartFactory = new WordFrequencyChartFactory(controller, chartTitle);
-		SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, controller.getMaxOccurence(), 1);
+		this.chartFactory = new WordFrequencyChartFactory(model, chartTitle);
+		SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, model.getMaxOccurence(), 1);
 		lowerFreqBound = new JSpinner(spinnerModel);
 	}
 
@@ -52,13 +62,13 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		JLabel headline1 = new HtmlLabelBuilder().hx(1, "Frekvence výskytu slov").build();
 		panel.add(headline1, new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).fill(GridBagConstraints.HORIZONTAL).build());
 
-		JLabel text = new HtmlLabelBuilder().p(controller.getMainParagraphText()).build();
+		JLabel text = new HtmlLabelBuilder().p(model.getMainParagraphText()).build();
 		panel.add(text, new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).fill(GridBagConstraints.HORIZONTAL).build());
 
 
-		final WordFrequencyTableModel tableModel = controller.getTableModel();
+		final WordFrequencyTableModel tableModel = model.getTableModel();
 		//table with words occurrences
-		JTable table = new JTable(controller.getTableModel());
+		JTable table = new JTable(model.getTableModel());
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowSelectionAllowed(false);
 		table.setColumnSelectionAllowed(false);
@@ -95,11 +105,74 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		allWordsChartPanel = createChartPanel(plot);
 		putChartPanel(y, allWordsChartPanel);
 		y++;
+
+		Set<String> allWords = model.getAllWords();
+		final String[] words = allWords.toArray(new String[allWords.size()]);
+		Collator coll = Collator.getInstance(Locale.getDefault());
+		coll.setStrength(Collator.PRIMARY); // thanks to @BheshGurung for reminding me
+		Arrays.sort(words, coll);
+		final JPanel comboPanel = new JPanel(new GridBagLayout());
+
+		JButton plusComboButton = new JButton("+");
+		JButton minusComboButton = new JButton("-");
+		PlusMinusButtonListener plusMinusButtonListener = new PlusMinusButtonListener(plusComboButton, minusComboButton, comboPanel, words);
+		plusComboButton.addActionListener(plusMinusButtonListener);
+		minusComboButton.addActionListener(plusMinusButtonListener);
+
+		//..first add combo panel, then create comboBox which will create and display plot. Finally attach combo and buttons to comboPanel and validate it
+		panel.add(comboPanel, new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.LINE_START).build());
+		final JComboBox comboBox = createWordComboBox(words);
+		comboPanel.add(comboBox);
+		comboPanel.add(plusComboButton);
+		comboPanel.add(minusComboButton);
+		minusComboButton.setVisible(false);
+		comboPanel.validate();
+
 		/*************************************/
 		JPanel dummy = new JPanel();
 		dummy.setBackground(Color.white);
 		panel.add(dummy, new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).weighty(1).fill(GridBagConstraints.BOTH).build());
 		return panel;
+	}
+
+	private JComboBox createWordComboBox(String[] words) {
+		JComboBox comboBox = new JComboBox(words);
+		comboBox.setSelectedItem(null); //..set to null to fire listener after new selected item is found
+		comboBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				String item = e.getItem().toString();
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					model.addCompareChartCategory(item);
+					refreshPlot();
+				} else if (e.getStateChange() == ItemEvent.DESELECTED) {
+					model.removeComparePlotCategory(item);
+				}
+			}
+		});
+
+		for (String word : words) {
+			if (!model.isInCompareChartCategories(word)) {
+				comboBox.setSelectedItem(word);
+				break;
+
+			}
+		}
+
+		return comboBox;
+	}
+
+	private void refreshPlot() {
+		ChartPanel plot = chartFactory.createComparePlot();
+		ChartPanelWrapper wrap =  new ChartPanelWrapper(plot);
+		if (compareChartPanel == null) {
+			putChartPanel(y, wrap);
+			y++;
+		} else {
+			changeChartPanel(compareChartPanel, wrap);
+		}
+		compareChartPanel = wrap;
+
 	}
 
 	private ChartPanelWrapper createChartPanel(final ChartPanel chartPanel) {
@@ -156,11 +229,61 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 	private int getLowerOccurrenceBound() {
 		final Object value = lowerFreqBound.getModel().getValue();
 		return ((Number)value).intValue();
-//		return ((Double)lowerFreqBound.getModel().getValue()).intValue();
 	}
 
 	@Override
 	public CsvData getCsvData() {
-		return new CsvData();
+		return new WordFrequenciesCsvSaver().saveToCsv(model);
+	}
+
+	private class PlusMinusButtonListener implements ActionListener {
+
+		private final JButton plusComboButton;
+		private final JButton minusComboButton;
+		private final JPanel comboPanel;
+		private static final int HIDE_MINUS = 3; //..one combo + plus btn + minus btn
+		private final int HIDE_PLUS;
+		private final String[] words;
+
+		public PlusMinusButtonListener(JButton plusComboButton, JButton minusComboButton, JPanel comboPanel, String[] words) {
+
+			this.plusComboButton = plusComboButton;
+			this.minusComboButton = minusComboButton;
+			this.comboPanel = comboPanel;
+			this.words = words;
+
+			HIDE_PLUS = words.length + 2;//..combo for each character + plus btn + minus btn
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			//..remove plus minus buttons
+			comboPanel.remove(plusComboButton);
+			comboPanel.remove(minusComboButton);
+			if (e.getSource() == plusComboButton) {
+				plus();
+			} else {
+				minus();
+			}
+			comboPanel.add(plusComboButton);
+			comboPanel.add(minusComboButton);
+
+			minusComboButton.setVisible(comboPanel.getComponentCount() > HIDE_MINUS);
+			plusComboButton.setVisible(comboPanel.getComponentCount() < HIDE_PLUS);
+			comboPanel.validate();
+
+			refreshPlot();
+		}
+
+		void plus() {
+			comboPanel.add(createWordComboBox(words));
+		}
+
+		void minus() {
+			int lastComponent = comboPanel.getComponentCount() - 1;
+			JComboBox cmbBox = (JComboBox) comboPanel.getComponent(lastComponent);//..last combo
+			model.removeComparePlotCategory(cmbBox.getSelectedItem().toString());
+			comboPanel.remove(cmbBox);
+		}
 	}
 }

@@ -12,18 +12,17 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class WordFrequenciesController {
+public class WordFrequenciesModel {
 	private final Map<WorkingText, IWordFrequency> wordFrequencies;
 	private final TObjectIntMap<String> wordsToFrequencies;
+	private final Set<String> wordsInSelection;
 
-	public WordFrequenciesController(Map<WorkingText, IWordFrequency> wordFrequencies) {
+	public WordFrequenciesModel(Map<WorkingText, IWordFrequency> wordFrequencies) {
 		this.wordFrequencies = wordFrequencies;
 		this.wordsToFrequencies = mapWordsToFrequencies();
+		wordsInSelection = new HashSet<String>();
 	}
 
 	public String getMainParagraphText() {
@@ -154,5 +153,48 @@ public class WordFrequenciesController {
 
 	public int getMaxOccurence() {
 		return getMostFrequentWord().getFrequency();
+	}
+
+	public Set<String> getAllWords() {
+		return mapWordsToFrequencies().keySet();
+	}
+
+	public void addCompareChartCategory(String item) {
+		wordsInSelection.add(item);
+	}
+
+	public void removeComparePlotCategory(String item) {
+		wordsInSelection.remove(item);
+	}
+
+	public boolean isInCompareChartCategories(String word) {
+		return wordsInSelection.contains(word);
+	}
+
+	public Set<String> getAllCompareChartCategories() {
+		return wordsInSelection;
+	}
+
+	public CategoryDataset getBarDataSetFor(String...words) {
+		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+		Arrays.sort(words);
+
+		for (String word : words) {
+
+			for (Map.Entry<WorkingText, IWordFrequency> entry : wordFrequencies.entrySet()) {
+
+				dataset.setValue(entry.getValue().getWordFrequency().getFrequencyFor(word), word, entry.getKey().getName());
+			}
+		}
+		return dataset;
+	}
+
+	public Map<WorkingText, IWordFrequency> getAllFrequencies() {
+		return wordFrequencies;
+	}
+
+	public Set<WorkingText> getAllTexts() {
+		return wordFrequencies.keySet();
 	}
 }
