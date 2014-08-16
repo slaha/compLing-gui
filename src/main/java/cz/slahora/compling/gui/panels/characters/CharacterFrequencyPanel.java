@@ -10,15 +10,16 @@ import cz.slahora.compling.gui.panels.ChartType;
 import cz.slahora.compling.gui.panels.ResultsPanel;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
+import org.jdesktop.swingx.JXLabel;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 
 import javax.swing.*;
-import java.awt.Color;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -29,17 +30,20 @@ import java.util.Set;
 
 public class CharacterFrequencyPanel extends AbstractResultsPanel implements ResultsPanel {
 
+	private static final double MINIMUM = 0.001d;
+	private static final double MAXIMUM = 1d;
+	private static final double STEP_SIZE = 0.005d;
 	/** Just model */
 	private final CharacterFrequencyModel model;
-
 	/** Current y axis value for GB layout */
 	private int y = 0;
 
 	/** Panel for displaying pie or bar plot with sums of characters occurrences */
-	private ChartPanelWrapper allCharactersChartPanel;
+//	private ChartPanelWrapper allCharactersChartPanel;
+	private JComponent allCharactersChartComponent;
 
 	/** Panel for displaying bar plot for selected characters */
-	private ChartPanelWrapper compareChartPanel;
+	private JComponent compareChartComponent;
 
 	private final CharacterFrequencyChartFactory chartFactory;
 
@@ -53,16 +57,43 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 		//..top headline
 		panel.add(
 			new HtmlLabelBuilder().hx(1, "Analýza četností znaků").build(),
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL)
-				.weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL)
+				.weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
+		final JXLabel introArea = new JXLabel();
+		introArea.setText(model.getIntroLabelText());
+		introArea.setLineWrap(true);
 		//..some info text
 		panel.add(
-			new JLabel(model.getIntroLabelText()),
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL)
-				.weightx(1).anchor(GridBagConstraints.NORTH).build()
+			introArea,
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL)
+				.weightX(1).build()
 		);
+
+		final JSpinner jSpinner = new JSpinner(new SpinnerNumberModel(model.getOdchylka(), MINIMUM, MAXIMUM, STEP_SIZE));
+		jSpinner.setEditor(new JSpinner.NumberEditor(jSpinner, "0.000"));
+		jSpinner.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				final double value = (Double)jSpinner.getModel().getValue();
+				model.setOdchylka(value);
+				introArea.setText(model.getIntroLabelText());
+			}
+		});
+
+		JPanel spinnerPanel = new JPanel(new FlowLayout());
+		spinnerPanel.setBackground(Color.white);
+		spinnerPanel.add(new JLabel("Směrodatná odchylka: "));
+		jSpinner.setPreferredSize(new Dimension(150, 30));
+		spinnerPanel.add(jSpinner);
+
+		panel.add(
+			spinnerPanel,
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL)
+				.weightX(1).build()
+		);
+
 
 		//table with character occurrences
 		JTable table = new JTable(model.getTableModel());
@@ -72,42 +103,48 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 		table.setCellSelectionEnabled(true);
 		table.setAutoCreateRowSorter(true);
 		table.setBackground(Color.WHITE);
-		table.invalidate();
 
+		JPanel tablePanel = new JPanel(new BorderLayout());
+		tablePanel.setBackground(Color.white);
+		tablePanel.add(table.getTableHeader(), BorderLayout.NORTH);
+		tablePanel.add(table, BorderLayout.CENTER);
+
+		panel.add(tablePanel, new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).build());
+		/*
 		panel.add(
 			table.getTableHeader(),
 			new GridBagConstraintBuilder()
-				.gridxy(0, y++)
+				.gridXY(0, y++)
 				.fill(GridBagConstraints.HORIZONTAL)
-				.weightx(1)
+				.weightX(1)
 				.build()
 		);
 		panel.add(
 			table,
 			new GridBagConstraintBuilder()
-				.gridxy(0, y++)
-				.fill(GridBagConstraints.BOTH)
-				.weightx(1)
-				.weighty(1)
+				.gridXY(0, y++)
+				.fill(GridBagConstraints.HORIZONTAL)
+				.weightX(1)
 				.build()
 		);
+		*/
 
 		//pie or bar plot
 		panel.add(
 			new HtmlLabelBuilder().hx(2, "Graf četností jednotlivých znaků").build(),
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).build()
 		);
 
 		final ChartPanel plot = createPlot(ChartType.PIE);
-		allCharactersChartPanel = wrap(plot);
-		putChartPanel(y, allCharactersChartPanel);
+		ChartPanelWrapper allCharactersChartPanel = wrap(plot);
+		allCharactersChartComponent = putChartPanel(y, allCharactersChartPanel);
 		y++;
 
 		//bar plot with selected characters
 		panel.add(
 			new HtmlLabelBuilder().hx(2, "Porovnání jednotlivých básní").build(),
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL)
-				.weightx(1).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL)
+				.weightX(1).build()
 		);
 
 		Set<String> allCharacters = model.getAllCharacters();
@@ -122,7 +159,7 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 		minusComboButton.addActionListener(plusMinusButtonListener);
 
 		//..first add combo panel, then create comboBox which will create and display plot. Finally attach combo and buttons to comboPanel and validate it
-		panel.add(comboPanel, new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.LINE_START).build());
+		panel.add(comboPanel, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.LINE_START).build());
 		final JComboBox comboBox = createCharacterComboBox(characters);
 		comboPanel.add(comboBox);
 		comboPanel.add(plusComboButton);
@@ -133,7 +170,7 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 
 	private ChartPanelWrapper wrap(ChartPanel plot) {
 		final ChartPanelWrapper wrapper = new ChartPanelWrapper(plot);
-		wrapper.add(plot);
+		wrapper.addPlot();
 		return wrapper;
 	}
 
@@ -167,13 +204,12 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 	private void refreshPlot() {
 		ChartPanel plot = chartFactory.createComparePlot();
 		ChartPanelWrapper wrap = wrap(plot);
-		if (compareChartPanel == null) {
-			putChartPanel(y, wrap);
+		if (compareChartComponent == null) {
+			compareChartComponent = putChartPanel(y, wrap);
 			y++;
 		} else {
-			changeChartPanel(compareChartPanel, wrap);
+			compareChartComponent = changeChartPanel(compareChartComponent, wrap);
 		}
-		compareChartPanel = wrap;
 	}
 
 	private ChartPanel createPlot(ChartType type) {
@@ -196,13 +232,11 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 		return new ChartMouseListener() {
 			@Override
 			public void chartMouseClicked(ChartMouseEvent chartMouseEvent) {
-				ChartPanelWrapper old = allCharactersChartPanel;
 				final ChartType type = (ChartType)newChartPanel.getClientProperty("type");
 				final ChartType nextType = ChartType.values()[ (type.ordinal() + 1) % ChartType.values().length  ];
 				ChartPanel newOne = createPlot(nextType);
 				ChartPanelWrapper wrapper = wrap(newOne);
-				changeChartPanel(old, wrapper);
-				allCharactersChartPanel = wrapper;
+				allCharactersChartComponent = changeChartPanel(allCharactersChartComponent, wrapper);
 			}
 
 			@Override
