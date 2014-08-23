@@ -2,10 +2,11 @@ package cz.slahora.compling.gui.model;
 
 import cz.compling.model.CharacterFrequency;
 import cz.compling.utils.TrooveUtils;
+import cz.slahora.compling.gui.panels.Selection;
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.procedure.TObjectIntProcedure;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrBuilder;
 import org.javatuples.Pair;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -14,20 +15,12 @@ import org.jfree.data.general.PieDataset;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
+import java.text.DecimalFormat;
 import java.util.*;
 
-/**
- *
- * TODO 
- *
- * <dl>
- * <dt>Created by:</dt>
- * <dd>slaha</dd>
- * <dt>On:</dt>
- * <dd> 29.3.14 11:06</dd>
- * </dl>
- */
 public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
+
+
 
 	public static final Comparator<String> CHARACTERS_FIRST_COMPARATOR = new Comparator<String>() {
 		@Override
@@ -47,16 +40,20 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 
 	private final Map<WorkingText, CharacterFrequency> characterFrequency;
 	private final Set<String> allCharacters;
-	private final SelectedCharacters selectedCharacters;
+	private final Selection<String> selectedCharacters;
 	private TObjectIntHashMap<String> sums;
 	private List<String> maxOccurrences;
 	private int maxOccurrence;
 	private int allCharactersInAllTexts;
+	private TObjectDoubleHashMap<String> relativeFrequencies;
+
+	private double odchylka;
 
 	public CharacterFrequencyModel(Map<WorkingText, CharacterFrequency> characterFrequency) {
 		this.characterFrequency = characterFrequency;
 		this.allCharacters = charactersFromAll(characterFrequency);
-		selectedCharacters = new SelectedCharacters();
+		selectedCharacters = new Selection<String>();
+		this.odchylka = 0.005;
 	}
 
 	private Set<String> charactersFromAll(Map<WorkingText, CharacterFrequency> characterFrequency) {
@@ -72,7 +69,13 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 	}
 
 	public TableModel getTableModel() {
-		return new CharacterFrequencyTableModel(allCharacters, characterFrequency);
+		if (sums == null) {
+			doSums();
+		}
+		if (relativeFrequencies == null) {
+			doRelativeFrequencies();
+		}
+		return new CharacterFrequencyTableModel(allCharacters, characterFrequency, relativeFrequencies);
 	}
 
 	public int getTextsCount() {
@@ -85,7 +88,13 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 
 	public int getCharactersCount() {
 		return allCharacters.size();
+	}
 
+	public int getTotalCharactersCount() {
+		if (sums == null) {
+			doSums();
+		}
+		return allCharactersInAllTexts;
 	}
 
 	public PieDataset getPieDataSet() {
@@ -122,20 +131,21 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 	}
 
 	public CategoryDataset getRelativeBarDataSet() {
-		if (sums == null) {
-			doSums();
+		if (relativeFrequencies == null) {
+			doRelativeFrequencies();
 		}
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-		final double allCharactersInAllTexts = (double) this.allCharactersInAllTexts;
+		//..iterate over sums to ensure the same order as in #getAbsoluteBarDataSet
 		sums.forEachEntry(new TObjectIntProcedure<String>() {
 			@Override
 			public boolean execute(String character, int sum) {
-				double perc = (sum / allCharactersInAllTexts) * 100.0d;
-				dataset.setValue(perc, "Relativní četnost", character);
+				double percents = relativeFrequencies.get(character) * 100d;
+				dataset.setValue(percents, "Relativní četnost", character);
 				return true;
 			}
 		});
+
 		return dataset;
 	}
 	public CategoryDataset getBarDataSetFor(String...ss) {
@@ -178,6 +188,23 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 		}
 		this.maxOccurrence = maxOccurrence;
 		this.allCharactersInAllTexts = allCharactersInAllTexts;
+	}
+
+	private void doRelativeFrequencies() {
+		if (sums == null) {
+			doSums();
+		}
+
+		relativeFrequencies = new TObjectDoubleHashMap<String>();
+		final double allCharactersInAllTexts = (double) this.allCharactersInAllTexts;
+		sums.forEachEntry(new TObjectIntProcedure<String>() {
+			@Override
+			public boolean execute(String character, int sum) {
+				double relative = (sum / allCharactersInAllTexts);
+				relativeFrequencies.put(character, relative);
+				return true;
+			}
+		});
 	}
 
 	public List<String> getMostOftenCharacter() {
@@ -229,7 +256,7 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 
 	public String getIntroLabelText() {
 
-		StringBuilder str = new StringBuilder("<html>");
+		StringBuilder str = new StringBuilder();
 
 		String intro = String.format(
 			getTextsCount() == 1 ? "Byl analyzován %d text" :
@@ -239,21 +266,31 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 		);
 
 		str.append(intro).append(": ");
-		str.append("<ul>");
+		str.append("\n\n");
 
 		for (WorkingText wt : getWorkingTexts()) {
-			str.append("<li>").append(wt.getName());
+			str.append("\t\u2022 ").append(wt.getName()).append("\n");
 		}
-		str.append("</ul>");
+		str.append("\n");
 
-		String text = "V " +  (getTextsCount() == 1 ? "tomto textu" : "těchto textech");
-		text += (getCharactersCount() == 1 ? " byl nalezen"
-			: getCharactersCount() >= 5 ? " bylo nalezeno" : " byly nalezeny"
-		) + " %d" + (getCharactersCount() == 1 ? " znak"
-			: getCharactersCount() >= 5 ? " různých znaků" : " různé znaky");
+		final int totalCharacters = getTotalCharactersCount();
+		final int charactersCount = getCharactersCount();
+
+		String text = (getTextsCount() == 1 ? "Tento textu obsahoval" : "Tyto texty obsahovaly");
+		text += " celkem %d " + (totalCharacters == 1 ? "znak" : totalCharacters >= 5 ? "znaků" : "znaky") + ". Z nich ";
 
 
-		str.append("<p>").append(String.format(text, getCharactersCount()));
+		text += (charactersCount == 1 ? " byl "
+			: charactersCount >= 5 ? " bylo " : " byly "
+		) + " %d" + (charactersCount == 1 ? " znak unikátní."
+			: charactersCount >= 5 ? " znaků unikátních." : " znaky unikátní.");
+
+		str.append(String.format(text, totalCharacters, charactersCount));
+
+		str.append("\n\n").append("Pro reprezentativnost výběru s průměrnou směrodatonou odchylkou r = ")
+			.append(odchylka).append(" by bylo potřeba analyzovat výběr obsahující alespoň N = ")
+			.append(new DecimalFormat("0").format(getN())).append(" znaků.")
+			.append(" To znamená, že výběr ").append((getN() <= totalCharacters ? "je" : "není")).append(" reprezentativní.");
 
 		java.util.List<String> mostOftenCharacters = getMostOftenCharacter();
 		StringBuilder mostOftenCharsBuilder = new StringBuilder();
@@ -266,52 +303,37 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 		String mostOftenChar = "Nejčastěji nalezeným znakem " + (mostOftenCharacters.size() == 1 ? "byl znak" : "byly znaky") + " %s";
 		mostOftenChar += ", " + (mostOftenCharacters.size() == 1 ? "který byl nalezen celkem %d×." : "které se vyskytly celkem  %d×.");
 
-		str.append("<p>").append(String.format(mostOftenChar, mostOftenCharsBuilder.toString(), getMaxOccurrence()));
+		str.append("\n\n").append(String.format(mostOftenChar, mostOftenCharsBuilder.toString(), getMaxOccurrence()));
 
-		return str.append("</html>").toString();
+		return str.toString();
 
 	}
 
-	private static class SelectedCharacters {
-
-		/** Selected characters for displaying on {@code compareChartPanel} plot */
-		private final Set<String> compareChartPanelStrings;
-		private final List<String> notUsedStrings;
-
-		private SelectedCharacters() {
-			this.compareChartPanelStrings = new HashSet<String>() {
-
-				@Override
-				public String toString() {
-					StrBuilder sb = new StrBuilder();
-					sb.appendWithSeparators(this, ", ");
-					return sb.toString();
-				}
-			};
-			this.notUsedStrings = new ArrayList<String>();
+	private double getN() {
+		if (relativeFrequencies == null) {
+			doRelativeFrequencies();
 		}
 
-		public void remove(String item) {
-			compareChartPanelStrings.remove(item);
-			if (notUsedStrings.contains(item)) {
-				//..it was selected in more combos. Now we need to put it back
-				add(item);
-			}
+		final int k = getCharactersCount();
+		double sum = 0d;
+		for (String character : allCharacters) {
+			double p_i = relativeFrequencies.get(character);
+			sum += Math.log(p_i);
 		}
+		double fraction = 1d / ((double)k - 1d);
+		double afterMultiply = fraction * sum;
 
-		public Set<String> getAll() {
-			return compareChartPanelStrings;
-		}
+		double lnN = afterMultiply - 2 * Math.log(odchylka);
 
-		public void add(String item) {
-			if (!compareChartPanelStrings.add(item)) {
-				notUsedStrings.add(item);
-			}
-		}
+		return Math.exp(lnN);
+	}
 
-		public boolean contains(String item) {
-			return compareChartPanelStrings.contains(item);
-		}
+	public double getOdchylka() {
+		return odchylka;
+	}
+
+	public void setOdchylka(double odchylka) {
+		this.odchylka = odchylka;
 	}
 
 	private static class CharacterFrequencyTableModel extends AbstractTableModel {
@@ -319,9 +341,12 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 		private final List<String> rows;
 		private final List<WorkingText> workingTexts;
 		private final List<CharacterFrequency> characterFrequencies;
+		private final TObjectDoubleHashMap<String> relativeFrequencies;
 
 		private CharacterFrequencyTableModel(Set<String> rows,
-		                                     Map<WorkingText, CharacterFrequency> characterFrequency) {
+		                                     Map<WorkingText, CharacterFrequency> characterFrequency,
+		                                     TObjectDoubleHashMap<String> relativeFrequencies) {
+			this.relativeFrequencies = relativeFrequencies;
 
 			this.rows = new ArrayList<String>(rows);
 			this.workingTexts = new ArrayList<WorkingText>(characterFrequency.size());
@@ -339,23 +364,28 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 
 		@Override
 		public int getColumnCount() {
-			return characterFrequencies.size() + 1;
+			return characterFrequencies.size() + 2;
 		}
 
 		@Override
 		public String getColumnName(int columnIndex) {
 			if (columnIndex == 0) {
 				return "Znak";
+			} else if (columnIndex == 1) {
+				return "Relativní četnost výskytu znaku";
 			}
-			//columnIndex - 1 because 0 is "Character" column
-			return workingTexts.get(columnIndex - 1).getName();
+			//columnIndex - 2 because 0 is "Character" and 1 is "relative ..." column
+			return workingTexts.get(columnIndex - 2).getName();
 		}
 
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
 			if (columnIndex == 0) {
 				return String.class;
+			} else if (columnIndex == 1) {
+				return Double.class;
 			}
+
 			return Integer.class;
 		}
 
@@ -370,7 +400,12 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 			if (columnIndex == 0) {
 				return s;
 			}
-			return characterFrequencies.get(columnIndex - 1).getFrequencyFor(s);
+			if (columnIndex == 1) {
+				double relative = relativeFrequencies.get(s);
+				return relative * 100d; //..to percents
+			}
+			//columnIndex - 2 because 0 is "Character" and 1 is "relative ..." column
+			return characterFrequencies.get(columnIndex - 2).getFrequencyFor(s);
 		}
 
 		@Override

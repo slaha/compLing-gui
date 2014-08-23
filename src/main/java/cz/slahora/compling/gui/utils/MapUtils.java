@@ -1,6 +1,8 @@
 package cz.slahora.compling.gui.utils;
 
+import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TObjectIntMap;
+import gnu.trove.procedure.TIntIntProcedure;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.procedure.TObjectIntProcedure;
 
@@ -84,6 +86,27 @@ public class MapUtils {
 		return max[0];
 	}
 
+	/**
+	 * Finds max value in TObjectIntMap<?>
+	 *
+	 * @param map map to find maximum value in
+	 * @return maximum value from values in map
+	 */
+	public static int findMaxValue(TIntIntMap map) {
+		final int max[] = new int[] { map.values()[0] };
+
+		map.forEachValue(new TIntProcedure() {
+			@Override
+			public boolean execute(int i) {
+				if (i > max[0]) {
+					max[0] = i;
+				}
+				return true;
+			}
+		});
+		return max[0];
+	}
+
 	public static <T> List<T> getAllKeysWithValue(TObjectIntMap<T> map, final int value) {
 		final List<T> list = new ArrayList<T>();
 		map.forEachEntry(new TObjectIntProcedure<T>() {
@@ -91,6 +114,20 @@ public class MapUtils {
 			public boolean execute(T s, int i) {
 				if (i == value) {
 					list.add(s);
+				}
+				return true;
+			}
+		});
+		return list;
+	}
+
+	public static List<Integer> getAllKeysWithValue(TIntIntMap map, final int value) {
+		final List<Integer> list = new ArrayList<Integer>();
+		map.forEachEntry(new TIntIntProcedure() {
+			@Override
+			public boolean execute(int length, int frequency) {
+				if (frequency == value) {
+					list.add(length);
 				}
 				return true;
 			}

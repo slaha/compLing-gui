@@ -26,6 +26,10 @@ import java.util.Locale;
  */
 public class ChartUtils {
 
+	private static final int MINIMUM_SIZE = 100;
+	private static final int CHART_WIDTH = 400;
+	private static final int CHART_HEIGHT = 800;
+
 	/**
 	 * Create pie chart.
 	 *
@@ -94,7 +98,7 @@ public class ChartUtils {
 	 * @return the panel with the chart
 	 */
 	public static ChartPanel createPanel(JFreeChart chart) {
-		ChartPanel panel = new ChartPanel(chart, 800, 800, 500, 500, Integer.MAX_VALUE, Integer.MAX_VALUE, true, false, true, true, true, true, true);
+		ChartPanel panel = new ChartPanel(chart, CHART_WIDTH, CHART_HEIGHT, MINIMUM_SIZE, MINIMUM_SIZE, Integer.MAX_VALUE, Integer.MAX_VALUE, true, false, true, true, true, true, true);
 		panel.setBackground(Color.white);
 		return panel;
 	}

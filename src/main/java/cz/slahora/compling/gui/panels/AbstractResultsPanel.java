@@ -1,11 +1,11 @@
 package cz.slahora.compling.gui.panels;
 
-import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
-
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.GridBagConstraints;
+import java.awt.Component;
 
 public abstract class AbstractResultsPanel {
 
@@ -17,28 +17,17 @@ public abstract class AbstractResultsPanel {
 		panel.setBorder(new EmptyBorder(10, 10, 10, 10)); //..padding
 	}
 
-	protected void putChartPanel(int y, ChartPanelWrapper chartPanel) {
+	protected JComponent changeChartPanel(JComponent oldChart, JComponent chartParent, ChartPanelWrapper newChartPanel) {
 
-		changeChartPanel(y, null, chartPanel);
-	}
-
-	protected void changeChartPanel(ChartPanelWrapper old, ChartPanelWrapper chartPanel) {
-		int currentY = (Integer)old.getClientProperty("y");
-
-		changeChartPanel(currentY, old, chartPanel);
-	}
-
-	private void changeChartPanel(int y, JPanel old, ChartPanelWrapper newChartPanel) {
-
-		if (old != null) {
-			panel.remove(old);
+		if (oldChart != null) {
+			chartParent.remove(oldChart);
 		}
 
-		newChartPanel.putClientProperty("y", y);
-		panel.add(
-			newChartPanel,
-			new GridBagConstraintBuilder().gridxy(0, y).fill(GridBagConstraints.BOTH).anchor(GridBagConstraints.NORTH).weightx(1).weighty(1).build()
-		);
-		panel.validate();
+		final JComponent comp = newChartPanel.getPanel();
+		comp.setAlignmentX(Component.LEFT_ALIGNMENT);
+		chartParent.add(comp, BorderLayout.CENTER);
+		chartParent.validate();
+
+		return comp;
 	}
 }

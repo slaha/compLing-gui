@@ -133,16 +133,16 @@ public class TabPanel extends JPanel {
 		GridBagConstraintBuilder labelConstraints = new GridBagConstraintBuilder()
 			.fill(GridBagConstraints.HORIZONTAL)
 			.anchor(GridBagConstraints.LINE_START)
-			.gridx(0)
-			.gridy(0)
-			.weightx(1)
+			.gridX(0)
+			.gridY(0)
+			.weightX(1)
 			.insets(new Insets(0, 3, 0, 3));
 		add(nameLabel, labelConstraints.build());
 
 		GridBagConstraintBuilder buttonConstraints = new GridBagConstraintBuilder()
 			.anchor(GridBagConstraints.LINE_END)
-			.gridx(1)
-			.gridy(0)
+			.gridX(1)
+			.gridY(0)
 			.insets(new Insets(0, 3, 0, 3));
 		add(closeButton, buttonConstraints.build());
 

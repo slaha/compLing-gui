@@ -4,6 +4,9 @@ import cz.slahora.compling.gui.panels.ChartType;
 import cz.slahora.compling.gui.utils.ChartUtils;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 
 import java.util.Locale;
@@ -22,9 +25,9 @@ import java.util.Set;
  */
 public class WordFrequencyChartFactory {
 	private final String chartTitle;
-	private final WordFrequenciesModel controller;
+	private final IWordFrequenciesModel controller;
 
-	public WordFrequencyChartFactory(WordFrequenciesModel controller, String chartTitle) {
+	public WordFrequencyChartFactory(IWordFrequenciesModel controller, String chartTitle) {
 		this.controller = controller;
 		this.chartTitle = chartTitle;
 	}
@@ -44,12 +47,20 @@ public class WordFrequencyChartFactory {
 			default:
 				throw new IllegalArgumentException("WTF?? ChartType " + type + " not recognized");
 		}
+		if (chart.getPlot() instanceof CategoryPlot) {
+			CategoryPlot categoryPlot = (CategoryPlot) chart.getPlot();
+			CategoryAxis xAxis = categoryPlot.getDomainAxis();
+			xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_90);
+			xAxis.setLowerMargin(0);
+			xAxis.setUpperMargin(0);
+		}
 		return chart;
 
 	}
 
 	public ChartPanel createPanel(JFreeChart chart, ChartType type, WordFrequencyResultsPanel panel) {
 		final ChartPanel newChartPanel = ChartUtils.createPanel(chart);
+
 		newChartPanel.putClientProperty("type", type);
 		newChartPanel.addChartMouseListener(panel.createChartMouseListener(newChartPanel));
 
@@ -61,7 +72,7 @@ public class WordFrequencyChartFactory {
 	}
 
 
-	public void setDatasetMoreThanOne(ChartPanel chartPanel, int lowerBound) {
+	public void setDatasetMoreThan(ChartPanel chartPanel, int lowerBound) {
 		final ChartType type = (ChartType)chartPanel.getClientProperty("type");
 		chartPanel.setChart(createChart(type, lowerBound));
 
@@ -69,7 +80,7 @@ public class WordFrequencyChartFactory {
 
 	public ChartPanel createComparePlot() {
 		final Set<String> categories = controller.getAllCompareChartCategories();
-		String chartTitle = "Srovnání zastoupení znaku " + categories.toString();
+		String chartTitle = "Srovnání zastoupení délek slov " + categories.toString();
 		JFreeChart chart = ChartUtils.createBarChart(chartTitle, "Četnost", "Texty", controller.getBarDataSetFor(categories.toArray(new String[categories.size()])), PlotOrientation.VERTICAL, false, true, true, true);
 		return ChartUtils.createPanel(chart);
 	}

@@ -54,14 +54,14 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 
 		GridBagConstraintBuilder gbc;
 		int y = 0;
-		gbc = new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1);
+		gbc = new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1);
 
 		panel.add(headline, gbc.build());
 		Insets insets = new Insets(20, 0, 0, 0);
-		panel.add(text1, gbc.copy().gridy(y++).insets(insets).build());
-		panel.add(text2, gbc.copy().gridy(y++).insets(insets).build());
-		panel.add(text3, gbc.copy().gridy(y++).insets(insets).build());
-		panel.add(area, gbc.copy().gridy(y).insets(insets).build());
+		panel.add(text1, gbc.copy().gridY(y++).insets(insets).build());
+		panel.add(text2, gbc.copy().gridY(y++).insets(insets).build());
+		panel.add(text3, gbc.copy().gridY(y++).insets(insets).build());
+		panel.add(area, gbc.copy().gridY(y).insets(insets).build());
 
 		JScrollPane allScroll = new JScrollPane(panel) {
 			@Override

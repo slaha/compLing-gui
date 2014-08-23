@@ -1,16 +1,12 @@
 package cz.slahora.compling.gui.panels.characters;
 
 import cz.compling.model.CharacterFrequency;
+import cz.slahora.compling.gui.MultipleLinesLabel;
 import cz.slahora.compling.gui.model.CharacterFrequencyModel;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.AbstractResultsPanel;
-import cz.slahora.compling.gui.panels.ChartPanelWrapper;
-import cz.slahora.compling.gui.panels.ChartType;
-import cz.slahora.compling.gui.panels.ResultsPanel;
-import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
+import cz.slahora.compling.gui.panels.*;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
-import org.jdesktop.swingx.JXLabel;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
@@ -35,9 +31,9 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 	private static final double STEP_SIZE = 0.005d;
 	/** Just model */
 	private final CharacterFrequencyModel model;
+	private final JPanel changeChartPanel;
+	private final JPanel compareChartPanel;
 	/** Current y axis value for GB layout */
-	private int y = 0;
-
 	/** Panel for displaying pie or bar plot with sums of characters occurrences */
 //	private ChartPanelWrapper allCharactersChartPanel;
 	private JComponent allCharactersChartComponent;
@@ -48,28 +44,46 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 	private final CharacterFrequencyChartFactory chartFactory;
 
 	public CharacterFrequencyPanel(Map<WorkingText, CharacterFrequency> characterFrequency) {
-		super(new JPanel(new GridBagLayout()));
+		super(new ResultsScrollablePanel());
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
 		this.model = new CharacterFrequencyModel(characterFrequency);
 		final String chartTitle = "Zastoupení jednotlivých znaků";
 		chartFactory = new CharacterFrequencyChartFactory(model, chartTitle);
 
 		//..top headline
-		panel.add(
-			new HtmlLabelBuilder().hx(1, "Analýza četností znaků").build(),
-			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL)
-				.weightX(1).anchor(GridBagConstraints.NORTH).build()
-		);
+		final JLabel mainHeadlineLabel = new HtmlLabelBuilder().hx(1, "Analýza četností znaků").build();
+		mainHeadlineLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(mainHeadlineLabel);
 
-		final JXLabel introArea = new JXLabel();
+		/*
+		final JXLabel introArea = new JXLabel() {
+
+			@Override
+			public Dimension getMinimumSize() {
+				return new Dimension(panel.getWidth(), 10);
+			}
+		};
+		introArea.addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentResized(ComponentEvent e) {
+				final Dimension size = e.getComponent().getSize();
+				inroArea.setSize(new Dimension(size.width, size.height + 50));
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				introArea.setText(introArea.getText());
+				introArea.invalidate();
+			}
+		});
+	}
+});
+		*/
+
+		final MultipleLinesLabel introArea = new MultipleLinesLabel();
 		introArea.setText(model.getIntroLabelText());
-		introArea.setLineWrap(true);
 		//..some info text
-		panel.add(
-			introArea,
-			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL)
-				.weightX(1).build()
-		);
+		panel.add(introArea);
 
 		final JSpinner jSpinner = new JSpinner(new SpinnerNumberModel(model.getOdchylka(), MINIMUM, MAXIMUM, STEP_SIZE));
 		jSpinner.setEditor(new JSpinner.NumberEditor(jSpinner, "0.000"));
@@ -87,12 +101,8 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 		spinnerPanel.add(new JLabel("Směrodatná odchylka: "));
 		jSpinner.setPreferredSize(new Dimension(150, 30));
 		spinnerPanel.add(jSpinner);
-
-		panel.add(
-			spinnerPanel,
-			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL)
-				.weightX(1).build()
-		);
+		spinnerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(spinnerPanel);
 
 
 		//table with character occurrences
@@ -109,48 +119,32 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 		tablePanel.add(table.getTableHeader(), BorderLayout.NORTH);
 		tablePanel.add(table, BorderLayout.CENTER);
 
-		panel.add(tablePanel, new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).build());
-		/*
-		panel.add(
-			table.getTableHeader(),
-			new GridBagConstraintBuilder()
-				.gridXY(0, y++)
-				.fill(GridBagConstraints.HORIZONTAL)
-				.weightX(1)
-				.build()
-		);
-		panel.add(
-			table,
-			new GridBagConstraintBuilder()
-				.gridXY(0, y++)
-				.fill(GridBagConstraints.HORIZONTAL)
-				.weightX(1)
-				.build()
-		);
-		*/
+		tablePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(tablePanel);
 
 		//pie or bar plot
-		panel.add(
-			new HtmlLabelBuilder().hx(2, "Graf četností jednotlivých znaků").build(),
-			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).build()
-		);
+		final JLabel chartLabelHeadline = new HtmlLabelBuilder().hx(2, "Graf četností jednotlivých znaků").build();
+		chartLabelHeadline.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(chartLabelHeadline);
 
 		final ChartPanel plot = createPlot(ChartType.PIE);
 		ChartPanelWrapper allCharactersChartPanel = wrap(plot);
-		allCharactersChartComponent = putChartPanel(y, allCharactersChartPanel);
-		y++;
+		changeChartPanel = new JPanel(new BorderLayout());
+		changeChartPanel.setBackground(Color.white);
+		changeChartPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(changeChartPanel);
+		allCharactersChartComponent = changeChartPanel(null, changeChartPanel, allCharactersChartPanel);
 
 		//bar plot with selected characters
-		panel.add(
-			new HtmlLabelBuilder().hx(2, "Porovnání jednotlivých básní").build(),
-			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL)
-				.weightX(1).build()
-		);
+		final JLabel chartCompareLabelHeadline = new HtmlLabelBuilder().hx(2, "Porovnání jednotlivých básní").build();
+		chartCompareLabelHeadline.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(chartCompareLabelHeadline);
 
 		Set<String> allCharacters = model.getAllCharacters();
 		final String[] characters = allCharacters.toArray(new String[allCharacters.size()]);
 		Arrays.sort(characters, CharacterFrequencyModel.CHARACTERS_FIRST_COMPARATOR);
 		final JPanel comboPanel = new JPanel(new GridBagLayout());
+		comboPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		JButton plusComboButton = new JButton("+");
 		JButton minusComboButton = new JButton("-");
@@ -159,7 +153,13 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 		minusComboButton.addActionListener(plusMinusButtonListener);
 
 		//..first add combo panel, then create comboBox which will create and display plot. Finally attach combo and buttons to comboPanel and validate it
-		panel.add(comboPanel, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.LINE_START).build());
+		panel.add(comboPanel);
+
+		compareChartPanel = new JPanel(new BorderLayout());
+		compareChartPanel.setBackground(Color.white);
+		compareChartPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(compareChartPanel);
+
 		final JComboBox comboBox = createCharacterComboBox(characters);
 		comboPanel.add(comboBox);
 		comboPanel.add(plusComboButton);
@@ -167,6 +167,8 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 		minusComboButton.setVisible(false);
 		comboPanel.validate();
 	}
+
+
 
 	private ChartPanelWrapper wrap(ChartPanel plot) {
 		final ChartPanelWrapper wrapper = new ChartPanelWrapper(plot);
@@ -204,12 +206,7 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 	private void refreshPlot() {
 		ChartPanel plot = chartFactory.createComparePlot();
 		ChartPanelWrapper wrap = wrap(plot);
-		if (compareChartComponent == null) {
-			compareChartComponent = putChartPanel(y, wrap);
-			y++;
-		} else {
-			compareChartComponent = changeChartPanel(compareChartComponent, wrap);
-		}
+		compareChartComponent = changeChartPanel(compareChartComponent, compareChartPanel, wrap);
 	}
 
 	private ChartPanel createPlot(ChartType type) {
@@ -236,7 +233,7 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 				final ChartType nextType = ChartType.values()[ (type.ordinal() + 1) % ChartType.values().length  ];
 				ChartPanel newOne = createPlot(nextType);
 				ChartPanelWrapper wrapper = wrap(newOne);
-				allCharactersChartComponent = changeChartPanel(allCharactersChartComponent, wrapper);
+				allCharactersChartComponent = changeChartPanel(allCharactersChartComponent, changeChartPanel, wrapper);
 			}
 
 			@Override

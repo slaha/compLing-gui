@@ -56,7 +56,7 @@ public class GuiDenotationResults {
 		//..top headline
 		panel.add(
 			new HtmlLabelBuilder().hx(1, "Denotační analýza").build(),
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.WEST).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.WEST).build()
 		);
 
 		StringBuilder s = new StringBuilder();
@@ -66,7 +66,7 @@ public class GuiDenotationResults {
 			.append(".<br>MacIntoshův index textu je ").append(String.format("%.2f", model.getMacIntosh()));
 		panel.add(
 			new HtmlLabelBuilder().p(s.toString()).build(),
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 		JXCollapsiblePane diffusionSpikes = new JXCollapsiblePane();
@@ -86,7 +86,7 @@ public class GuiDenotationResults {
 			p.add(new JLabel(String.format("%.2f", pair.getValue1())));
 
 			diffusionSpikes.add(p,
-				new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).weightx(1).gridxy(column, row).build()
+				new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).weightX(1).gridXY(column, row).build()
 			);
 			row++;
 			if (column < biggerColumns) {
@@ -107,11 +107,11 @@ public class GuiDenotationResults {
 
 		panel.add(
 			toggle,
-			new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).anchor(GridBagConstraints.WEST).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).anchor(GridBagConstraints.WEST).build()
 		);
 		panel.add(
 			diffusionSpikes,
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 		JXCollapsiblePane positionSpikes = new JXCollapsiblePane();
@@ -119,30 +119,30 @@ public class GuiDenotationResults {
 		positionSpikes.setCollapsed(true);
 		for (int spike = 1; spike <= model.getSpikesCount(); spike++) {
 			positionSpikes.add(new PositionSpikePanel(spike, model.getPositionSpike(spike)),
-				new GridBagConstraintBuilder().gridxy(0, spike).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+				new GridBagConstraintBuilder().gridXY(0, spike).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 			);
 		}
 		toggle = new ToggleHeader(positionSpikes, new HtmlLabelBuilder().hx(2, "Poziční hřeby").build().getText());
 
 		panel.add(
 			toggle,
-			new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).anchor(GridBagConstraints.WEST).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).anchor(GridBagConstraints.WEST).build()
 		);
 		panel.add(
 			positionSpikes,
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 		panel.add(
 			new HtmlLabelBuilder().hx(2, "Jádro textu").build(),
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 		final GuiDenotationResultsModel.TextCore core = model.getTextCoreSpikes();
 		JLabel spikeLabel = new JLabel();
 		panel.add(
 			spikeLabel,
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 		JPanel textCorePanel = new JPanel(new GridBagLayout());
@@ -150,7 +150,7 @@ public class GuiDenotationResults {
 		CoreSpikePanel coreSpikePanel = new CoreSpikePanel(core, spikeLabel);
 		panel.add(
 			coreSpikePanel,
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 
@@ -159,11 +159,11 @@ public class GuiDenotationResults {
 		toggle = new ToggleHeader(extendedCore, new HtmlLabelBuilder().hx(2, "Rozšířené jádro textu").build().getText());
 		panel.add(
 			toggle,
-			new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).anchor(GridBagConstraints.WEST).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).anchor(GridBagConstraints.WEST).build()
 		);
 		panel.add(
 			extendedCore,
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 		CoincidencePanel poemAsSpikeNumbersPanel = new CoincidencePanel(model.getPoemAsSpikeNumbers());
@@ -171,21 +171,21 @@ public class GuiDenotationResults {
 		toggle = new ToggleHeader(poemAsSpikeNumbersPanel, new HtmlLabelBuilder().hx(2, "Koincidence").build().getText());
 		panel.add(
 			toggle,
-			new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).anchor(GridBagConstraints.WEST).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).anchor(GridBagConstraints.WEST).build()
 		);
 		panel.add(
 			poemAsSpikeNumbersPanel,
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 		final List<Coincidence> coincidenceFor14 = model.getCoincidenceFor(14);
 		panel.add(
 			new CoincidenceDetailPanel(coincidenceFor14),
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 		panel.add(
 			new HtmlLabelBuilder().hx(2, "Graf").build(),
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 
@@ -200,7 +200,7 @@ public class GuiDenotationResults {
 
 		panel.add(
 			graphPanel,
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.BOTH).weightX(1).weightY(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 
@@ -212,7 +212,7 @@ public class GuiDenotationResults {
 		dummyPanel.setBackground(Color.WHITE);
 		panel.add(
 			dummyPanel,
-			new GridBagConstraintBuilder().gridxy(0, y).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y).fill(GridBagConstraints.BOTH).weightX(1).weightY(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 
@@ -279,13 +279,13 @@ public class GuiDenotationResults {
 
 			add(
 				new HtmlLabelBuilder().hx(3, "Poziční hřeb č. " + spikeNumber).build(),
-				new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).gridxy(0, 0).insets(new Insets(0, 0, 0, 25)).build()
+				new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).gridXY(0, 0).insets(new Insets(0, 0, 0, 25)).build()
 			);
 			StrBuilder builder = new StrBuilder();
 			builder.append("<html>").appendWithSeparators(wordNumbers, ", ").append("</html>");
 			add(
 				new JLabel(builder.toString()),
-				new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).gridxy(1, 0).weightx(1).build()
+				new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).gridXY(1, 0).weightX(1).build()
 			);
 
 			setBorder(new EmptyBorder(0, 0, 5, 0));
@@ -335,12 +335,12 @@ public class GuiDenotationResults {
 			ToggleHeader toggleHeader = new ToggleHeader(action, new HtmlLabelBuilder().hx(3, "Jádro textu").build().getText());
 			add(
 				toggleHeader,
-				new GridBagConstraintBuilder().weighty(1).gridxy(0, 0).anchor(GridBagConstraints.NORTHWEST).build()
+				new GridBagConstraintBuilder().weightY(1).gridXY(0, 0).anchor(GridBagConstraints.NORTHWEST).build()
 			);
 
 			add(
 				corePanel,
-				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.HORIZONTAL).weightx(1).gridxy(1, 0).build()
+				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.HORIZONTAL).weightX(1).gridXY(1, 0).build()
 			);
 
 			//..panel hřebů, které jsou mimo jádro
@@ -353,11 +353,11 @@ public class GuiDenotationResults {
 			toggleHeader = new ToggleHeader(action, new HtmlLabelBuilder().hx(3, "Hřeby mimo jádro").build().getText());
 			add(
 				toggleHeader,
-				new GridBagConstraintBuilder().weighty(1).weightx(1).gridxy(0, 1).anchor(GridBagConstraints.NORTHWEST).build()
+				new GridBagConstraintBuilder().weightY(1).weightX(1).gridXY(0, 1).anchor(GridBagConstraints.NORTHWEST).build()
 			);
 			add(
 				outsideCorePanel,
-				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).gridxy(1, 1).build()
+				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).gridXY(1, 1).build()
 			);
 
 			//...topikalnosť
@@ -370,11 +370,11 @@ public class GuiDenotationResults {
 			toggleHeader = new ToggleHeader(action, new HtmlLabelBuilder().hx(3, "Topikálnost jádrových hřebů").build().getText());
 			add(
 				toggleHeader,
-				new GridBagConstraintBuilder().weighty(1).weightx(1).gridxy(0, 2).anchor(GridBagConstraints.NORTHWEST).build()
+				new GridBagConstraintBuilder().weightY(1).weightX(1).gridXY(0, 2).anchor(GridBagConstraints.NORTHWEST).build()
 			);
 			add(
 				coreTopikalnostPanel,
-				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).gridxy(1, 2).build()
+				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).gridXY(1, 2).build()
 			);
 
 			String spikeLbl = core.size() == 1 ? "hřeb" : core.size() < 5 && core.size() > 0 ? "hřeby" : "hřebů";
@@ -464,15 +464,15 @@ public class GuiDenotationResults {
 			coverPanel.setBackground(Color.white);
 			coverPanel.add(
 				toggleHeader,
-				new GridBagConstraintBuilder().weighty(1).weightx(1).gridxy(0, 0).anchor(GridBagConstraints.NORTHWEST).build()
+				new GridBagConstraintBuilder().weightY(1).weightX(1).gridXY(0, 0).anchor(GridBagConstraints.NORTHWEST).build()
 			);
 			coverPanel.add(
 				extendedCore,
-				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).gridxy(1, 0).build()
+				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).gridXY(1, 0).build()
 			);
 
 			add(coverPanel,
-				new GridBagConstraintBuilder().gridxy(0, 1).weighty(1).weightx(1).anchor(GridBagConstraints.NORTHWEST).build()
+				new GridBagConstraintBuilder().gridXY(0, 1).weightY(1).weightX(1).anchor(GridBagConstraints.NORTHWEST).build()
 			);
 		}
 
@@ -579,17 +579,17 @@ public class GuiDenotationResults {
 
 				spikePanel.add(
 					spikeNumber,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).insets(INSETS).weighty(1).gridxy(0, 0).build()
+					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).insets(INSETS).weightY(1).gridXY(0, 0).build()
 				);
 
 				spikePanel.add(
 					spikeContent,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.BOTH).weightx(1).weighty(1).gridxy(1, 0).build()
+					new GridBagConstraintBuilder().fill(GridBagConstraints.BOTH).weightX(1).weightY(1).gridXY(1, 0).build()
 				);
 
 				add(
 					spikePanel,
-					new GridBagConstraintBuilder().weightx(1).fill(GridBagConstraints.HORIZONTAL).gridxy(0, y++).build()
+					new GridBagConstraintBuilder().weightX(1).fill(GridBagConstraints.HORIZONTAL).gridXY(0, y++).build()
 				);
 			}
 		}
@@ -606,17 +606,17 @@ public class GuiDenotationResults {
 
 				spikePanel.add(
 					spikeNumber,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).insets(INSETS).weighty(1).gridxy(0, 0).build()
+					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).insets(INSETS).weightY(1).gridXY(0, 0).build()
 				);
 
 				spikePanel.add(
 					spikeContent,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.BOTH).weightx(1).weighty(1).gridxy(1, 0).build()
+					new GridBagConstraintBuilder().fill(GridBagConstraints.BOTH).weightX(1).weightY(1).gridXY(1, 0).build()
 				);
 
 				add(
 					spikePanel,
-					new GridBagConstraintBuilder().weightx(1).fill(GridBagConstraints.HORIZONTAL).gridxy(0, y++).build()
+					new GridBagConstraintBuilder().weightX(1).fill(GridBagConstraints.HORIZONTAL).gridXY(0, y++).build()
 				);
 			}
 		}

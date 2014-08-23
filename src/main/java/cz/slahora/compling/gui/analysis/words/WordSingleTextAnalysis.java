@@ -17,6 +17,7 @@ public class WordSingleTextAnalysis extends WordTextAnalysis implements SingleTe
 
 	private IWordFrequency wordFrequency;
 	private WorkingText text;
+	private WordTextAnalysisType analysisType;
 
 	@Override
 	public void analyse(JPanel mainPanel, ResultsHandler handler, Map<WorkingText, CompLing> texts) {
@@ -29,6 +30,7 @@ public class WordSingleTextAnalysis extends WordTextAnalysis implements SingleTe
 			return;
 		}
 
+		analysisType = optionPanel.getAnalysisType();
 
 
 		if (optionPanel.applyCaseInsensitiveRule()) {
@@ -47,7 +49,7 @@ public class WordSingleTextAnalysis extends WordTextAnalysis implements SingleTe
 
 	@Override
 	public Results getResults() {
-		return new WordResults(Collections.singletonMap(text, wordFrequency));
+		return new WordResults(analysisType, Collections.singletonMap(text, wordFrequency));
 	}
 
 }

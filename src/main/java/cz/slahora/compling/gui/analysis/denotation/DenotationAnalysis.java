@@ -89,7 +89,7 @@ public class DenotationAnalysis {
 			toolBar.add(importBtn);
 			toolBar.add(exportBtn);
 			GridBagConstraints gbc;
-			gbc = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
+			gbc = new GridBagConstraintBuilder().gridXY(0, 0).fill(GridBagConstraints.HORIZONTAL).weightX(1).build();
 			add(toolBar, gbc);
 
 			final JPanel bottomPanel = new JPanel(new GridBagLayout());
@@ -106,10 +106,10 @@ public class DenotationAnalysis {
 			JPanel buttonsPanel = new JPanel();
 			buttonsPanel.add(cancelBtn);
 			buttonsPanel.add(doneBtn);
-			gbc = new GridBagConstraintBuilder().gridxy(0, 0).insets(insets).anchor(GridBagConstraints.EAST).weightx(1).build();
+			gbc = new GridBagConstraintBuilder().gridXY(0, 0).insets(insets).anchor(GridBagConstraints.EAST).weightX(1).build();
 			bottomPanel.add(buttonsPanel, gbc);
 
-			gbc = new GridBagConstraintBuilder().gridxy(0, 2).fill(GridBagConstraints.HORIZONTAL).weightx(1).build();
+			gbc = new GridBagConstraintBuilder().gridXY(0, 2).fill(GridBagConstraints.HORIZONTAL).weightX(1).build();
 			add(bottomPanel, gbc);
 
 			setModel(new GuiDenotationModel(workingText));
@@ -126,7 +126,7 @@ public class DenotationAnalysis {
 			middlePanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationSpikesPanel));
 			middlePanel.setContinuousLayout(true);
 
-			GridBagConstraints gbc = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).weightx(1).weighty(1).build();
+			GridBagConstraints gbc = new GridBagConstraintBuilder().gridXY(0, 1).fill(GridBagConstraints.BOTH).weightX(1).weightY(1).build();
 			add(middlePanel, gbc);
 
 			validate();
@@ -290,14 +290,14 @@ public class DenotationAnalysis {
 				if (currentStrophe != word.getStropheNumber() || strophePanel == null) {
 					strophePanel = new JPanel(new GridBagLayout());
 					strophePanel.setBackground(Color.white);
-					poemPanel.add(strophePanel, BUILDER.copy().insets(STROPHE_INSETS).gridy(currentStropheInPoem++).build());
+					poemPanel.add(strophePanel, BUILDER.copy().insets(STROPHE_INSETS).gridY(currentStropheInPoem++).build());
 					currentStrophe = word.getStropheNumber();
 					currentVerseInStrophe = 0;
 				}
 
 				if (currentVerse != word.getVerseNumber() || versePanel == null) {
 					versePanel = new JPanel(new GridBagLayout());
-					strophePanel.add(versePanel, BUILDER.copy().gridy(currentVerseInStrophe++).build());
+					strophePanel.add(versePanel, BUILDER.copy().gridY(currentVerseInStrophe++).build());
 					currentVerse = word.getVerseNumber();
 				}
 
@@ -307,7 +307,7 @@ public class DenotationAnalysis {
 				versePanel.add(wordPanel, BUILDER.copy().build());
 			}
 
-			add(poemPanel, new GridBagConstraintBuilder().gridxy(0, 0).anchor(GridBagConstraints.NORTH).weighty(1).build());
+			add(poemPanel, new GridBagConstraintBuilder().gridXY(0, 0).anchor(GridBagConstraints.NORTH).weightY(1).build());
 		}
 
 		public void refresh(WordPanel wordPanel) {
@@ -374,8 +374,8 @@ public class DenotationAnalysis {
 			wordLabel = new JLabel(word.getDenotationWordsAsString());
 			_font = wordLabel.getFont();
 
-			add(numberLabel, new GridBagConstraintBuilder().gridxy(0, 0).anchor(GridBagConstraints.NORTH).build());
-			add(wordLabel, new GridBagConstraintBuilder().gridxy(0, 1).anchor(GridBagConstraints.SOUTH).build());
+			add(numberLabel, new GridBagConstraintBuilder().gridXY(0, 0).anchor(GridBagConstraints.NORTH).build());
+			add(wordLabel, new GridBagConstraintBuilder().gridXY(0, 1).anchor(GridBagConstraints.SOUTH).build());
 
 			addMouseListener(new MouseAdapter());
 
@@ -744,7 +744,7 @@ public class DenotationAnalysis {
 			toolBar.add(addBtn);
 			toolBar.add(removeBtn);
 			GridBagConstraintBuilder builder;
-			builder = new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.NORTHWEST).weightx(1);
+			builder = new GridBagConstraintBuilder().gridXY(0, 0).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.NORTHWEST).weightX(1);
 			add(toolBar, builder.build());
 
 
@@ -781,7 +781,7 @@ public class DenotationAnalysis {
 				}
 			});
 
-			builder = new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).anchor(GridBagConstraints.NORTHWEST).weightx(1).weighty(1);
+			builder = new GridBagConstraintBuilder().gridXY(0, 1).fill(GridBagConstraints.BOTH).anchor(GridBagConstraints.NORTHWEST).weightX(1).weightY(1);
 			add(new JScrollPane(table), builder.copy().build());
 
 			ColumnsAutoSizer.sizeColumnsToFit(table, 10, SPIKE_WORDS_COLUMN);

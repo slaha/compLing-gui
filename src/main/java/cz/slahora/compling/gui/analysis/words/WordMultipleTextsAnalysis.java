@@ -15,6 +15,7 @@ import java.util.Map;
 public class WordMultipleTextsAnalysis extends WordTextAnalysis implements MultipleTextsAnalysis<Object> {
 
 	private Map<WorkingText, IWordFrequency> frequencies;
+	private WordTextAnalysisType analysisType;
 
 	@Override
 	public void analyse(JPanel mainPanel, ResultsHandler handler, Map<WorkingText, CompLing> texts) {
@@ -23,6 +24,8 @@ public class WordMultipleTextsAnalysis extends WordTextAnalysis implements Multi
 		if (result != JOptionPane.OK_OPTION) {
 			return;
 		}
+
+		analysisType = optionPanel.getAnalysisType();
 
 		frequencies = new HashMap<WorkingText, IWordFrequency>(texts.size());
 
@@ -38,6 +41,6 @@ public class WordMultipleTextsAnalysis extends WordTextAnalysis implements Multi
 
 	@Override
 	public Results getResults() {
-		return new WordResults(frequencies);
+		return new WordResults(analysisType, frequencies);
 	}
 }

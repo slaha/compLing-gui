@@ -1,6 +1,7 @@
 package cz.slahora.compling.gui.panels.words;
 
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
+import cz.slahora.compling.gui.analysis.words.WordTextAnalysisType;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.panels.AbstractResultsPanel;
@@ -13,6 +14,8 @@ import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.plot.Plot;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -34,22 +37,34 @@ import java.util.Set;
 public class WordFrequencyResultsPanel extends AbstractResultsPanel implements ResultsPanel {
 
 
-	private final WordFrequenciesModel model;
+	private final IWordFrequenciesModel model;
+	private final WordTextAnalysisType analysisType;
 
-	private ChartPanelWrapper allWordsChartPanel;
-	private ChartPanelWrapper compareChartPanel;
+	private JComponent allWordsChartComponent;
+	private JComponent compareChartComponent;
 
 	private final WordFrequencyChartFactory chartFactory;
 	private final JSpinner lowerFreqBound;
 	private int y;
 	private ChangeListener boundChangedListener;
 
-	public WordFrequencyResultsPanel(Map<WorkingText, IWordFrequency> wordFrequencies) {
+	public WordFrequencyResultsPanel(WordTextAnalysisType analysisType, Map<WorkingText, IWordFrequency> wordFrequencies) {
 		super(new JPanel(new GridBagLayout()));
-		this.model = new WordFrequenciesModel(wordFrequencies);
+		this.analysisType = analysisType;
+		switch (analysisType) {
+			case WORD:
+				this.model = new WordFrequenciesModel(wordFrequencies);
+				break;
+			case WORD_LENGHT:
+				this.model = new WordLengthFrequenciesModel(wordFrequencies);
+				break;
+			default:
+				throw new IllegalStateException("Cannot create model for type " + analysisType);
+		}
+
 		final String chartTitle = "Zastoupení jednotlivých slov";
 		this.chartFactory = new WordFrequencyChartFactory(model, chartTitle);
-		SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, model.getMaxOccurence(), 1);
+		SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, model.getFilterMaxValue(), 1);
 		lowerFreqBound = new JSpinner(spinnerModel);
 	}
 
@@ -60,13 +75,12 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		y = 0;
 
 		JLabel headline1 = new HtmlLabelBuilder().hx(1, "Frekvence výskytu slov").build();
-		panel.add(headline1, new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).fill(GridBagConstraints.HORIZONTAL).build());
+		panel.add(headline1, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(GridBagConstraints.HORIZONTAL).build());
 
 		JLabel text = new HtmlLabelBuilder().p(model.getMainParagraphText()).build();
-		panel.add(text, new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).fill(GridBagConstraints.HORIZONTAL).build());
+		panel.add(text, new GridBagConstraintBuilder().gridXY(0, y++).build());
 
 
-		final WordFrequencyTableModel tableModel = model.getTableModel();
 		//table with words occurrences
 		JTable table = new JTable(model.getTableModel());
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -80,36 +94,41 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		panel.add(
 			table.getTableHeader(),
 			new GridBagConstraintBuilder()
-				.gridxy(0, y++)
+				.gridXY(0, y++)
 				.fill(GridBagConstraints.HORIZONTAL)
-				.weightx(1)
+				.weightX(1)
 				.build()
 		);
 		panel.add(
 			table,
 			new GridBagConstraintBuilder()
-				.gridxy(0, y++)
+				.gridXY(0, y++)
 				.fill(GridBagConstraints.BOTH)
-				.weightx(1)
-				.weighty(1)
+				.weightX(0)
+				.weightY(1)
 				.build()
 		);
 
 
 		panel.add(
 			new HtmlLabelBuilder().hx(2, "Graf četností jednotlivých slov").build(),
-			new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(0).build()
 		);
 
 		final ChartPanel plot = createPlot(ChartType.PIE);
-		allWordsChartPanel = createChartPanel(plot);
-		putChartPanel(y, allWordsChartPanel);
+		ResizableChartPanelWrapper allWordsChartPanel = createChartPanel(plot);
+		allWordsChartComponent = changeChartPanel(null, new JPanel(), allWordsChartPanel); //TODO
 		y++;
 
-		Set<String> allWords = model.getAllWords();
+		panel.add(
+			new HtmlLabelBuilder().hx(2, "Srovnání četností jednotlivých slov").build(),
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).build()
+		);
+
+		Set<String> allWords = model.getAllDomainElements();
 		final String[] words = allWords.toArray(new String[allWords.size()]);
 		Collator coll = Collator.getInstance(Locale.getDefault());
-		coll.setStrength(Collator.PRIMARY); // thanks to @BheshGurung for reminding me
+		coll.setStrength(Collator.PRIMARY);
 		Arrays.sort(words, coll);
 		final JPanel comboPanel = new JPanel(new GridBagLayout());
 
@@ -120,7 +139,7 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		minusComboButton.addActionListener(plusMinusButtonListener);
 
 		//..first add combo panel, then create comboBox which will create and display plot. Finally attach combo and buttons to comboPanel and validate it
-		panel.add(comboPanel, new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.LINE_START).build());
+		panel.add(comboPanel, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.LINE_START).build());
 		final JComboBox comboBox = createWordComboBox(words);
 		comboPanel.add(comboBox);
 		comboPanel.add(plusComboButton);
@@ -131,7 +150,7 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		/*************************************/
 		JPanel dummy = new JPanel();
 		dummy.setBackground(Color.white);
-		panel.add(dummy, new GridBagConstraintBuilder().gridxy(0, y++).weightx(1).weighty(1).fill(GridBagConstraints.BOTH).build());
+		panel.add(dummy, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).weightY(1).fill(GridBagConstraints.BOTH).build());
 		return panel;
 	}
 
@@ -164,38 +183,71 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 
 	private void refreshPlot() {
 		ChartPanel plot = chartFactory.createComparePlot();
-		ChartPanelWrapper wrap =  new ChartPanelWrapper(plot);
-		if (compareChartPanel == null) {
-			putChartPanel(y, wrap);
+		ChartPanelWrapper wrap =  new ChartPanelWrapper(plot).addPlot();
+		if (compareChartComponent == null) {
+			compareChartComponent = changeChartPanel(null, new JPanel(), wrap); //TODO
 			y++;
 		} else {
-			changeChartPanel(compareChartPanel, wrap);
+			compareChartComponent = changeChartPanel(compareChartComponent, new JPanel(), wrap); //TODO
 		}
-		compareChartPanel = wrap;
-
 	}
 
-	private ChartPanelWrapper createChartPanel(final ChartPanel chartPanel) {
-		ChartPanelWrapper panel = new ChartPanelWrapper(chartPanel);
+	private ResizableChartPanelWrapper createChartPanel(final ChartPanel chartPanel) {
+		final ResizableChartPanelWrapper panel = new ResizableChartPanelWrapper(chartPanel);
 
 		lowerFreqBound.removeChangeListener(boundChangedListener);
 
 		boundChangedListener = new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				chartFactory.setDatasetMoreThanOne(chartPanel, getLowerOccurrenceBound());
+				chartFactory.setDatasetMoreThan(chartPanel, getLowerOccurrenceBound());
 			}
 		};
 		lowerFreqBound.addChangeListener(boundChangedListener);
 
-		JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER));
-		footer.setBackground(Color.white);
-		footer.add(new JLabel("Zobrazovat pouze slova, která se vyskytla alespoň "));
-		footer.add(lowerFreqBound);
-		footer.add(new JLabel(" ×"));
+		JPanel footer1 = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		footer1.setBackground(Color.white);
+		footer1.add(new JLabel("Zobrazovat pouze slova, která se vyskytla alespoň "));
+		footer1.add(lowerFreqBound);
+		footer1.add(new JLabel(" ×"));
 
-		panel.add(chartPanel, new GridBagConstraintBuilder().gridy(0).build());
-		panel.add(footer, new GridBagConstraintBuilder().gridy(1).build());
+		JPanel footer2 = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		footer2.setBackground(Color.white);
+		final JButton big = new JButton("Zvětšit graf");
+		final JButton small = new JButton("Zmenšit graf");
+		footer2.add(big);
+		footer2.add(small);
+		ActionListener l = new ActionListener() {
+
+			Plot plot = chartPanel.getChart().getPlot();
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				int width = 0;
+				int height = 0;
+				if (e.getSource() == big) {
+					width += 100;
+					if (plot instanceof PiePlot) {
+						height += 100;
+					}
+				} else if (e.getSource() == small) {
+					width -= 100;
+					if (plot instanceof PiePlot) {
+						height -= 100;
+					}
+				}
+				panel.resizeChart(width, height);
+
+			}
+		};
+		big.addActionListener(l);
+		small.addActionListener(l);
+
+		panel.addPlot(new GridBagConstraintBuilder().fill(GridBagConstraints.BOTH).weightX(1).weightY(1).gridY(0).build());
+
+		panel.addFooter(footer1, new GridBagConstraintBuilder().gridY(0).build());
+		panel.addFooter(footer2, new GridBagConstraintBuilder().gridY(1).build());
 
 		return panel;
 	}
@@ -205,13 +257,13 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		return new ChartMouseListener() {
 			@Override
 			public void chartMouseClicked(ChartMouseEvent chartMouseEvent) {
-				ChartPanelWrapper old = allWordsChartPanel;
-				final ChartType type = (ChartType)newChartPanel.getClientProperty("type");
-				final ChartType nextType = ChartType.values()[ (type.ordinal() + 1) % ChartType.values().length  ];
+
+				final ChartType type = (ChartType) newChartPanel.getClientProperty("type");
+				final ChartType nextType = ChartType.values()[(type.ordinal() + 1) % ChartType.values().length];
 				ChartPanel newOne = createPlot(nextType);
-				final ChartPanelWrapper chartPanel = createChartPanel(newOne);
-				changeChartPanel(old, chartPanel);
-				allWordsChartPanel = chartPanel;
+				final ResizableChartPanelWrapper chartPanel = createChartPanel(newOne);
+				allWordsChartComponent = changeChartPanel(allWordsChartComponent, new JPanel(), chartPanel); //TODO
+
 			}
 
 			@Override

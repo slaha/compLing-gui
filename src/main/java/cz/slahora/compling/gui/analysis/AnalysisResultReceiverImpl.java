@@ -1,15 +1,13 @@
 package cz.slahora.compling.gui.analysis;
 
 import cz.slahora.compling.gui.panels.ResultsPanel;
-import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
+import java.awt.BorderLayout;
 import java.awt.Frame;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 
 /**
  *
@@ -34,9 +32,9 @@ public class AnalysisResultReceiverImpl implements AnalysisResultReceiver {
 		JToolBar topPanel = new AnalysisReceiverToolbar(result);
 		JScrollPane scrollPane = new JScrollPane(panel);
 
-		JPanel contentPanel = new JPanel(new GridBagLayout());
-		contentPanel.add(topPanel, new GridBagConstraintBuilder().gridxy(0, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).build());
-		contentPanel.add(scrollPane, new GridBagConstraintBuilder().gridxy(0, 1).fill(GridBagConstraints.BOTH).weighty(1).weightx(1).build());
+		JPanel contentPanel = new JPanel(new BorderLayout());
+//		contentPanel.add(topPanel, BorderLayout.NORTH);
+		contentPanel.add(scrollPane, BorderLayout.CENTER);
 
 		frame.setContentPane(contentPanel);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

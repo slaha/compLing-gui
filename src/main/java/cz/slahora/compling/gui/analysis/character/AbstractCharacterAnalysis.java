@@ -50,17 +50,17 @@ public abstract class AbstractCharacterAnalysis {
 			super(new GridBagLayout());
 			replaceRules = new ArrayList<RuleHolder>();
 			onlyLetters = new JCheckBox("Analyzovat pouze písmena");
-			add(onlyLetters, new GridBagConstraintBuilder().gridy(0).anchor(GridBagConstraints.LINE_START).build());
+			add(onlyLetters, new GridBagConstraintBuilder().gridY(0).anchor(GridBagConstraints.LINE_START).build());
 
 			caseSensitive = new JCheckBox("Rozlišovat malá a VELKÁ písmena");
-			add(caseSensitive, new GridBagConstraintBuilder().gridy(1).anchor(GridBagConstraints.LINE_START).build());
+			add(caseSensitive, new GridBagConstraintBuilder().gridY(1).anchor(GridBagConstraints.LINE_START).build());
 
 			JPanel buttonsPanel = new JPanel(new GridBagLayout());
 			final JButton plusBtn = new JButton("+");
-			buttonsPanel.add(plusBtn, new GridBagConstraintBuilder().gridxy(0, 0).build());
+			buttonsPanel.add(plusBtn, new GridBagConstraintBuilder().gridXY(0, 0).build());
 			final JButton minusBtn = new JButton("-");
 			minusBtn.setEnabled(false);
-			buttonsPanel.add(minusBtn, new GridBagConstraintBuilder().gridxy(0, 1).build());
+			buttonsPanel.add(minusBtn, new GridBagConstraintBuilder().gridXY(0, 1).build());
 
 			final RulesTableModel model = new RulesTableModel(replaceRules);
 			final JTable jTable = new JTable(model);
@@ -102,10 +102,10 @@ public abstract class AbstractCharacterAnalysis {
 			minusBtn.addActionListener(plusMinusListener);
 
 			JPanel replaceRulesPanel = new JPanel(new GridBagLayout());
-			replaceRulesPanel.add(jsp, new GridBagConstraintBuilder().gridxy(0, 0).anchor(GridBagConstraints.LINE_START).fill(GridBagConstraints.HORIZONTAL).weightx(1).build());
-			replaceRulesPanel.add(buttonsPanel, new GridBagConstraintBuilder().gridxy(1, 0).anchor(GridBagConstraints.LINE_END).build());
+			replaceRulesPanel.add(jsp, new GridBagConstraintBuilder().gridXY(0, 0).anchor(GridBagConstraints.LINE_START).fill(GridBagConstraints.HORIZONTAL).weightX(1).build());
+			replaceRulesPanel.add(buttonsPanel, new GridBagConstraintBuilder().gridXY(1, 0).anchor(GridBagConstraints.LINE_END).build());
 
-			add(replaceRulesPanel, new GridBagConstraintBuilder().gridxy(0, 2).anchor(GridBagConstraints.LINE_END).build());
+			add(replaceRulesPanel, new GridBagConstraintBuilder().gridXY(0, 2).anchor(GridBagConstraints.LINE_END).build());
 		}
 
 		private RuleHolder createRuleHolder() {
@@ -322,19 +322,19 @@ public abstract class AbstractCharacterAnalysis {
 			Insets insets = new Insets(0, 20, 0, 0);
 
 			JPanel firstLine = new JPanel(new GridBagLayout());
-			firstLine.add(whatToFindLbl, new GridBagConstraintBuilder().gridxy(0, 0).anchor(GridBagConstraints.LINE_START).build());
-			firstLine.add(whatToFind, new GridBagConstraintBuilder().gridxy(1, 0).fill(GridBagConstraints.HORIZONTAL).weightx(1).insets(insets).anchor(GridBagConstraints.LINE_START).build());
+			firstLine.add(whatToFindLbl, new GridBagConstraintBuilder().gridXY(0, 0).anchor(GridBagConstraints.LINE_START).build());
+			firstLine.add(whatToFind, new GridBagConstraintBuilder().gridXY(1, 0).fill(GridBagConstraints.HORIZONTAL).weightX(1).insets(insets).anchor(GridBagConstraints.LINE_START).build());
 
 			int y = 0;
-			add(firstLine, new GridBagConstraintBuilder().gridxy(0, y).anchor(GridBagConstraints.LINE_START).fill(GridBagConstraints.HORIZONTAL).weightx(1).build());
+			add(firstLine, new GridBagConstraintBuilder().gridXY(0, y).anchor(GridBagConstraints.LINE_START).fill(GridBagConstraints.HORIZONTAL).weightX(1).build());
 			y++;
-			add(whatWithItLbl, new GridBagConstraintBuilder().gridxy(0, y).anchor(GridBagConstraints.LINE_START).build());
+			add(whatWithItLbl, new GridBagConstraintBuilder().gridXY(0, y).anchor(GridBagConstraints.LINE_START).build());
 			y++;
-			add(ignore, new GridBagConstraintBuilder().gridxy(0, y++).insets(insets).anchor(GridBagConstraints.LINE_START).build());
-			add(asOneCharacter, new GridBagConstraintBuilder().gridxy(0, y++).insets(insets).anchor(GridBagConstraints.LINE_START).build());
-			add(replaceWithButton, new GridBagConstraintBuilder().gridxy(0, y++).insets(insets).anchor(GridBagConstraints.LINE_START).build());
+			add(ignore, new GridBagConstraintBuilder().gridXY(0, y++).insets(insets).anchor(GridBagConstraints.LINE_START).build());
+			add(asOneCharacter, new GridBagConstraintBuilder().gridXY(0, y++).insets(insets).anchor(GridBagConstraints.LINE_START).build());
+			add(replaceWithButton, new GridBagConstraintBuilder().gridXY(0, y++).insets(insets).anchor(GridBagConstraints.LINE_START).build());
 
-			add(replaceWith, new GridBagConstraintBuilder().gridxy(0, y).insets(insets).fill(GridBagConstraints.HORIZONTAL).weightx(1).anchor(GridBagConstraints.LINE_START).build());
+			add(replaceWith, new GridBagConstraintBuilder().gridXY(0, y).insets(insets).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.LINE_START).build());
 
 			ignore.setSelected(true);
 		}

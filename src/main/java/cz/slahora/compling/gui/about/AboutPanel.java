@@ -110,14 +110,14 @@ public class AboutPanel extends JPanel implements HyperlinkListener {
 	    infoPanel.add(infoEditorPane);
 
 	    int y = 0;
-	    GridBagConstraintBuilder gbc = new GridBagConstraintBuilder().gridxy(0, y++).fill(GridBagConstraints.HORIZONTAL).weightx(1);
+	    GridBagConstraintBuilder gbc = new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1);
         textPanel.add(appPanel, gbc.build());
-        textPanel.add(verPanel, gbc.copy().gridy(y++).build());
-        textPanel.add(copyrightPanel, gbc.copy().gridy(y++).build());
-        textPanel.add(websitePanel, gbc.copy().gridy(y++).build());
-        textPanel.add(infoPanel, gbc.copy().gridy(y).build());
+        textPanel.add(verPanel, gbc.copy().gridY(y++).build());
+        textPanel.add(copyrightPanel, gbc.copy().gridY(y++).build());
+        textPanel.add(websitePanel, gbc.copy().gridY(y++).build());
+        textPanel.add(infoPanel, gbc.copy().gridY(y).build());
 
-        add(textPanel, gbc.copy().gridxy(0, 0).build());
+        add(textPanel, gbc.copy().gridXY(0, 0).build());
 
         if (logo != null) {
             final JPanel imagePanel = new JPanel(new BorderLayout());

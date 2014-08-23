@@ -10,9 +10,11 @@ import java.util.Map;
 
 
 class WordResults implements Results {
+	private final WordTextAnalysisType analysisType;
 	private final Map<WorkingText, IWordFrequency> frequencies;
 
-	public WordResults(Map<WorkingText, IWordFrequency> frequencies) {
+	public WordResults(WordTextAnalysisType analysisType, Map<WorkingText, IWordFrequency> frequencies) {
+		this.analysisType = analysisType;
 		this.frequencies = frequencies;
 	}
 
@@ -23,6 +25,6 @@ class WordResults implements Results {
 
 	@Override
 	public ResultsPanel getResultPanel() {
-		return new WordFrequencyResultsPanel(frequencies);
+		return new WordFrequencyResultsPanel(analysisType, frequencies);
 	}
 }

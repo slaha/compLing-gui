@@ -2,6 +2,7 @@ package cz.slahora.compling.gui.panels.words;
 
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.panels.Selection;
 import cz.slahora.compling.gui.utils.MapUtils;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
@@ -12,19 +13,23 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public class WordFrequenciesModel {
+public class WordFrequenciesModel implements IWordFrequenciesModel {
 	private final Map<WorkingText, IWordFrequency> wordFrequencies;
 	private final TObjectIntMap<String> wordsToFrequencies;
-	private final Set<String> wordsInSelection;
+	private final Selection<String> selection;
 
 	public WordFrequenciesModel(Map<WorkingText, IWordFrequency> wordFrequencies) {
 		this.wordFrequencies = wordFrequencies;
 		this.wordsToFrequencies = mapWordsToFrequencies();
-		wordsInSelection = new HashSet<String>();
+		selection = new Selection<String>();
 	}
 
+	@Override
 	public String getMainParagraphText() {
 		StringBuilder s = new StringBuilder();
 
@@ -67,6 +72,7 @@ public class WordFrequenciesModel {
 		return wordToFreq;
 	}
 
+	@Override
 	public FrequencyWordPair getMostFrequentWord() {
 
 		final int max = MapUtils.findMaxValue(wordsToFrequencies);
@@ -79,26 +85,23 @@ public class WordFrequenciesModel {
 	private String getBylyForm(int size) {
 		return size == 1 ? "Byl analyzován" : size > 4 ? "Bylo analyzováno" : "Byly analyzovány";
 	}
+
 	private String getTextForm(int size) {
 		return size == 1 ? "text" : size > 4 ? "textů" : "texty";
 	}
 
+	@Override
 	public int getTotalWordsCount() {
-		Set<String> words = new HashSet<String>();
 
-		for (IWordFrequency wordFrequency : wordFrequencies.values()) {
-			for (Pair<String, Integer> pair : wordFrequency.getWordFrequency().getAllWordsByFrequency(null)) {
-				words.add(pair.getValue0());
-			}
-		}
-
-		return words.size();
+		return wordsToFrequencies.keys().length;
 	}
 
+	@Override
 	public WordFrequencyTableModel getTableModel() {
 		return new WordFrequencyTableModel(wordsToFrequencies, wordFrequencies);
 	}
 
+	@Override
 	public PieDataset getPieDataSet(final int lowerBound) {
 
 		final DefaultPieDataset dataset = new DefaultPieDataset();
@@ -117,6 +120,7 @@ public class WordFrequenciesModel {
 		return dataset;
 	}
 
+	@Override
 	public CategoryDataset getAbsoluteBarDataSet(final int lowerBound) {
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -133,17 +137,18 @@ public class WordFrequenciesModel {
 		return dataset;
 	}
 
+	@Override
 	public CategoryDataset getRelativeBarDataSet(final int lowerBound) {
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-		final double allCharactersInAllTexts = (double) this.getTotalWordsCount();
+		final double totalWordsInAllTexts = (double) this.getTotalWordsCount();
 		wordsToFrequencies.forEachEntry(new TObjectIntProcedure<String>() {
 			@Override
 			public boolean execute(String character, int sum) {
 				if (sum < lowerBound) {
 					return true;
 				}
-				double perc = (sum / allCharactersInAllTexts) * 100.0d;
+				double perc = (sum / totalWordsInAllTexts) * 100.0d;
 				dataset.setValue(perc, "Relativní četnost", character);
 				return true;
 			}
@@ -151,31 +156,38 @@ public class WordFrequenciesModel {
 		return dataset;
 	}
 
-	public int getMaxOccurence() {
+	@Override
+	public int getFilterMaxValue() {
 		return getMostFrequentWord().getFrequency();
 	}
 
-	public Set<String> getAllWords() {
-		return mapWordsToFrequencies().keySet();
+	@Override
+	public Set<String> getAllDomainElements() {
+		return wordsToFrequencies.keySet();
 	}
 
+	@Override
 	public void addCompareChartCategory(String item) {
-		wordsInSelection.add(item);
+		selection.add(item);
 	}
 
+	@Override
 	public void removeComparePlotCategory(String item) {
-		wordsInSelection.remove(item);
+		selection.remove(item);
 	}
 
+	@Override
 	public boolean isInCompareChartCategories(String word) {
-		return wordsInSelection.contains(word);
+		return selection.contains(word);
 	}
 
+	@Override
 	public Set<String> getAllCompareChartCategories() {
-		return wordsInSelection;
+		return selection.getAll();
 	}
 
-	public CategoryDataset getBarDataSetFor(String...words) {
+	@Override
+	public CategoryDataset getBarDataSetFor(String... words) {
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
 		Arrays.sort(words);
@@ -190,10 +202,12 @@ public class WordFrequenciesModel {
 		return dataset;
 	}
 
+	@Override
 	public Map<WorkingText, IWordFrequency> getAllFrequencies() {
 		return wordFrequencies;
 	}
 
+	@Override
 	public Set<WorkingText> getAllTexts() {
 		return wordFrequencies.keySet();
 	}

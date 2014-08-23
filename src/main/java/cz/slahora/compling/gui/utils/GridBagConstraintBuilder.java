@@ -27,8 +27,8 @@ public class GridBagConstraintBuilder {
 	}
 
 
-	public GridBagConstraintBuilder fill(int horizontal) {
-		constraint.fill = horizontal;
+	public GridBagConstraintBuilder fill(int fillingMode) {
+		constraint.fill = fillingMode;
 		return this;
 	}
 
@@ -37,25 +37,25 @@ public class GridBagConstraintBuilder {
 		return this;
 	}
 
-	public GridBagConstraintBuilder gridxy(int x, int y) {
-		return gridx(x).gridy(y);
+	public GridBagConstraintBuilder gridXY(int x, int y) {
+		return gridX(x).gridY(y);
 	}
-	public GridBagConstraintBuilder gridx(int i) {
+	public GridBagConstraintBuilder gridX(int i) {
 		constraint.gridx = i;
 		return this;
 	}
 
-	public GridBagConstraintBuilder gridy(int i) {
+	public GridBagConstraintBuilder gridY(int i) {
 		constraint.gridy = i;
 		return this;
 	}
 
-	public GridBagConstraintBuilder weightx(int i) {
+	public GridBagConstraintBuilder weightX(int i) {
 		constraint.weightx = i;
 		return this;
 	}
 
-	public GridBagConstraintBuilder weighty(int i) {
+	public GridBagConstraintBuilder weightY(int i) {
 		constraint.weighty = i;
 		return this;
 	}
@@ -71,5 +71,10 @@ public class GridBagConstraintBuilder {
 
 	public GridBagConstraintBuilder copy() {
 		return new GridBagConstraintBuilder(this);
+	}
+
+	public GridBagConstraintBuilder gridWidth(int i) {
+		constraint.gridwidth = i;
+		return this;
 	}
 }

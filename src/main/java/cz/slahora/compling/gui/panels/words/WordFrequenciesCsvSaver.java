@@ -8,13 +8,13 @@ import cz.slahora.compling.gui.model.WorkingText;
 
 import java.util.*;
 
-public class WordFrequenciesCsvSaver extends Csv.CsvSaver<WordFrequenciesModel> {
+public class WordFrequenciesCsvSaver extends Csv.CsvSaver<IWordFrequenciesModel> {
 
 	@Override
-	public CsvData saveToCsv(WordFrequenciesModel model, Object... params) {
+	public CsvData saveToCsv(IWordFrequenciesModel model, Object... params) {
 		CsvData csvData = new CsvData();
 		csvData.addSection();
-		final Set<String> allWords = model.getAllWords();
+		final Set<String> allWords = model.getAllDomainElements();
 		final Map<WorkingText, IWordFrequency> allFrequencies = model.getAllFrequencies();
 		final Set<WorkingText> allTexts = model.getAllTexts();
 		final Map<String, WorkingText> namesToTexts = getNamesOf(allTexts);
