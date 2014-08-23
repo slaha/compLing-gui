@@ -56,32 +56,9 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 		mainHeadlineLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(mainHeadlineLabel);
 
-		/*
-		final JXLabel introArea = new JXLabel() {
-
-			@Override
-			public Dimension getMinimumSize() {
-				return new Dimension(panel.getWidth(), 10);
-			}
-		};
-		introArea.addComponentListener(new ComponentAdapter() {
-			@Override
-			public void componentResized(ComponentEvent e) {
-				final Dimension size = e.getComponent().getSize();
-				inroArea.setSize(new Dimension(size.width, size.height + 50));
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				introArea.setText(introArea.getText());
-				introArea.invalidate();
-			}
-		});
-	}
-});
-		*/
-
 		final MultipleLinesLabel introArea = new MultipleLinesLabel();
 		introArea.setText(model.getIntroLabelText());
+		introArea.setAlignmentX(Component.LEFT_ALIGNMENT);
 		//..some info text
 		panel.add(introArea);
 

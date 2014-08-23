@@ -1,13 +1,11 @@
 package cz.slahora.compling.gui.panels.words;
 
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
+import cz.slahora.compling.gui.MultipleLinesLabel;
 import cz.slahora.compling.gui.analysis.words.WordTextAnalysisType;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.AbstractResultsPanel;
-import cz.slahora.compling.gui.panels.ChartPanelWrapper;
-import cz.slahora.compling.gui.panels.ChartType;
-import cz.slahora.compling.gui.panels.ResultsPanel;
+import cz.slahora.compling.gui.panels.*;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 import org.jfree.chart.ChartMouseEvent;
@@ -20,10 +18,8 @@ import org.jfree.chart.plot.Plot;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import javax.swing.table.JTableHeader;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -42,14 +38,17 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 
 	private JComponent allWordsChartComponent;
 	private JComponent compareChartComponent;
+	private final JPanel allWordsChartParent = new JPanel(new BorderLayout());
+	private final JPanel compareChartParent  = new JPanel(new BorderLayout());
 
 	private final WordFrequencyChartFactory chartFactory;
 	private final JSpinner lowerFreqBound;
-	private int y;
 	private ChangeListener boundChangedListener;
 
 	public WordFrequencyResultsPanel(WordTextAnalysisType analysisType, Map<WorkingText, IWordFrequency> wordFrequencies) {
-		super(new JPanel(new GridBagLayout()));
+		super(new ResultsScrollablePanel());
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
 		this.analysisType = analysisType;
 		switch (analysisType) {
 			case WORD:
@@ -72,14 +71,13 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 	public JPanel getPanel() {
 		panel.removeAll();
 
-		y = 0;
-
 		JLabel headline1 = new HtmlLabelBuilder().hx(1, "Frekvence výskytu slov").build();
-		panel.add(headline1, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(GridBagConstraints.HORIZONTAL).build());
+		headline1.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(headline1);
 
-		JLabel text = new HtmlLabelBuilder().p(model.getMainParagraphText()).build();
-		panel.add(text, new GridBagConstraintBuilder().gridXY(0, y++).build());
-
+		MultipleLinesLabel text = new MultipleLinesLabel(model.getMainParagraphText());
+		text.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(text);
 
 		//table with words occurrences
 		JTable table = new JTable(model.getTableModel());
@@ -91,39 +89,26 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		table.setBackground(Color.WHITE);
 		table.invalidate();
 
-		panel.add(
-			table.getTableHeader(),
-			new GridBagConstraintBuilder()
-				.gridXY(0, y++)
-				.fill(GridBagConstraints.HORIZONTAL)
-				.weightX(1)
-				.build()
-		);
-		panel.add(
-			table,
-			new GridBagConstraintBuilder()
-				.gridXY(0, y++)
-				.fill(GridBagConstraints.BOTH)
-				.weightX(0)
-				.weightY(1)
-				.build()
-		);
+		final JTableHeader tableHeader = table.getTableHeader();
+		tableHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(tableHeader);
 
+		table.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(table);
 
-		panel.add(
-			new HtmlLabelBuilder().hx(2, "Graf četností jednotlivých slov").build(),
-			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(0).build()
-		);
+		final JLabel headlineWordFreqs = new HtmlLabelBuilder().hx(2, "Graf četností jednotlivých slov").build();
+		headlineWordFreqs.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(headlineWordFreqs);
+		allWordsChartParent.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(allWordsChartParent);
 
 		final ChartPanel plot = createPlot(ChartType.PIE);
 		ResizableChartPanelWrapper allWordsChartPanel = createChartPanel(plot);
-		allWordsChartComponent = changeChartPanel(null, new JPanel(), allWordsChartPanel); //TODO
-		y++;
+		allWordsChartComponent = changeChartPanel(null, allWordsChartParent, allWordsChartPanel);
 
-		panel.add(
-			new HtmlLabelBuilder().hx(2, "Srovnání četností jednotlivých slov").build(),
-			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).build()
-		);
+		final JLabel headlineCompareWords = new HtmlLabelBuilder().hx(2, "Srovnání četností jednotlivých slov").build();
+		headlineCompareWords.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(headlineCompareWords);
 
 		Set<String> allWords = model.getAllDomainElements();
 		final String[] words = allWords.toArray(new String[allWords.size()]);
@@ -139,7 +124,12 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		minusComboButton.addActionListener(plusMinusButtonListener);
 
 		//..first add combo panel, then create comboBox which will create and display plot. Finally attach combo and buttons to comboPanel and validate it
-		panel.add(comboPanel, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(GridBagConstraints.HORIZONTAL).anchor(GridBagConstraints.LINE_START).build());
+		comboPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(comboPanel);
+
+		compareChartParent.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(compareChartParent);
+
 		final JComboBox comboBox = createWordComboBox(words);
 		comboPanel.add(comboBox);
 		comboPanel.add(plusComboButton);
@@ -150,7 +140,7 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		/*************************************/
 		JPanel dummy = new JPanel();
 		dummy.setBackground(Color.white);
-		panel.add(dummy, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).weightY(1).fill(GridBagConstraints.BOTH).build());
+		panel.add(dummy);
 		return panel;
 	}
 
@@ -184,12 +174,7 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 	private void refreshPlot() {
 		ChartPanel plot = chartFactory.createComparePlot();
 		ChartPanelWrapper wrap =  new ChartPanelWrapper(plot).addPlot();
-		if (compareChartComponent == null) {
-			compareChartComponent = changeChartPanel(null, new JPanel(), wrap); //TODO
-			y++;
-		} else {
-			compareChartComponent = changeChartPanel(compareChartComponent, new JPanel(), wrap); //TODO
-		}
+		compareChartComponent = changeChartPanel(compareChartComponent, compareChartParent, wrap);
 	}
 
 	private ResizableChartPanelWrapper createChartPanel(final ChartPanel chartPanel) {
@@ -262,7 +247,7 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 				final ChartType nextType = ChartType.values()[(type.ordinal() + 1) % ChartType.values().length];
 				ChartPanel newOne = createPlot(nextType);
 				final ResizableChartPanelWrapper chartPanel = createChartPanel(newOne);
-				allWordsChartComponent = changeChartPanel(allWordsChartComponent, new JPanel(), chartPanel); //TODO
+				allWordsChartComponent = changeChartPanel(allWordsChartComponent, allWordsChartParent, chartPanel);
 
 			}
 

@@ -73,16 +73,15 @@ public class WordLengthFrequenciesModel implements IWordFrequenciesModel {
 		appendTextsAsList(s);
 
 		s
-			.append("Bylo nalezeno celkem ")
+			.append("\nBylo nalezeno celkem ")
 			.append(getUniqueWordsCount())
 			.append(" různých slov o ")
 			.append(getTotalWordsCount())
-			.append(" délkách.")
-			.append("</p>");
+			.append(" délkách.");
 
 		LengthFrequencyWordPair mostFrequentWord = getMostFrequentWord();
 		s
-			.append("<p>")
+			.append("\n\n")
 			.append("Nejčastěji se vyskytující délka slova je '")
 			.append(mostFrequentWord.getLengths())
 			.append("'. Bylo nalezeno celkem ")
@@ -95,14 +94,11 @@ public class WordLengthFrequenciesModel implements IWordFrequenciesModel {
 	}
 
 	private void appendTextsAsList(StringBuilder s) {
-		s.append("<ul>");
 
 		for (WorkingText text : wordFrequencies.keySet()) {
-			s.append("<li>").append(text.getName()).append(',').append("</li>");
+			s.append("\t\u2022 ").append(text.getName()).append(',').append('\n');
 		}
 		s.replace(s.lastIndexOf(","), s.lastIndexOf(",") + 1, "."); //..replace last ',' with '.'
-
-		s.append("</ul>");
 	}
 
 	private String getBylyForm(int size) {

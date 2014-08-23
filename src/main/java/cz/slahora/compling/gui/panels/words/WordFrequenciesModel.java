@@ -38,24 +38,21 @@ public class WordFrequenciesModel implements IWordFrequenciesModel {
 		s.append(getBylyForm(analyzedTextsCount)).append(' ').append(analyzedTextsCount).append(' ').append(getTextForm(analyzedTextsCount)).append(":\n");
 		appendTextsAsList(s);
 
-		s.append("Bylo nalezeno celkem ").append(getTotalWordsCount()).append(" různých slov.</p>");
+		s.append("\nBylo nalezeno celkem ").append(getTotalWordsCount()).append(" různých slov.");
 
 		FrequencyWordPair mostFrequentWord = getMostFrequentWord();
-		s.append("<p>").append("Nejčastěji se vyskytující slovo je slovo '").append(mostFrequentWord.getWords()).append("', které se vyskytlo celkem ")
+		s.append("\n\n").append("Nejčastěji se vyskytující slovo je slovo '").append(mostFrequentWord.getWords()).append("', které se vyskytlo celkem ")
 			.append(mostFrequentWord.getFrequency()).append("×.");
 
 		return s.toString();
 	}
 
 	private void appendTextsAsList(StringBuilder s) {
-		s.append("<ul>");
 
 		for (WorkingText text : wordFrequencies.keySet()) {
-			s.append("<li>").append(text.getName()).append(',').append("</li>");
+			s.append("\t\u2022 ").append(text.getName()).append(',').append('\n');
 		}
 		s.replace(s.lastIndexOf(","), s.lastIndexOf(",") + 1, "."); //..replace last ',' with '.'
-
-		s.append("</ul>");
 	}
 
 	private TObjectIntMap<String> mapWordsToFrequencies() {
