@@ -248,7 +248,6 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 				ChartPanel newOne = createPlot(nextType);
 				final ResizableChartPanelWrapper chartPanel = createChartPanel(newOne);
 				allWordsChartComponent = changeChartPanel(allWordsChartComponent, allWordsChartParent, chartPanel);
-
 			}
 
 			@Override

@@ -4,6 +4,7 @@ import cz.compling.analysis.analysator.frequency.character.CharacterFrequencyRul
 import cz.compling.text.Text;
 import cz.compling.text.TextModificationRule;
 import cz.compling.utils.Reference;
+import cz.slahora.compling.gui.analysis.RulesTable;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import org.apache.commons.lang3.StringUtils;
 
@@ -12,7 +13,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import java.awt.Dimension;
@@ -42,13 +42,13 @@ public abstract class AbstractCharacterAnalysis {
 
 	protected static class OptionPanel extends JPanel {
 
-		private List<RuleHolder> replaceRules;
+		private List<RulesTable.RuleHolder<CharacterFrequencyRule>> replaceRules;
 		private JCheckBox caseSensitive;
 		private JCheckBox onlyLetters;
 
 		protected OptionPanel() {
 			super(new GridBagLayout());
-			replaceRules = new ArrayList<RuleHolder>();
+			replaceRules = new ArrayList<RulesTable.RuleHolder<CharacterFrequencyRule>>();
 			onlyLetters = new JCheckBox("Analyzovat pouze písmena");
 			add(onlyLetters, new GridBagConstraintBuilder().gridY(0).anchor(GridBagConstraints.LINE_START).build());
 
@@ -62,7 +62,7 @@ public abstract class AbstractCharacterAnalysis {
 			minusBtn.setEnabled(false);
 			buttonsPanel.add(minusBtn, new GridBagConstraintBuilder().gridXY(0, 1).build());
 
-			final RulesTableModel model = new RulesTableModel(replaceRules);
+			final RulesTable.RulesTableModel model = new RulesTable.RulesTableModel<CharacterFrequencyRule>(replaceRules);
 			final JTable jTable = new JTable(model);
 			jTable.setColumnSelectionAllowed(false);
 			jTable.setCellSelectionEnabled(false);
@@ -85,7 +85,7 @@ public abstract class AbstractCharacterAnalysis {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (e.getSource() == plusBtn) {
-						RuleHolder ruleHolder = createRuleHolder();
+						RulesTable.RuleHolder ruleHolder = createRuleHolder();
 						if (ruleHolder == null) {
 							return;
 						}
@@ -108,14 +108,14 @@ public abstract class AbstractCharacterAnalysis {
 			add(replaceRulesPanel, new GridBagConstraintBuilder().gridXY(0, 2).anchor(GridBagConstraints.LINE_END).build());
 		}
 
-		private RuleHolder createRuleHolder() {
+		private RulesTable.RuleHolder createRuleHolder() {
 			CharacterFrequencyRulePanel panel = new CharacterFrequencyRulePanel();
 			int i = JOptionPane.showConfirmDialog(this, panel, "Parametry nového pravidla", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 			if (i != JOptionPane.OK_OPTION) {
 				return null;
 			}
 			else if (StringUtils.isBlank(panel.mWhatToFind)
-				|| (panel.mRuleType == RuleType.REPLACE && StringUtils.isBlank(panel.mReplaceWith)))
+				|| (panel.mRuleType == RulesTable.RuleType.REPLACE && StringUtils.isBlank(panel.mReplaceWith)))
 			{
 				JOptionPane.showMessageDialog(this, "Potřebné položky pro vytvoření pravidla nebyly správně vyplněny", "Chybné zadání", JOptionPane.ERROR_MESSAGE);
 				return null;
@@ -133,101 +133,19 @@ public abstract class AbstractCharacterAnalysis {
 
 		protected List<CharacterFrequencyRule> replaceRules() {
 			List<CharacterFrequencyRule> rules = new ArrayList<CharacterFrequencyRule>(replaceRules.size());
-			for (RuleHolder replaceRule : replaceRules) {
-				rules.add(replaceRule.rule);
+			for (RulesTable.RuleHolder<CharacterFrequencyRule> replaceRule : replaceRules) {
+				rules.add(replaceRule.getRule());
 			}
 			return Collections.unmodifiableList(rules);
 		}
 
-	}
-	private static class RuleHolderFactory {
-
-		public RuleHolder create(RuleType ruleType, String whatToFind, String replaceWith) {
-			CharacterFrequencyRule rule;
-			String whatToFindDesc, replaceWithDesc;
-			switch (ruleType) {
-				case IGNORE:
-					rule = createIgnore(whatToFind);
-					replaceWithDesc = "Ignorovat";
-					break;
-				case AS_ONE_CHAR:
-					rule = createOneChar(whatToFind);
-					replaceWithDesc = "Jako jeden znak";
-					break;
-				case REPLACE:
-					rule = createReplace(whatToFind, replaceWith);
-					replaceWithDesc = replaceWith;
-					break;
-				default:
-					throw new IllegalArgumentException("RuleType " + ruleType + " is unknown. No rule can be created");
-			}
-			whatToFindDesc = whatToFind;
-			return new RuleHolder(rule, whatToFindDesc, replaceWithDesc);
-		}
-
-		private CharacterFrequencyRule createReplace(final String whatToFind, final String replaceWith) {
-			return new CharacterFrequencyRule() {
-				@Override
-				public boolean modify(String plainText, Reference<String> putToMap, Reference<Integer> position) {
-					String substring = substring(plainText, position.value, whatToFind);
-					if (whatToFind.equalsIgnoreCase(substring)) {
-						putToMap.value = replaceWith;
-						position.value += substring.length() - 1;
-						return true;
-					}
-					return false;
-				}
-			};
-		}
-
-		private CharacterFrequencyRule createOneChar(final String whatToFind) {
-			return new CharacterFrequencyRule() {
-				@Override
-				public boolean modify(String plainText, Reference<String> putToMap, Reference<Integer> position) {
-					String substring = substring(plainText, position.value, whatToFind);
-					if (whatToFind.equalsIgnoreCase(substring)) {
-						putToMap.value = substring;
-						position.value += substring.length() - 1;
-						return true;
-					}
-					return false;
-				}
-			};
-		}
-
-		private CharacterFrequencyRule createIgnore(final String whatToFind) {
-			return new CharacterFrequencyRule() {
-				@Override
-				public boolean modify(String plainText, Reference<String> putToMap, Reference<Integer> position) {
-					String substring = substring(plainText, position.value, whatToFind);
-					if (whatToFind.equalsIgnoreCase(substring)) {
-						putToMap.value = null;
-						position.value += substring.length() - 1;
-						return true;
-					}
-					return false;
-				}
-			};
-		}
-
-		private String substring(String plainText, int position, String whatToFind) {
-			int whatToFindEnd = position + whatToFind.length();
-			if (whatToFindEnd > plainText.length()) {
-				return null;
-			}
-			return plainText.substring(position, whatToFindEnd);
-		}
-	}
-
-	private enum RuleType {
-		IGNORE, AS_ONE_CHAR, REPLACE
 	}
 
 	private static class CharacterFrequencyRulePanel extends JPanel {
 
 		public String mWhatToFind;
 		public String mReplaceWith;
-		public RuleType mRuleType;
+		public RulesTable.RuleType mRuleType;
 
 		private CharacterFrequencyRulePanel() {
 			super(new GridBagLayout());
@@ -305,11 +223,11 @@ public abstract class AbstractCharacterAnalysis {
 				public void itemStateChanged(ItemEvent e) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
 						if (e.getSource() == ignore) {
-							mRuleType = RuleType.IGNORE;
+							mRuleType = RulesTable.RuleType.IGNORE;
 						} else if (e.getSource() == asOneCharacter) {
-							mRuleType = RuleType.AS_ONE_CHAR;
+							mRuleType = RulesTable.RuleType.AS_ONE_CHAR;
 						} else {
-							mRuleType = RuleType.REPLACE;
+							mRuleType = RulesTable.RuleType.REPLACE;
 						}
 						replaceWith.setEnabled(e.getSource() == replaceWithButton);
 					}
@@ -369,55 +287,82 @@ public abstract class AbstractCharacterAnalysis {
 		}
 	}
 
-	protected static class RuleHolder {
-		final CharacterFrequencyRule rule;
-		final String whatToFind;
-		final String replaceWith;
+	protected static class RuleHolderFactory {
 
-		public RuleHolder(CharacterFrequencyRule rule, String whatToFind, String replaceWith) {
-			this.rule = rule;
-			this.whatToFind = whatToFind;
-			this.replaceWith = replaceWith;
-		}
-	}
-
-	protected static class RulesTableModel extends AbstractTableModel {
-
-		private final List<RuleHolder> replaceRules;
-		private static final String[] COLUMN_NAMES = {"Characters to replace", "Replace with"};
-
-		public RulesTableModel(List<RuleHolder> replaceRules) {
-			this.replaceRules = replaceRules;
-
-		}
-
-		@Override
-		public int getRowCount() {
-			return replaceRules.size();
-		}
-
-		@Override
-		public int getColumnCount() {
-			return 2;
-		}
-
-		@Override
-		public String getColumnName(int columnIndex) {
-			return COLUMN_NAMES[columnIndex];
-		}
-
-		@Override
-		public Class<?> getColumnClass(int columnIndex) {
-			return String.class;
-		}
-
-		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			RuleHolder ruleHolder = replaceRules.get(rowIndex);
-			if (columnIndex == 0) {
-				return ruleHolder.whatToFind;
+		public RulesTable.RuleHolder create(RulesTable.RuleType ruleType, String whatToFind, String replaceWith) {
+			CharacterFrequencyRule rule;
+			String whatToFindDesc, replaceWithDesc;
+			switch (ruleType) {
+				case IGNORE:
+					rule = createIgnore(whatToFind);
+					replaceWithDesc = "Ignorovat";
+					break;
+				case AS_ONE_CHAR:
+					rule = createOneChar(whatToFind);
+					replaceWithDesc = "Jako jeden znak";
+					break;
+				case REPLACE:
+					rule = createReplace(whatToFind, replaceWith);
+					replaceWithDesc = replaceWith;
+					break;
+				default:
+					throw new IllegalArgumentException("RuleType " + ruleType + " is unknown. No rule can be created");
 			}
-			return ruleHolder.replaceWith;
+			whatToFindDesc = whatToFind;
+			return new RulesTable.RuleHolder<CharacterFrequencyRule>(rule, whatToFindDesc, replaceWithDesc);
+		}
+
+		private CharacterFrequencyRule createReplace(final String whatToFind, final String replaceWith) {
+			return new CharacterFrequencyRule() {
+				@Override
+				public boolean modify(String plainText, Reference<String> putToMap, Reference<Integer> position) {
+					String substring = substring(plainText, position.value, whatToFind);
+					if (whatToFind.equalsIgnoreCase(substring)) {
+						putToMap.value = replaceWith;
+						position.value += substring.length() - 1;
+						return true;
+					}
+					return false;
+				}
+			};
+		}
+
+		private CharacterFrequencyRule createOneChar(final String whatToFind) {
+			return new CharacterFrequencyRule() {
+				@Override
+				public boolean modify(String plainText, Reference<String> putToMap, Reference<Integer> position) {
+					String substring = substring(plainText, position.value, whatToFind);
+					if (whatToFind.equalsIgnoreCase(substring)) {
+						putToMap.value = substring;
+						position.value += substring.length() - 1;
+						return true;
+					}
+					return false;
+				}
+			};
+		}
+
+		private CharacterFrequencyRule createIgnore(final String whatToFind) {
+			return new CharacterFrequencyRule() {
+				@Override
+				public boolean modify(String plainText, Reference<String> putToMap, Reference<Integer> position) {
+					String substring = substring(plainText, position.value, whatToFind);
+					if (whatToFind.equalsIgnoreCase(substring)) {
+						putToMap.value = null;
+						position.value += substring.length() - 1;
+						return true;
+					}
+					return false;
+				}
+			};
+		}
+
+		private String substring(String plainText, int position, String whatToFind) {
+			int whatToFindEnd = position + whatToFind.length();
+			if (whatToFindEnd > plainText.length()) {
+				return null;
+			}
+			return plainText.substring(position, whatToFindEnd);
 		}
 	}
 }

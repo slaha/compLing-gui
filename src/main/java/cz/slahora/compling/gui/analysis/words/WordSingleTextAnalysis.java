@@ -2,6 +2,7 @@ package cz.slahora.compling.gui.analysis.words;
 
 import cz.compling.CompLing;
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
+import cz.compling.analysis.analysator.frequency.words.WordFrequencyRule;
 import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.analysis.ResultsHandler;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
@@ -36,13 +37,11 @@ public class WordSingleTextAnalysis extends WordTextAnalysis implements SingleTe
 		if (optionPanel.applyCaseInsensitiveRule()) {
 			compLing.registerRule(new CaseInsensitiveRule());
 		}
-		/*
-		for (CharacterFrequencyRule rule : optionPanel.replaceRules()) {
-			characterFrequency.registerRule(rule);
-		}
-		*/
 
 		this.wordFrequency = compLing.generalAnalysis().wordFrequency();
+		for (WordFrequencyRule rule : optionPanel.replaceRules()) {
+			wordFrequency.registerRule(rule);
+		}
 
 		handler.handleResult(this);
 	}
