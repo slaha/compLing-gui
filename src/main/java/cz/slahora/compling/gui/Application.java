@@ -8,6 +8,7 @@ import cz.slahora.compling.gui.model.WorkingTexts;
 
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.WindowConstants;
 
 /**
  *
@@ -40,7 +41,7 @@ public class Application {
 		JFrame frame = new JFrame("Statistika v lexikální analýze");
 		frame.setJMenuBar(mainWindowMenu);
 		frame.setContentPane(mainWindow.mainPanel);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.pack();
 
 		return frame;
