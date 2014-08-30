@@ -6,6 +6,8 @@ import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.general.PieDataset;
 
 import javax.swing.table.TableModel;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,7 +22,7 @@ import java.util.Set;
  * <dd> 10.8.14 9:46</dd>
  * </dl>
  */
-public interface IWordFrequenciesModel {
+public interface IWordFrequenciesModel<T> {
 	String getMainParagraphText();
 
 	FrequencyWordPair getMostFrequentWord();
@@ -37,19 +39,24 @@ public interface IWordFrequenciesModel {
 
 	int getFilterMaxValue();
 
-	Set<String> getAllDomainElements();
+	T[] getAllDomainElements();
+	Comparator<T> getDomainElementsComparator();
 
-	void addCompareChartCategory(String item);
+	void addCompareChartCategory(T item);
 
-	void removeComparePlotCategory(String item);
+	void removeComparePlotCategory(T item);
 
-	boolean isInCompareChartCategories(String word);
+	boolean isInCompareChartCategories(T word);
 
-	Set<String> getAllCompareChartCategories();
+	Set<T> getAllCompareChartCategories();
 
-	CategoryDataset getBarDataSetFor(String... words);
+	CategoryDataset getBarDataSetFor(Collection<T> words);
 
 	Map<WorkingText, IWordFrequency> getAllFrequencies();
 
 	Set<WorkingText> getAllTexts();
+
+	WordLengthFrequenciesModel.ChiSquare getChiSquareFor(WorkingText workingText);
+
+	WordLengthFrequenciesModel.ChiSquare getChiSquareFor(WorkingText workingText, WordLengthFrequenciesModel.ChiSquare alpha);
 }

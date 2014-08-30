@@ -23,11 +23,11 @@ import java.util.Set;
  * <dd> 3.8.14 10:57</dd>
  * </dl>
  */
-public class WordFrequencyChartFactory {
+public class WordFrequencyChartFactory<T> {
 	private final String chartTitle;
-	private final IWordFrequenciesModel controller;
+	private final IWordFrequenciesModel<T> controller;
 
-	public WordFrequencyChartFactory(IWordFrequenciesModel controller, String chartTitle) {
+	public WordFrequencyChartFactory(IWordFrequenciesModel<T> controller, String chartTitle) {
 		this.controller = controller;
 		this.chartTitle = chartTitle;
 	}
@@ -79,9 +79,9 @@ public class WordFrequencyChartFactory {
 	}
 
 	public ChartPanel createComparePlot() {
-		final Set<String> categories = controller.getAllCompareChartCategories();
+		final Set<T> categories = controller.getAllCompareChartCategories();
 		String chartTitle = "Srovnání zastoupení délek slov " + categories.toString();
-		JFreeChart chart = ChartUtils.createBarChart(chartTitle, "Četnost", "Texty", controller.getBarDataSetFor(categories.toArray(new String[categories.size()])), PlotOrientation.VERTICAL, false, true, true, true);
+		JFreeChart chart = ChartUtils.createBarChart(chartTitle, "Četnost", "Texty", controller.getBarDataSetFor(categories), PlotOrientation.VERTICAL, false, true, true, true);
 		return ChartUtils.createPanel(chart);
 	}
 }

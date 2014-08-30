@@ -13,12 +13,10 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.text.Collator;
+import java.util.*;
 
-public class WordFrequenciesModel implements IWordFrequenciesModel {
+public class WordFrequenciesModel implements IWordFrequenciesModel<String> {
 	private final Map<WorkingText, IWordFrequency> wordFrequencies;
 	private final TObjectIntMap<String> wordsToFrequencies;
 	private final Selection<String> selection;
@@ -159,8 +157,15 @@ public class WordFrequenciesModel implements IWordFrequenciesModel {
 	}
 
 	@Override
-	public Set<String> getAllDomainElements() {
-		return wordsToFrequencies.keySet();
+	public String[] getAllDomainElements() {
+		return wordsToFrequencies.keySet().toArray(new String[wordsToFrequencies.size()]);
+	}
+
+	@Override
+	public Comparator<String> getDomainElementsComparator() {
+		Collator coll = Collator.getInstance(Locale.getDefault());
+		coll.setStrength(Collator.PRIMARY);
+		return (Comparator)coll;
 	}
 
 	@Override
@@ -184,10 +189,11 @@ public class WordFrequenciesModel implements IWordFrequenciesModel {
 	}
 
 	@Override
-	public CategoryDataset getBarDataSetFor(String... words) {
+	public CategoryDataset getBarDataSetFor(Collection<String> _words) {
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-		Arrays.sort(words);
+		List<String> words = new ArrayList<String>(_words);
+		Collections.sort(words, getDomainElementsComparator());
 
 		for (String word : words) {
 
@@ -207,5 +213,15 @@ public class WordFrequenciesModel implements IWordFrequenciesModel {
 	@Override
 	public Set<WorkingText> getAllTexts() {
 		return wordFrequencies.keySet();
+	}
+
+	@Override
+	public WordLengthFrequenciesModel.ChiSquare getChiSquareFor(WorkingText workingText) {
+		throw new UnsupportedOperationException(WordFrequenciesModel.class.getSimpleName() + " cannot create chi-square test table model");
+	}
+
+	@Override
+	public WordLengthFrequenciesModel.ChiSquare getChiSquareFor(WorkingText workingText, WordLengthFrequenciesModel.ChiSquare alpha) {
+		throw new UnsupportedOperationException(WordFrequenciesModel.class.getSimpleName() + " cannot create chi-square test table model");
 	}
 }

@@ -52,4 +52,9 @@ public class WorkingText {
 	public void setText(String newText) {
 		text = newText;
 	}
+
+	@Override
+	public String toString() {
+		return getName();
+	}
 }

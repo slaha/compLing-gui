@@ -2,12 +2,14 @@ package cz.slahora.compling.gui.panels.words;
 
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
 import cz.slahora.compling.gui.MultipleLinesLabel;
+import cz.slahora.compling.gui.analysis.ToggleHeader;
 import cz.slahora.compling.gui.analysis.words.WordTextAnalysisType;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.panels.*;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
+import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
@@ -24,16 +26,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.text.Collator;
 import java.util.Arrays;
-import java.util.Locale;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 
-public class WordFrequencyResultsPanel extends AbstractResultsPanel implements ResultsPanel {
+public class WordFrequencyResultsPanel<T> extends AbstractResultsPanel implements ResultsPanel {
 
-
-	private final IWordFrequenciesModel model;
+	private final IWordFrequenciesModel<T> model;
+	private final WordFrequencyChartFactory<T> chartFactory;
 	private final WordTextAnalysisType analysisType;
 
 	private JComponent allWordsChartComponent;
@@ -41,28 +42,29 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 	private final JPanel allWordsChartParent = new JPanel(new BorderLayout());
 	private final JPanel compareChartParent  = new JPanel(new BorderLayout());
 
-	private final WordFrequencyChartFactory chartFactory;
+
 	private final JSpinner lowerFreqBound;
 	private ChangeListener boundChangedListener;
 
-	public WordFrequencyResultsPanel(WordTextAnalysisType analysisType, Map<WorkingText, IWordFrequency> wordFrequencies) {
+	public WordFrequencyResultsPanel(WordTextAnalysisType analysisType, Map<WorkingText, IWordFrequency> wordFrequencies, Factory<T> factory) {
 		super(new ResultsScrollablePanel());
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
 		this.analysisType = analysisType;
 		switch (analysisType) {
 			case WORD:
-				this.model = new WordFrequenciesModel(wordFrequencies);
+				this.model = factory.createModel(wordFrequencies);
+				this.chartFactory = factory.createChartFactory(model);
 				break;
 			case WORD_LENGHT:
-				this.model = new WordLengthFrequenciesModel(wordFrequencies);
+				this.model = factory.createModel(wordFrequencies);
+				this.chartFactory = factory.createChartFactory(model);
 				break;
 			default:
 				throw new IllegalStateException("Cannot create model for type " + analysisType);
 		}
 
-		final String chartTitle = "Zastoupení jednotlivých slov";
-		this.chartFactory = new WordFrequencyChartFactory(model, chartTitle);
+
 		SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, model.getFilterMaxValue(), 1);
 		lowerFreqBound = new JSpinner(spinnerModel);
 	}
@@ -79,6 +81,15 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		text.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(text);
 
+		JLabel tableHeadline;
+		if (analysisType == WordTextAnalysisType.WORD) {
+			tableHeadline = new HtmlLabelBuilder().hx(1, "Tabulka četností výskytu slov").build();
+		} else {
+			tableHeadline = new HtmlLabelBuilder().hx(1, "Výskyt slov dle délky slova").build();
+		}
+		tableHeadline.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(createVerticalSpace());
+		panel.add(tableHeadline);
 		//table with words occurrences
 		JTable table = new JTable(model.getTableModel());
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -96,8 +107,55 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		table.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(table);
 
+		if (analysisType == WordTextAnalysisType.WORD_LENGHT) {
+
+			final JXCollapsiblePane chiSquareTestsPanel = new JXCollapsiblePane();
+			chiSquareTestsPanel.setBackground(Color.white);
+			chiSquareTestsPanel.setLayout(new BoxLayout(chiSquareTestsPanel.getContentPane(), BoxLayout.Y_AXIS));
+
+			chiSquareTestsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+			ToggleHeader toggle = new ToggleHeader(chiSquareTestsPanel,
+				new HtmlLabelBuilder().hx(2, "\u03C7<sup>2</sup> test").build().getText());
+			toggle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+			panel.add(createVerticalSpace());
+			panel.add(toggle);
+
+			final Set<WorkingText> allTexts = model.getAllTexts();
+			if (allTexts.size() > 1) {
+				WorkingText texts[] = allTexts.toArray(new WorkingText[allTexts.size()]);
+				final JPanel selectTextPanel = new JPanel();
+				selectTextPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+				JComboBox<WorkingText> selectTextCombo = new JComboBox<WorkingText>(texts);
+				selectTextCombo.setSelectedItem(null);
+				selectTextCombo.addItemListener(new ItemListener() {
+					@Override
+					public void itemStateChanged(ItemEvent e) {
+						if (e.getStateChange() == ItemEvent.SELECTED) {
+							WorkingText workingText = (WorkingText) e.getItem();
+							createChiSquareTest(workingText, chiSquareTestsPanel, selectTextPanel);
+							chiSquareTestsPanel.validate();
+						}
+
+					}
+				});
+
+				selectTextCombo.add(new JLabel("Zvolte text k testu:"));
+				selectTextPanel.add(selectTextCombo);
+
+				selectTextCombo.setSelectedIndex(0);
+			} else {
+				createChiSquareTest(allTexts.iterator().next(), chiSquareTestsPanel, null);
+			}
+
+			panel.add(chiSquareTestsPanel);
+		}
+
 		final JLabel headlineWordFreqs = new HtmlLabelBuilder().hx(2, "Graf četností jednotlivých slov").build();
 		headlineWordFreqs.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(createVerticalSpace());
 		panel.add(headlineWordFreqs);
 		allWordsChartParent.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(allWordsChartParent);
@@ -108,12 +166,11 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 
 		final JLabel headlineCompareWords = new HtmlLabelBuilder().hx(2, "Srovnání četností jednotlivých slov").build();
 		headlineCompareWords.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(createVerticalSpace());
 		panel.add(headlineCompareWords);
 
-		Set<String> allWords = model.getAllDomainElements();
-		final String[] words = allWords.toArray(new String[allWords.size()]);
-		Collator coll = Collator.getInstance(Locale.getDefault());
-		coll.setStrength(Collator.PRIMARY);
+		final T[] words = model.getAllDomainElements();
+		final Comparator<T> coll = model.getDomainElementsComparator();
 		Arrays.sort(words, coll);
 		final JPanel comboPanel = new JPanel(new GridBagLayout());
 
@@ -144,13 +201,104 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		return panel;
 	}
 
-	private JComboBox createWordComboBox(String[] words) {
-		JComboBox comboBox = new JComboBox(words);
+	private void createChiSquareTest(final WorkingText workingText, JXCollapsiblePane chiSquareTestsPanel, JPanel selectTextPanel) {
+		chiSquareTestsPanel.removeAll();
+
+		if (selectTextPanel != null) {
+			chiSquareTestsPanel.add(selectTextPanel);
+//			createVerticalSpace(15) cannot be used because of background
+			JPanel p = new JPanel();
+			p.setBackground(Color.white);
+			p.setAlignmentX(Component.LEFT_ALIGNMENT);
+			p.setMinimumSize(new Dimension(1, 15));
+			p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 15));
+			chiSquareTestsPanel.add(p);
+		}
+
+		final WordLengthFrequenciesModel.ChiSquare chiSquareModel = model.getChiSquareFor(workingText);
+		//table with words occurrences
+		JTable table = new JTable(chiSquareModel.tableModel);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setRowSelectionAllowed(false);
+		table.setColumnSelectionAllowed(false);
+		table.setCellSelectionEnabled(true);
+		table.setAutoCreateRowSorter(true);
+		table.setBackground(Color.WHITE);
+
+		for (int i = 0; i < table.getColumnCount(); i++) {
+			if (Double.class == table.getColumnClass(i)) {
+				table.getColumnModel().getColumn(i).setCellRenderer(new ChiSquareTableModel.DecimalFormatRenderer());
+			}
+		}
+
+		table.invalidate();
+
+		table.getTableHeader().setBackground(Color.white);
+		table.getTableHeader().setAlignmentX(Component.LEFT_ALIGNMENT);
+		table.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		JPanel resultPanel = new JPanel();
+		resultPanel.setBackground(Color.white);
+		resultPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
+
+		final String chiSquareResultText = "Hodnota χ-kvadrátu pro %d stupňů volnosti je %.2f. Krititcká hodnota na hladině významnosti α=%.2f je %.2f.";
+		final String chiSquareResultOkTemplate = chiSquareResultText + "\n\n" + "Proto zamítáme nulovou hypotézu o tom, že rozdělení četnosti slov dle délky odpovídá %s rozdělení.";
+		final String chiSquareResultFailTemplate = chiSquareResultText + "\n\n" + "Proto nelze vyloučit nulovou hypotézu o tom, že rozdělení četnosti slov dle délky odpovídá %s rozdělení.";
+
+		JLabel chiSquareResultHeadline = new JLabel("<html><h2>Výsledek χ<sup>2</sup> testu</h2></html>");
+		chiSquareResultHeadline.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		final MultipleLinesLabel chiSquareResult = new MultipleLinesLabel();
+		chiSquareResult.setAlignmentX(Component.LEFT_ALIGNMENT);
+		String t = chiSquareModel.chiTest ? chiSquareResultOkTemplate : chiSquareResultFailTemplate;
+		chiSquareResult.setText(String.format(t, chiSquareModel.degreesOfFreedom, chiSquareModel.chiSquareValue, chiSquareModel.alpha, chiSquareModel.chiSquareCriticalValue, chiSquareModel.distribution));
+
+		final SpinnerNumberModel alphaSpinnerModel = new SpinnerNumberModel(chiSquareModel.alpha, 0.009, 0.5, 0.01);
+		JSpinner alphaSpinner = new JSpinner(alphaSpinnerModel);
+		alphaSpinner.setAlignmentX(Component.LEFT_ALIGNMENT);
+		alphaSpinner.setMaximumSize(new Dimension(300, 100));
+		alphaSpinner.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				chiSquareModel.alpha = new Double(alphaSpinnerModel.getValue().toString());
+				model.getChiSquareFor(workingText, chiSquareModel);
+
+				String t = chiSquareModel.chiTest ? chiSquareResultOkTemplate : chiSquareResultFailTemplate;
+				chiSquareResult.setText(String.format(t, chiSquareModel.degreesOfFreedom, chiSquareModel.chiSquareValue, chiSquareModel.alpha, chiSquareModel.chiSquareCriticalValue, chiSquareModel.distribution));
+
+			}
+		});
+
+		resultPanel.add(chiSquareResultHeadline);
+		resultPanel.add(chiSquareResult);
+		resultPanel.add(createVerticalSpace(15));
+
+		JPanel spinnerPanel = new JPanel();
+		spinnerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		final JLabel levelLabel = new JLabel("Hladina významnosti α ");
+		levelLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		spinnerPanel.add(levelLabel);
+		spinnerPanel.add(alphaSpinner);
+		resultPanel.add(spinnerPanel);
+
+		chiSquareTestsPanel.add(table.getTableHeader());
+		chiSquareTestsPanel.add(table);
+		chiSquareTestsPanel.add(resultPanel);
+	}
+
+	private JComboBox createWordComboBox(T[] comboValues) {
+		final JComboBox<T> comboBox = new JComboBox<T>(comboValues);
 		comboBox.setSelectedItem(null); //..set to null to fire listener after new selected item is found
 		comboBox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				String item = e.getItem().toString();
+				T item = (T) e.getItem();
+				if (item == null) {
+					return;
+				}
+
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					model.addCompareChartCategory(item);
 					refreshPlot();
@@ -160,9 +308,9 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 			}
 		});
 
-		for (String word : words) {
-			if (!model.isInCompareChartCategories(word)) {
-				comboBox.setSelectedItem(word);
+		for (T value : comboValues) {
+			if (!model.isInCompareChartCategories(value)) {
+				comboBox.setSelectedItem(value);
 				break;
 
 			}
@@ -279,9 +427,9 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		private final JPanel comboPanel;
 		private static final int HIDE_MINUS = 3; //..one combo + plus btn + minus btn
 		private final int HIDE_PLUS;
-		private final String[] words;
+		private final T[] words;
 
-		public PlusMinusButtonListener(JButton plusComboButton, JButton minusComboButton, JPanel comboPanel, String[] words) {
+		public PlusMinusButtonListener(JButton plusComboButton, JButton minusComboButton, JPanel comboPanel, T[] words) {
 
 			this.plusComboButton = plusComboButton;
 			this.minusComboButton = minusComboButton;
@@ -318,8 +466,39 @@ public class WordFrequencyResultsPanel extends AbstractResultsPanel implements R
 		void minus() {
 			int lastComponent = comboPanel.getComponentCount() - 1;
 			JComboBox cmbBox = (JComboBox) comboPanel.getComponent(lastComponent);//..last combo
-			model.removeComparePlotCategory(cmbBox.getSelectedItem().toString());
+			model.removeComparePlotCategory((T)cmbBox.getSelectedItem());
 			comboPanel.remove(cmbBox);
+		}
+	}
+
+	public interface Factory<T> {
+
+		IWordFrequenciesModel<T> createModel(Map<WorkingText, IWordFrequency> wordFrequencies);
+
+		WordFrequencyChartFactory<T> createChartFactory(IWordFrequenciesModel<T> model);
+	}
+
+	public static class WordFactory implements Factory<String> {
+		@Override
+		public IWordFrequenciesModel<String> createModel(Map<WorkingText, IWordFrequency> wordFrequencies) {
+			return new WordFrequenciesModel(wordFrequencies);
+		}
+
+		@Override
+		public WordFrequencyChartFactory<String> createChartFactory(IWordFrequenciesModel<String> model) {
+			return new WordFrequencyChartFactory<String>(model, "Zastoupení jednotlivých slov");
+		}
+	}
+
+	public static class WordLengthFactory implements Factory<Integer> {
+		@Override
+		public IWordFrequenciesModel<Integer> createModel(Map<WorkingText, IWordFrequency> wordFrequencies) {
+			return new WordLengthFrequenciesModel(wordFrequencies);
+		}
+
+		@Override
+		public WordFrequencyChartFactory<Integer> createChartFactory(IWordFrequenciesModel<Integer> model) {
+			return new WordFrequencyChartFactory<Integer>(model, "Zastoupení délek jednotlivých slov");
 		}
 	}
 }

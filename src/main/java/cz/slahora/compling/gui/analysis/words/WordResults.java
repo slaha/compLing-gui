@@ -25,6 +25,9 @@ class WordResults implements Results {
 
 	@Override
 	public ResultsPanel getResultPanel() {
-		return new WordFrequencyResultsPanel(analysisType, frequencies);
+		return analysisType == WordTextAnalysisType.WORD ?
+			new WordFrequencyResultsPanel(analysisType, frequencies, new WordFrequencyResultsPanel.WordFactory())
+			 :
+			new WordFrequencyResultsPanel(analysisType, frequencies, new WordFrequencyResultsPanel.WordLengthFactory());
 	}
 }

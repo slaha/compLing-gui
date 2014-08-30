@@ -48,11 +48,13 @@ public class WordLengthFrequencyTableModel extends AbstractTableModel {
 		switch (column) {
 			case 0:
 				return "Délka slova";
-			case 1:
-				if (hasOverview()) {
-					return "Přehled";
-				}
 			default:
+				if (hasOverview()) {
+					if (column == 1) {
+						return "Přehled";
+					}
+					column--;
+				}
 				column--;
 				return texts.get(column).getName();
 		}

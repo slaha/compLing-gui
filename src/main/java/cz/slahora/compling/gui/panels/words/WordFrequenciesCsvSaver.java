@@ -14,7 +14,7 @@ public class WordFrequenciesCsvSaver extends Csv.CsvSaver<IWordFrequenciesModel>
 	public CsvData saveToCsv(IWordFrequenciesModel model, Object... params) {
 		CsvData csvData = new CsvData();
 		csvData.addSection();
-		final Set<String> allWords = model.getAllDomainElements();
+		final Set<Object> allWords = new HashSet<Object>(Arrays.asList(model.getAllDomainElements()));
 		final Map<WorkingText, IWordFrequency> allFrequencies = model.getAllFrequencies();
 		final Set<WorkingText> allTexts = model.getAllTexts();
 		final Map<String, WorkingText> namesToTexts = getNamesOf(allTexts);
@@ -23,7 +23,7 @@ public class WordFrequenciesCsvSaver extends Csv.CsvSaver<IWordFrequenciesModel>
 		//..add all words to header
 		csvData.getCurrentSection().addHeader(namesOfTexts);
 
-		for (String word : allWords) {
+		for (Object word : allWords) {
 			csvData.getCurrentSection().startNewLine();
 
 			csvData.getCurrentSection().addData(word); //..add word to first column
@@ -31,7 +31,9 @@ public class WordFrequenciesCsvSaver extends Csv.CsvSaver<IWordFrequenciesModel>
 			for (String textName : namesOfTexts) {
 				final WorkingText text = namesToTexts.get(textName); //..get WorkingText by its exported name
 				final WordFrequency wordFrequency = allFrequencies.get(text).getWordFrequency(); //..get WordFrequency
-				csvData.getCurrentSection().addData(wordFrequency.getFrequencyFor(word)); //..add freq of the word
+				if (word instanceof String) {
+					csvData.getCurrentSection().addData(wordFrequency.getFrequencyFor((String)word)); //..add freq of the word
+				}
 			}
 		}
 		csvData.getCurrentSection().addHeader(0, "Slovo");

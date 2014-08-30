@@ -4,6 +4,7 @@ import cz.compling.analysis.analysator.poems.denotation.IDenotation;
 import cz.compling.model.denotation.Coincidence;
 import cz.compling.model.denotation.GuiPoemAsSpikeNumbers;
 import cz.compling.model.denotation.Spike;
+import cz.slahora.compling.gui.analysis.ToggleHeader;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
@@ -17,7 +18,10 @@ import org.javatuples.Pair;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXTable;
 
-import javax.swing.*;
+import javax.swing.Action;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -253,24 +257,6 @@ public class GuiDenotationResults {
 
 	public JPanel getPanel() {
 		return panel;
-	}
-
-	private static class ToggleHeader extends JButton {
-
-		private ToggleHeader(JXCollapsiblePane panel, String text) {
-			this(panel.getActionMap().get("toggle"), text);
-		}
-
-		private ToggleHeader(Action action, String text) {
-			setHideActionText(true);
-			setFocusPainted(false);
-			setMargin(new Insets(0, 0, 0, 0));
-			setContentAreaFilled(false);
-			setBorderPainted(false);
-			setOpaque(false);
-			setAction(action);
-			setText(text);
-		}
 	}
 
 	private class PositionSpikePanel extends JPanel {
