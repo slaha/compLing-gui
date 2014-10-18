@@ -33,7 +33,7 @@ public class AnalysisResultReceiverImpl implements AnalysisResultReceiver {
 		JScrollPane scrollPane = new JScrollPane(panel);
 
 		JPanel contentPanel = new JPanel(new BorderLayout());
-//		contentPanel.add(topPanel, BorderLayout.NORTH);
+		contentPanel.add(topPanel, BorderLayout.NORTH);
 		contentPanel.add(scrollPane, BorderLayout.CENTER);
 
 		frame.setContentPane(contentPanel);
