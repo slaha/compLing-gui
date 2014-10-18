@@ -6,12 +6,14 @@ import cz.compling.model.denotation.GuiPoemAsSpikeNumbers;
 import cz.compling.model.denotation.Spike;
 import cz.slahora.compling.gui.analysis.ToggleHeader;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.utils.GraphUtils;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 import org.apache.commons.lang.text.StrBuilder;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.MultiGraph;
+import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.ui.swingViewer.View;
 import org.graphstream.ui.swingViewer.Viewer;
 import org.javatuples.Pair;
@@ -194,19 +196,18 @@ public class GuiDenotationResults {
 
 
 		final Graph graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()));
-		Viewer v = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
+		final Viewer v = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
 		v.enableAutoLayout();
-		View view = v.addDefaultView(false);
+		final View view = v.addDefaultView(false);
 		final JPanel graphPanel = new JPanel();
-		graphPanel.setPreferredSize(new Dimension(1600, 900));
 		graphPanel.setLayout(new BorderLayout());
+		graphPanel.setPreferredSize(new Dimension(100, 900));
 		graphPanel.add(view, BorderLayout.CENTER);
 
 		panel.add(
 			graphPanel,
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.BOTH).weightX(1).weightY(1).anchor(GridBagConstraints.NORTH).build()
 		);
-
 
 //		JFrame f = new JFrame("Graf");
 //		f.setContentPane(graphPanel);
@@ -233,8 +234,10 @@ public class GuiDenotationResults {
 	}
 
 	private Graph createGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor) {
-		Graph graph = new MultiGraph("Koincidence pro hřeb č. 14");
-
+		Graph graph = new DefaultGraph("Koincidence pro hřeb č. 14");
+		graph.addAttribute("ui.stylesheet", GraphUtils.STYLESHEET);
+		graph.addAttribute("ui.quality");
+		graph.addAttribute("ui.antialias");
 		final double alpha = 0.1d;
 
 		for (Spike spike : allSpikes) {
@@ -244,11 +247,16 @@ public class GuiDenotationResults {
 		}
 
 		for (Map.Entry<Spike, List<Coincidence>> entry : coincidenceFor.entrySet()) {
+			final String one = String.valueOf(entry.getKey().getNumber());
 			for (Coincidence coincidence : entry.getValue()) {
-				final String one = String.valueOf(entry.getKey().getNumber());
 				if (coincidence.probability <= alpha) {
 					final String another = String.valueOf(coincidence.anotherSpike.getNumber());
-					graph.addEdge(one+another, one, another);
+					final String id = one + '_' + another;
+					final String id2 = another + '_' + one;
+					if (graph.getEdge(id) == null && graph.getEdge(id2) == null) {
+						final Edge edge = graph.addEdge(id, one, another);
+						edge.setAttribute("layout.weight", 3.5d);
+					}
 				}
 			}
 		}

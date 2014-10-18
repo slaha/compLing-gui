@@ -37,12 +37,12 @@
             <version>2.4</version>
         </dependency>
 
-        <!--Export to pdf (not working yet)-->
-        <dependency>
-            <groupId>com.itextpdf</groupId>
-            <artifactId>itextpdf</artifactId>
-            <version>5.0.6</version>
-        </dependency>
+        <!--&lt;!&ndash;Export to pdf (not working yet)&ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>com.itextpdf</groupId>-->
+            <!--<artifactId>itextpdf</artifactId>-->
+            <!--<version>5.0.6</version>-->
+        <!--</dependency>-->
 
         <!--Plots-->
         <dependency>
@@ -90,6 +90,11 @@
             <version>1.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.graphstream</groupId>
+            <artifactId>gs-ui</artifactId>
+            <version>1.2</version>
+        </dependency>
 
         <!-- TEST SCOPE -->
         <!-- jUnit for tests-->

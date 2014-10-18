@@ -20,6 +20,7 @@ public class Run {
 	public static void main(String[] args) {
 
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
+		System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 
 		try {
 			//FIXME remove before release
