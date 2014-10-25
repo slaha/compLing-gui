@@ -4,6 +4,7 @@ import cz.compling.analysis.analysator.poems.denotation.IDenotation;
 import cz.compling.model.denotation.Coincidence;
 import cz.compling.model.denotation.GuiPoemAsSpikeNumbers;
 import cz.compling.model.denotation.Spike;
+import cz.slahora.compling.gui.MultipleLinesLabel;
 import cz.slahora.compling.gui.analysis.ToggleHeader;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.GraphUtils;
@@ -20,16 +21,13 @@ import org.javatuples.Pair;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXTable;
 
-import javax.swing.Action;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
@@ -49,6 +47,8 @@ public class GuiDenotationResults {
 	private final WorkingText text;
 	private final GuiDenotationResultsModel model;
 	private final JPanel panel;
+	private Viewer graphViewer;
+
 	public GuiDenotationResults(WorkingText text, IDenotation denotation) {
 		this.text = text;
 		this.model = new GuiDenotationResultsModel(denotation);
@@ -195,23 +195,68 @@ public class GuiDenotationResults {
 		);
 
 
-		final Graph graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()));
-		final Viewer v = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
-		v.enableAutoLayout();
-		final View view = v.addDefaultView(false);
+		JLabel alphaLabel = new JLabel("Hladina významnosti α");
+		final JSpinner alphaSpinner = new JSpinner(new SpinnerNumberModel(0.1d, 0d, 1d, 0.01));
+		alphaSpinner.setEditor(new JSpinner.NumberEditor(alphaSpinner, "0.000"));
+		JPanel alphaPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		alphaPanel.add(
+			alphaLabel
+		);
+		alphaPanel.add(
+			alphaSpinner
+		);
+
+		final JCheckBox autoLayoutCheckBox = new JCheckBox("Povolit automatické rozmístění grafu");
+		autoLayoutCheckBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (graphViewer != null) {
+					if (autoLayoutCheckBox.isSelected()) {
+						graphViewer.enableAutoLayout();
+					} else {
+						graphViewer.disableAutoLayout();
+					}
+				}
+			}
+		});
+
+		JPanel graphSettingPanel = new JPanel(new BorderLayout());
+		graphSettingPanel.setBorder(new EmptyBorder(10, 20, 10,20));
+		graphSettingPanel.add(alphaPanel, BorderLayout.NORTH);
+		graphSettingPanel.add(autoLayoutCheckBox, BorderLayout.SOUTH);
+
+		panel.add(
+			graphSettingPanel,
+			new GridBagConstraintBuilder().gridXY(0, y++).build()
+		);
+
 		final JPanel graphPanel = new JPanel();
 		graphPanel.setLayout(new BorderLayout());
 		graphPanel.setPreferredSize(new Dimension(100, 900));
-		graphPanel.add(view, BorderLayout.CENTER);
 
 		panel.add(
 			graphPanel,
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.BOTH).weightX(1).weightY(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
-//		JFrame f = new JFrame("Graf");
-//		f.setContentPane(graphPanel);
-//		f.setVisible(true);
+		ChangeListener alphaChangeListener = new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+
+				autoLayoutCheckBox.setSelected(true);
+
+				final double alpha = (Double)alphaSpinner.getModel().getValue();
+				Graph graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()), alpha);
+				graphViewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
+				graphViewer.enableAutoLayout();
+				final View view = graphViewer.addDefaultView(false);
+				graphPanel.removeAll();
+				graphPanel.add(view, BorderLayout.CENTER);
+			}
+		};
+		alphaSpinner.addChangeListener(alphaChangeListener);
+		alphaChangeListener.stateChanged(new ChangeEvent(alphaSpinner));
+
 		//..last panel for align another components to the top
 		JPanel dummyPanel = new JPanel();
 		dummyPanel.setBackground(Color.WHITE);
@@ -233,12 +278,11 @@ public class GuiDenotationResults {
 		return map;
 	}
 
-	private Graph createGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor) {
-		Graph graph = new DefaultGraph("Koincidence pro hřeb č. 14");
+	private Graph createGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor, final double alpha) {
+		Graph graph = new DefaultGraph("Graf koincidence na hladině významnosti α=" + alpha);
 		graph.addAttribute("ui.stylesheet", GraphUtils.STYLESHEET);
 		graph.addAttribute("ui.quality");
 		graph.addAttribute("ui.antialias");
-		final double alpha = 0.1d;
 
 		for (Spike spike : allSpikes) {
 			final String s = String.valueOf(spike.getNumber());
@@ -458,11 +502,11 @@ public class GuiDenotationResults {
 			coverPanel.setBackground(Color.white);
 			coverPanel.add(
 				toggleHeader,
-				new GridBagConstraintBuilder().weightY(1).weightX(1).gridXY(0, 0).anchor(GridBagConstraints.NORTHWEST).build()
+				new GridBagConstraintBuilder().weightY(1).gridXY(0, 0).anchor(GridBagConstraints.NORTHWEST).build()
 			);
 			coverPanel.add(
 				extendedCore,
-				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).gridXY(1, 0).build()
+				new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTHWEST).gridXY(1, 0).build()
 			);
 
 			add(coverPanel,
@@ -568,8 +612,8 @@ public class GuiDenotationResults {
 				spikePanel.setBackground(Color.white);
 
 				JLabel spikeNumber = new HtmlLabelBuilder().hx(3, String.valueOf(spike.getNumber())).build();
-				String content = new StrBuilder().append("<html>").appendWithSeparators(spike.getWords(), ", ").append("</html>").toString();
-				JLabel spikeContent = new JLabel(content);
+				String content = new StrBuilder().appendWithSeparators(spike.getWords(), ", ").toString();
+				JTextArea spikeContent = new MultipleLinesLabel(content);
 
 				spikePanel.add(
 					spikeNumber,

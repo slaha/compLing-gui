@@ -50,12 +50,12 @@ public class GridBagConstraintBuilder {
 		return this;
 	}
 
-	public GridBagConstraintBuilder weightX(int i) {
+	public GridBagConstraintBuilder weightX(double i) {
 		constraint.weightx = i;
 		return this;
 	}
 
-	public GridBagConstraintBuilder weightY(int i) {
+	public GridBagConstraintBuilder weightY(double i) {
 		constraint.weighty = i;
 		return this;
 	}
