@@ -21,4 +21,6 @@ public interface Results {
 	boolean resultsOk();
 
 	ResultsPanel getResultPanel();
+
+	String getAnalysisName();
 }

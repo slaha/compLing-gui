@@ -8,6 +8,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import java.awt.BorderLayout;
 import java.awt.Frame;
+import java.util.Locale;
 
 /**
  *
@@ -26,7 +27,7 @@ public class AnalysisResultReceiverImpl implements AnalysisResultReceiver {
 	public void send(Results results) {
 
 		ResultsPanel result = results.getResultPanel();
-		JFrame frame = new JFrame("Výsledek analýzy");
+		JFrame frame = new JFrame(String.format(Locale.getDefault(), "Výsledek analýzy – %s", results.getAnalysisName()));
 
 		JPanel panel = result.getPanel();
 		JToolBar topPanel = new AnalysisReceiverToolbar(result);

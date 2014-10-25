@@ -127,5 +127,10 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis<Characte
 				}
 			};
 		}
+
+		@Override
+		public String getAnalysisName() {
+			return "Denotační analýza textu " + text.getName();
+		}
 	}
 }

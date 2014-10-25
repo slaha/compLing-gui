@@ -10,6 +10,7 @@ import cz.slahora.compling.gui.analysis.ResultsHandler;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.panels.ResultsPanel;
 import cz.slahora.compling.gui.panels.characters.CharacterFrequencyPanel;
+import cz.slahora.compling.gui.utils.MapUtils;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -79,6 +80,14 @@ public class CharacterMultipleTextsAnalysis extends AbstractCharacterAnalysis im
 		@Override
 		public ResultsPanel getResultPanel() {
 			return new CharacterFrequencyPanel(characterFrequencies);
+		}
+
+		@Override
+		public String getAnalysisName() {
+
+			String names = MapUtils.getAllTextNames(characterFrequencies);
+
+			return "Analýza četnosti znaků textů " + names;
 		}
 	}
 }

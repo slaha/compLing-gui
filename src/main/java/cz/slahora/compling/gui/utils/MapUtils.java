@@ -1,5 +1,6 @@
 package cz.slahora.compling.gui.utils;
 
+import cz.slahora.compling.gui.model.WorkingText;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.procedure.TIntIntProcedure;
@@ -133,5 +134,17 @@ public class MapUtils {
 			}
 		});
 		return list;
+	}
+
+	public static String getAllTextNames(Map<WorkingText, ?> map) {
+		if (map.size() == 1) {
+			return MapUtils.getFirstKey(map).getName();
+		} else {
+			StringBuilder s = new StringBuilder();
+			for (WorkingText workingText : map.keySet()) {
+				s.append(s.length() == 0 ? "" : ", ").append(workingText.getName());
+			}
+			return s.toString();
+		}
 	}
 }

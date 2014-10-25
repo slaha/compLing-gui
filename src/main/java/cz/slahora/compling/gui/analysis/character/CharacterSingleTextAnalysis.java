@@ -65,9 +65,11 @@ public class CharacterSingleTextAnalysis extends AbstractCharacterAnalysis imple
 	}
 
 	private static class CharacterSingleTextAnalysisResults implements Results {
+		private final String name;
 		private Map<WorkingText, CharacterFrequency> map;
 
 		public CharacterSingleTextAnalysisResults(WorkingText text, CharacterFrequency characterFrequency) {
+			name = text.getName();
 			map = Collections.singletonMap(text, characterFrequency);
 		}
 
@@ -80,6 +82,11 @@ public class CharacterSingleTextAnalysis extends AbstractCharacterAnalysis imple
 		@Override
 		public ResultsPanel getResultPanel() {
 			return new CharacterFrequencyPanel(map);
+		}
+
+		@Override
+		public String getAnalysisName() {
+			return "Analýza četnosti znaků textu " + name;
 		}
 	}
 }
