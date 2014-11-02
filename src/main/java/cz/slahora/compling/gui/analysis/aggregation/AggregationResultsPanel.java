@@ -57,7 +57,19 @@ class AggregationResultsPanel extends AbstractResultsPanel implements ResultsPan
 		addToPanel(aggregationTable);
 
 		JFreeChart chart = createChart(model);
-		final ChartPanel chartPanel = new ChartPanel(chart);
+		final ChartPanel chartPanel = new ChartPanel(chart) {
+			@Override
+			protected JPopupMenu createPopupMenu(boolean properties, boolean save, boolean print, boolean zoom) {
+				return super.createPopupMenu(false, save, print, zoom);
+			}
+
+			@Override
+			protected JPopupMenu createPopupMenu(boolean properties, boolean copy, boolean save, boolean print, boolean zoom) {
+				return super.createPopupMenu(false, copy, save, print, zoom);
+			}
+
+		};
+
 		chartPanel.setBackground(Color.white);
 		chartPanel.setBorder(new EmptyBorder(30, 0, 0, 0));
 		addToPanel(chartPanel);
