@@ -2,7 +2,6 @@ package cz.slahora.compling.gui.analysis.denotation;
 
 import cz.compling.CompLing;
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
-import cz.compling.model.CharacterFrequency;
 import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.analysis.ResultsHandler;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
@@ -29,7 +28,7 @@ import java.util.Map;
  * <dd> 25.3.14 8:39</dd>
  * </dl>
  */
-public class DenotationSingleTextAnalysis implements SingleTextAnalysis<CharacterFrequency> {
+public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 
 	JFrame frame;
 	private final DenotationSingleTextAnalysisResults results = new DenotationSingleTextAnalysisResults();

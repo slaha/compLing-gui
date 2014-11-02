@@ -17,7 +17,7 @@ import java.util.Map;
  * <dd> 20.4.14 9:26</dd>
  * </dl>
  */
-public interface Analysis<T>  {
+public interface Analysis {
 	void analyse(JPanel mainPanel, ResultsHandler handler, Map<WorkingText, CompLing> texts);
 	Results getResults();
 }

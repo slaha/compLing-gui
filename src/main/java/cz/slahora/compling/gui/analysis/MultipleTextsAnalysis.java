@@ -11,6 +11,6 @@ package cz.slahora.compling.gui.analysis;
  * <dd> 25.3.14 8:40</dd>
  * </dl>
  */
-public interface MultipleTextsAnalysis<T> extends Analysis<T> {
+public interface MultipleTextsAnalysis extends Analysis {
 
 }

@@ -41,4 +41,9 @@ public abstract class AbstractResultsPanel {
 		rigidArea.setBackground(Color.white);
 		return rigidArea;
 	}
+
+	protected void addToPanel(JComponent component) {
+		component.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(component);
+	}
 }

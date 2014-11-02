@@ -17,7 +17,7 @@ import javax.swing.JPanel;
 import java.util.Collections;
 import java.util.Map;
 
-public class CharacterSingleTextAnalysis extends AbstractCharacterAnalysis implements SingleTextAnalysis<CharacterFrequency> {
+public class CharacterSingleTextAnalysis extends AbstractCharacterAnalysis implements SingleTextAnalysis {
 
 	private CharacterFrequency characterFrequency;
 	private WorkingText text;

@@ -2,6 +2,8 @@ package cz.slahora.compling.gui.main;
 
 import cz.slahora.compling.gui.about.AboutFrame;
 import cz.slahora.compling.gui.about.Licence;
+import cz.slahora.compling.gui.analysis.aggregation.AggregationMultipleTexts;
+import cz.slahora.compling.gui.analysis.aggregation.AggregationSingleText;
 import cz.slahora.compling.gui.analysis.alliteration.AlliterationAnalysis;
 import cz.slahora.compling.gui.analysis.character.CharacterMultipleTextsAnalysis;
 import cz.slahora.compling.gui.analysis.character.CharacterSingleTextAnalysis;
@@ -41,6 +43,8 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 	private static final int WORD_COUNTS_ONE = 15;
 	private static final int WORD_COUNTS_ALL = 16;
 	private static final int ALLITERATION = 30;
+	private static final int AGGREGATION_ONE = 35;
+	private static final int AGGREGATION_ALL = 36;
 	private static final int DENOTATION = 99;
 	private static final int APP_SETTINGS = 100;
 	private static final int APP_ABOUT = 101;
@@ -99,6 +103,10 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 		analyzeMenu.add(alliteration);
 		forActualTextMenus.add(alliteration);
 
+		JMenu aggregation = new JMenu("Agregace");
+		createAggregationMenu(aggregation);
+		analyzeMenu.add(aggregation);
+
 		analyzeMenu.addSeparator();
 
 		JMenuItem denotation = createMenuItem("Denotační analýza pro '%s'", DENOTATION, null);
@@ -126,6 +134,16 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 		forActualTextMenus.add(forActual);
 
 		JMenuItem forAll = createMenuItem("Pro všechny texty", WORD_COUNTS_ALL, null);
+		parent.add(forAll);
+	}
+
+	private void createAggregationMenu(JMenu parent) {
+
+		JMenuItem forActual = createMenuItem("Pro aktuální text '%s'", AGGREGATION_ONE, null);
+		parent.add(forActual);
+		forActualTextMenus.add(forActual);
+
+		JMenuItem forAll = createMenuItem("Pro všechny texty", AGGREGATION_ALL, null);
 		parent.add(forAll);
 	}
 
@@ -162,6 +180,13 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 			case ALLITERATION:
 				controller.analyse(new AlliterationAnalysis());
+				break;
+
+			case AGGREGATION_ONE:
+				controller.analyse(new AggregationSingleText());
+				break;
+			case AGGREGATION_ALL:
+				controller.analyse(new AggregationMultipleTexts());
 				break;
 
 			case DENOTATION:

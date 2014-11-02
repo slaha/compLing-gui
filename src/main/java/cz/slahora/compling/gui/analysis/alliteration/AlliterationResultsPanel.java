@@ -100,11 +100,6 @@ class AlliterationResultsPanel extends AbstractResultsPanel implements ResultsPa
 		addToPanel(table);
 	}
 
-	private void addToPanel(JComponent component) {
-		component.setAlignmentX(Component.LEFT_ALIGNMENT);
-		panel.add(component);
-	}
-
 	@Override
 	public JPanel getPanel() {
 

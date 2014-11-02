@@ -78,4 +78,14 @@ public class HtmlLabelBuilder {
 		this.toolTip = toolTip;
 		return this;
 	}
+
+	public HtmlLabelBuilder text(String text) {
+		builder.append(text);
+		return this;
+	}
+
+	public HtmlLabelBuilder sub(String subText) {
+		builder.append("<sub>").append(subText).append("</sub>");
+		return this;
+	}
 }

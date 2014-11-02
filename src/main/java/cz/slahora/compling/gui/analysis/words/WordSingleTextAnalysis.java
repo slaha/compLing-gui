@@ -14,7 +14,7 @@ import javax.swing.JPanel;
 import java.util.Collections;
 import java.util.Map;
 
-public class WordSingleTextAnalysis extends WordTextAnalysis implements SingleTextAnalysis<Object> {
+public class WordSingleTextAnalysis extends WordTextAnalysis implements SingleTextAnalysis {
 
 	private IWordFrequency wordFrequency;
 	private WorkingText text;

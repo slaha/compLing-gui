@@ -113,7 +113,7 @@ public class MainWindowControllerImpl implements MainWindowController {
 		return null;
 	}
 
-	private void analyse(Analysis<?> analysis, Map<WorkingText, CompLing> toAnalyse) {
+	private void analyse(Analysis analysis, Map<WorkingText, CompLing> toAnalyse) {
 		analysis.analyse(mainPanel, RESULTS_HANDLER, toAnalyse);
 	}
 
@@ -129,13 +129,13 @@ public class MainWindowControllerImpl implements MainWindowController {
 	}
 
 	@Override
-	public <T> void analyse(SingleTextAnalysis<T> analysis) {
+	public <T> void analyse(SingleTextAnalysis analysis) {
 		WorkingText text = workingTexts.get(tabPanels.getCurrentId());
 		analyse(analysis, Collections.singletonMap(text, text.getCompLing()));
 	}
 
 	@Override
-	public <T> void analyse(MultipleTextsAnalysis<T> analysis) {
+	public <T> void analyse(MultipleTextsAnalysis analysis) {
 		Map<WorkingText, CompLing> toAnalyse = new HashMap<WorkingText, CompLing>();
 		for (WorkingText workingText : workingTexts.getTexts()) {
 			toAnalyse.put(workingText, workingText.getCompLing());

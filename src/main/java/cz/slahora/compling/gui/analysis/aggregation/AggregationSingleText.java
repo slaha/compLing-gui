@@ -1,8 +1,7 @@
-package cz.slahora.compling.gui.analysis.alliteration;
+package cz.slahora.compling.gui.analysis.aggregation;
 
 import cz.compling.CompLing;
-import cz.compling.analysis.analysator.frequency.character.ICharacterFrequency;
-import cz.compling.analysis.analysator.poems.alliteration.IAlliteration;
+import cz.compling.analysis.analysator.poems.aggregation.IAggregation;
 import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.analysis.ResultsHandler;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
@@ -13,32 +12,28 @@ import cz.slahora.compling.gui.utils.MapUtils;
 import javax.swing.JPanel;
 import java.util.Map;
 
-public class AlliterationAnalysis implements SingleTextAnalysis {
-
-	private String textName;
-	private IAlliteration alliteration;
-	private ICharacterFrequency characterFrequency;
+public class AggregationSingleText implements SingleTextAnalysis {
+	private String name;
+	private IAggregation aggregation;
 
 	@Override
 	public void analyse(JPanel mainPanel, ResultsHandler handler, Map<WorkingText, CompLing> texts) {
-
 		final WorkingText workingText = MapUtils.getFirstKey(texts);
 		final CompLing compLing = texts.get(workingText);
 
-		alliteration = compLing.poemAnalysis().alliteration();
-		characterFrequency = compLing.generalAnalysis().characterFrequency();
-		textName = workingText.getName();
+		this.name = workingText.getName();
+
+		aggregation = compLing.poemAnalysis().aggregation();
 
 		handler.handleResult(this);
 	}
 
 	@Override
 	public Results getResults() {
-		return new AlliterationResults();
+		return new AggregationResults();
 	}
 
-	private class AlliterationResults implements Results {
-
+	private class AggregationResults implements Results {
 		@Override
 		public boolean resultsOk() {
 			return true;
@@ -46,13 +41,14 @@ public class AlliterationAnalysis implements SingleTextAnalysis {
 
 		@Override
 		public ResultsPanel getResultPanel() {
-			AlliterationModel model = new AlliterationModel(textName, alliteration, characterFrequency);
-			return new AlliterationResultsPanel(model);
+
+			AggregationModel model = new AggregationModelSingleText(name, aggregation);
+			return new AggregationResultsPanel(model);
 		}
 
 		@Override
 		public String getAnalysisName() {
-			return "Aliterace textu " + textName;
+			return "Agregace textu " + name;
 		}
 	}
 }

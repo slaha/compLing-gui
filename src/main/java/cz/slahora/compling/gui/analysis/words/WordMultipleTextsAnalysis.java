@@ -13,7 +13,7 @@ import javax.swing.JPanel;
 import java.util.HashMap;
 import java.util.Map;
 
-public class WordMultipleTextsAnalysis extends WordTextAnalysis implements MultipleTextsAnalysis<Object> {
+public class WordMultipleTextsAnalysis extends WordTextAnalysis implements MultipleTextsAnalysis {
 
 	private Map<WorkingText, IWordFrequency> frequencies;
 	private WordTextAnalysisType analysisType;

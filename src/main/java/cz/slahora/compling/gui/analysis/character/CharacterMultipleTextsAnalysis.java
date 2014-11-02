@@ -28,7 +28,7 @@ import java.util.Map;
  * <dd> 25.3.14 8:39</dd>
  * </dl>
  */
-public class CharacterMultipleTextsAnalysis extends AbstractCharacterAnalysis implements MultipleTextsAnalysis<CharacterFrequency> {
+public class CharacterMultipleTextsAnalysis extends AbstractCharacterAnalysis implements MultipleTextsAnalysis {
 
 	private Map<WorkingText, CharacterFrequency> characterFrequencies;
 

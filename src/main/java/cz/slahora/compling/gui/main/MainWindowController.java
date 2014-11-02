@@ -29,9 +29,9 @@ public interface MainWindowController extends AppContext {
 
 	WorkingText newEmptyTab(JComponent parent);
 
-	<T> void  analyse(SingleTextAnalysis<T> singleTextAnalysis);
+	<T> void  analyse(SingleTextAnalysis singleTextAnalysis);
 
-	<T> void  analyse(MultipleTextsAnalysis<T> multipleTextsAnalysis);
+	<T> void  analyse(MultipleTextsAnalysis multipleTextsAnalysis);
 
 	void registerOnTabChange(OnTabSelected callback);
 
