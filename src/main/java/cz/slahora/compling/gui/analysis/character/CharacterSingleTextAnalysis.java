@@ -17,17 +17,6 @@ import javax.swing.JPanel;
 import java.util.Collections;
 import java.util.Map;
 
-/**
- *
- * TODO 
- *
- * <dl>
- * <dt>Created by:</dt>
- * <dd>slaha</dd>
- * <dt>On:</dt>
- * <dd> 25.3.14 8:39</dd>
- * </dl>
- */
 public class CharacterSingleTextAnalysis extends AbstractCharacterAnalysis implements SingleTextAnalysis<CharacterFrequency> {
 
 	private CharacterFrequency characterFrequency;

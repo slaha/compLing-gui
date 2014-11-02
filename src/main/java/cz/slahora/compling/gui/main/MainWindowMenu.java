@@ -2,6 +2,7 @@ package cz.slahora.compling.gui.main;
 
 import cz.slahora.compling.gui.about.AboutFrame;
 import cz.slahora.compling.gui.about.Licence;
+import cz.slahora.compling.gui.analysis.alliteration.AlliterationAnalysis;
 import cz.slahora.compling.gui.analysis.character.CharacterMultipleTextsAnalysis;
 import cz.slahora.compling.gui.analysis.character.CharacterSingleTextAnalysis;
 import cz.slahora.compling.gui.analysis.denotation.DenotationSingleTextAnalysis;
@@ -39,6 +40,7 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 	private static final int CHARACTER_COUNTS_ALL = 11;
 	private static final int WORD_COUNTS_ONE = 15;
 	private static final int WORD_COUNTS_ALL = 16;
+	private static final int ALLITERATION = 30;
 	private static final int DENOTATION = 99;
 	private static final int APP_SETTINGS = 100;
 	private static final int APP_ABOUT = 101;
@@ -90,6 +92,14 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 		createWordCountMenu(wordCountMenu);
 		analyzeMenu.add(wordCountMenu);
+
+		analyzeMenu.addSeparator();
+
+		JMenuItem alliteration = createMenuItem("Aliterace pro text '%s'", ALLITERATION, null);
+		analyzeMenu.add(alliteration);
+		forActualTextMenus.add(alliteration);
+
+		analyzeMenu.addSeparator();
 
 		JMenuItem denotation = createMenuItem("Denotační analýza pro '%s'", DENOTATION, null);
 		analyzeMenu.add(denotation);
@@ -149,6 +159,11 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 			case WORD_COUNTS_ALL:
 				controller.analyse(new WordMultipleTextsAnalysis());
 				break;
+
+			case ALLITERATION:
+				controller.analyse(new AlliterationAnalysis());
+				break;
+
 			case DENOTATION:
 				controller.analyse(new DenotationSingleTextAnalysis());
 				break;

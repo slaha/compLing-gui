@@ -35,4 +35,9 @@ public class MultipleLinesLabel extends JTextArea{
 		super(text);
 		adjustUI();
 	}
+
+	public MultipleLinesLabel(String text, Object...args) {
+		super(String.format(getDefaultLocale(), text, args));
+		adjustUI();
+	}
 }
