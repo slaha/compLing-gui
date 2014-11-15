@@ -11,7 +11,10 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.MatteBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.text.DecimalFormat;
 import java.util.Collection;
 
@@ -41,21 +44,21 @@ class AlliterationResultsPanel extends AbstractResultsPanel implements ResultsPa
 		final Font font = kaLabel.getFont().deriveFont(15f).deriveFont(Font.BOLD);
 		kaLabel.setFont(font);
 
-		JLabel kaSumLabel = new JLabel(P_DECIMAL_FORMAT.format(model.getVersesCount()), SwingConstants.CENTER);
+		JLabel kaSumLabel = new JLabel(P_DECIMAL_FORMAT.format(model.getKaSum(ALPHA)), SwingConstants.CENTER);
 		kaSumLabel.setFont(font);
-		kaSumLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		final MatteBorder fractionLine = BorderFactory.createMatteBorder(0, 0, 1, 0, Color.black);
 		final Border padding = BorderFactory.createEmptyBorder(0, 10, 0, 10);
 		kaSumLabel.setBorder(BorderFactory.createCompoundBorder(fractionLine, padding));
 
-		JLabel totalKaLabel = new JLabel(P_DECIMAL_FORMAT.format(model.getTotalKa(ALPHA)));
-		totalKaLabel.setBorder(padding);
-		totalKaLabel.setFont(font);
+		JLabel versesCountLabel = new JLabel(P_DECIMAL_FORMAT.format(model.getVersesCount()), SwingConstants.CENTER);
+		versesCountLabel.setBorder(padding);
+		versesCountLabel.setFont(font);
 
 		JLabel resultEqualLabel = new JLabel(" = ");
 		resultEqualLabel.setFont(font);
-		JLabel resultKaLabel = new JLabel(P_DECIMAL_FORMAT.format(model.getKaSum(ALPHA)));
-		kaSumLabel.setBorder(BorderFactory.createCompoundBorder(fractionLine, padding));
+
+		JLabel resultKaLabel = new JLabel(P_DECIMAL_FORMAT.format(model.getTotalKa(ALPHA)));
+		resultKaLabel.setBorder(BorderFactory.createCompoundBorder(fractionLine, padding));
 		final CompoundBorder underlinePaddingBorder = BorderFactory.createCompoundBorder(fractionLine, padding);
 		final CompoundBorder compoundBorder = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0), underlinePaddingBorder);
 		resultKaLabel.setBorder(BorderFactory.createCompoundBorder(fractionLine, compoundBorder));
@@ -69,7 +72,7 @@ class AlliterationResultsPanel extends AbstractResultsPanel implements ResultsPa
 		JPanel fraction = new JPanel(new BorderLayout());
 		fraction.setBackground(Color.white);
 		fraction.add(kaSumLabel, BorderLayout.NORTH);
-		fraction.add(totalKaLabel, BorderLayout.SOUTH);
+		fraction.add(versesCountLabel, BorderLayout.SOUTH);
 
 		JPanel equation = new JPanel();
 		equation.setBackground(Color.white);
