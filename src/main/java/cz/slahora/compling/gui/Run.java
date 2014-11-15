@@ -3,7 +3,9 @@ package cz.slahora.compling.gui;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+
 /**
  *
  * Executable class of CompLingGui
@@ -42,8 +44,6 @@ public class Run {
 
 		final Application application = new Application(appContext);
 
-
-
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
@@ -54,8 +54,14 @@ public class Run {
 
 	private static void createAndShowGUI(Application application) {
 		JFrame frame = application.createFrame();
-		frame.setSize(800, 600);
+		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+		int width = gd.getDisplayMode().getWidth();
+		int height = gd.getDisplayMode().getHeight();
+
+		int windowWidth =  (int)(width * 0.85);
+		int windowHeight = (int)(height * 0.85);
+		frame.setSize(windowWidth, windowHeight);
 		frame.setVisible(true);
-		frame.setExtendedState(Frame.MAXIMIZED_VERT);
+
 	}
 }
