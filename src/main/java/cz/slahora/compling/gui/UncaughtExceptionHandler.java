@@ -1,11 +1,14 @@
 package cz.slahora.compling.gui;
 
+import cz.slahora.compling.gui.utils.IconUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.File;
@@ -18,12 +21,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * Handler for catching exceptions. Displays dialog and logs the stack trace to compLingGuiError.log file
  *
- * <dl>
- * <dt>Created by:</dt>
- * <dd>slaha</dd>
- * <dt>On:</dt>
- * <dd> 14.4.14 8:57</dd>
- * </dl>
  */
 public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 	private static final File LOG_FILE = new File(System.getProperty("user.home") + File.separator + "compLingGuiError.log");
@@ -98,9 +95,32 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 		};
 		panel.setBorder(BORDER);
 
-		JOptionPane pane = new JOptionPane(allScroll, JOptionPane.ERROR_MESSAGE, JOptionPane.DEFAULT_OPTION);
+		final JButton okay = new JButton("Ok", IconUtils.getIcon(IconUtils.Icon.OK));
+		final JButton kill = new JButton("Ukončit aplikaci", IconUtils.getIcon(IconUtils.Icon.EXIT));
 
-		JDialog dialog = pane.createDialog("Neočekávaná chyba");
+		final JOptionPane pane = new JOptionPane(allScroll, JOptionPane.ERROR_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, new Object[] {okay, kill});
+		final JDialog dialog = pane.createDialog("Neočekávaná chyba");
+
+		okay.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dialog.setVisible(false);
+			}
+		});
+
+		kill.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				final int value = JOptionPane.showConfirmDialog(dialog, "Opravdu ukončit aplikaci?", "Ukončení aplikace", JOptionPane.YES_NO_OPTION);
+				if (value == JOptionPane.YES_OPTION) {
+					dialog.setVisible(false);
+					System.exit(-1);
+				}
+			}
+		});
+
+
 		dialog.setResizable(true);
 
 		dialog.addComponentListener(new ComponentAdapter() {

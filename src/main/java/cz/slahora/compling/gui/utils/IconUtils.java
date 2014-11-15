@@ -27,6 +27,7 @@ public class IconUtils {
 		NEXT("next.png"),
 
 
+		OK("ok.png"),
 		CANCEL("cancel.png"),
 		CLOSE("close.png"),
 		CLOSE_HOVERED("close-hovered.png"),
