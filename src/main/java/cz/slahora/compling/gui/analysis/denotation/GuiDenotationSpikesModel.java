@@ -29,9 +29,6 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 
 	private final IDenotation denotation;
 
-	/** no. of current spike (used for creating new spike) */
-	private int currentSpike;
-
 	public GuiDenotationSpikesModel(IDenotation denotation) {
 		this.denotation = denotation;
 	}
@@ -218,7 +215,6 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 				}
 
 			}
-			spikesModel.currentSpike = maxNumber;
 		}
 	}
 }

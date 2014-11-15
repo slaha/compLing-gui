@@ -6,10 +6,9 @@ import cz.compling.model.denotation.GuiPoemAsSpikeNumbers;
 import cz.compling.model.denotation.Spike;
 import cz.slahora.compling.gui.MultipleLinesLabel;
 import cz.slahora.compling.gui.analysis.ToggleHeader;
+import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.utils.GraphUtils;
-import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
-import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
+import cz.slahora.compling.gui.utils.*;
 import org.apache.commons.lang.text.StrBuilder;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
@@ -21,6 +20,7 @@ import org.javatuples.Pair;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXTable;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
@@ -28,6 +28,9 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -48,6 +51,7 @@ public class GuiDenotationResults {
 	private final GuiDenotationResultsModel model;
 	private final JPanel panel;
 	private Viewer graphViewer;
+	private Graph graph;
 
 	public GuiDenotationResults(WorkingText text, IDenotation denotation) {
 		this.text = text;
@@ -220,10 +224,13 @@ public class GuiDenotationResults {
 			}
 		});
 
+		JButton saveGraphButton = new JButton("Uložit jako obrázek PNG");
+
 		JPanel graphSettingPanel = new JPanel(new BorderLayout());
 		graphSettingPanel.setBorder(new EmptyBorder(10, 20, 10,20));
 		graphSettingPanel.add(alphaPanel, BorderLayout.NORTH);
-		graphSettingPanel.add(autoLayoutCheckBox, BorderLayout.SOUTH);
+		graphSettingPanel.add(autoLayoutCheckBox, BorderLayout.CENTER);
+		graphSettingPanel.add(saveGraphButton, BorderLayout.SOUTH);
 
 		panel.add(
 			graphSettingPanel,
@@ -234,6 +241,31 @@ public class GuiDenotationResults {
 		graphPanel.setLayout(new BorderLayout());
 		graphPanel.setPreferredSize(new Dimension(100, 900));
 
+		saveGraphButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				final BufferedImage image = ScreenImage.createImage(graphPanel);
+
+				File lastDir = LastDirectory.getInstance().getLastDirectory();
+				final File imageFile = FileChooserUtils.getFileToSave(lastDir, panel, "png");
+				if (imageFile == null) {
+					return;
+				}
+				try{
+					if (imageFile.createNewFile()) {
+						ImageIO.write(image, "png", imageFile);
+					} else {
+						throw new IOException("Cannot create file " + imageFile);
+					}
+				}catch(Exception ex){
+					JOptionPane.showMessageDialog(panel, "Nepovedlo se uložit graf", "Chyba", JOptionPane.ERROR_MESSAGE);
+					ex.printStackTrace();
+				}
+			}
+		});
+
+
 		panel.add(
 			graphPanel,
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.BOTH).weightX(1).weightY(1).anchor(GridBagConstraints.NORTH).build()
@@ -243,15 +275,17 @@ public class GuiDenotationResults {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 
+				graphViewer = null;
 				autoLayoutCheckBox.setSelected(true);
 
 				final double alpha = (Double)alphaSpinner.getModel().getValue();
-				Graph graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()), alpha);
+				graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()), alpha);
 				graphViewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
 				graphViewer.enableAutoLayout();
 				final View view = graphViewer.addDefaultView(false);
 				graphPanel.removeAll();
 				graphPanel.add(view, BorderLayout.CENTER);
+				graphPanel.validate();
 			}
 		};
 		alphaSpinner.addChangeListener(alphaChangeListener);
