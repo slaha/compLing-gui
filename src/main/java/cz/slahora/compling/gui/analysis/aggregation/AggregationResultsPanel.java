@@ -13,6 +13,7 @@ import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
@@ -98,12 +99,19 @@ class AggregationResultsPanel extends AbstractResultsPanel implements ResultsPan
 		renderer.setSeriesShapesVisible(1, false);
 		plot.setRenderer(renderer);
 
+		final NumberAxis domainAxis = (NumberAxis) plot.getDomainAxis();
+		domainAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+		domainAxis.setRange(new Range(1, model.getAggregationShifts() + 1));
+
 		final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-		rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-		rangeAxis.setNumberFormatOverride(new DecimalFormat("#,###"));
+		double min = Math.floor(model.getMinChartValue()) - 1;
+		double max = Math.ceil(model.getMaxChartValue()) + 1;
+		rangeAxis.setRange(new Range(min, max));
+
 		StandardXYToolTipGenerator avgToolTipGenerator = new StandardXYToolTipGenerator("Agregace pro vzdálenost {1}. Průměrná podobnost Si = {2}", NUMBER_FORMAT, NUMBER_FORMAT);
-		StandardXYToolTipGenerator approxToolTipGenerator = new StandardXYToolTipGenerator("Agregace pro vzdálenost {1}. Aproximovaná podobnost Ŝi = {2}", NUMBER_FORMAT, NUMBER_FORMAT);
 		renderer.setSeriesToolTipGenerator(0, avgToolTipGenerator);
+
+		StandardXYToolTipGenerator approxToolTipGenerator = new StandardXYToolTipGenerator("Agregace pro vzdálenost {1}. Aproximovaná podobnost Ŝi = {2}", NUMBER_FORMAT, NUMBER_FORMAT);
 		renderer.setSeriesToolTipGenerator(1, approxToolTipGenerator);
 
 		return chart;

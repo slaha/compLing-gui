@@ -12,10 +12,13 @@ class AggregationModelSingleText implements AggregationModel {
 	private final AggregationMath math;
 	private final int N;
 
+	private double maxChartValue;
+	private double minChartValue;
+
 	public AggregationModelSingleText(String textName, IAggregation aggregation) {
 		this.textName = textName;
-		this.math = new AggregationMath(aggregation.getAggregation());
-		this.N = Math.min(AGGREGATION_N, aggregation.getAggregation().getMaxDistance());
+		this.N = Math.min(AGGREGATION_N, aggregation.getAggregations().getMaxDistance());
+		this.math = new AggregationMath(N, aggregation.getAggregations());
 	}
 
 	public int getCountOfTexts() {
@@ -52,14 +55,32 @@ class AggregationModelSingleText implements AggregationModel {
 		XYSeries avg = new XYSeries("avg");
 		XYSeries approx = new XYSeries("approx");
 
+		maxChartValue = Double.MIN_VALUE;
+		minChartValue = Double.MAX_VALUE;
+
 		for (int shift = 1; shift <= N; shift++) {
-			avg.add(shift, math.computeAvgSimilarity(shift));
-			approx.add(shift, math.computeApproximatedSimilarity(N, shift));
+			final double value = math.computeAvgSimilarity(shift);
+			final double approximation = math.computeApproximatedSimilarity(N, shift);
+			avg.add(shift, value);
+			approx.add(shift, approximation);
+
+			maxChartValue = Math.max(maxChartValue, Math.max(value, approximation));
+			minChartValue = Math.min(minChartValue, Math.min(value, approximation));
 		}
 
 		dataset.addSeries(avg);
 		dataset.addSeries(approx);
 
 		return dataset;
+	}
+
+	@Override
+	public double getMaxChartValue() {
+		return maxChartValue;
+	}
+
+	@Override
+	public double getMinChartValue() {
+		return minChartValue;
 	}
 }

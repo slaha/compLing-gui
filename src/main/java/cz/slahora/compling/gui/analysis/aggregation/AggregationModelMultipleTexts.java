@@ -1,8 +1,8 @@
 package cz.slahora.compling.gui.analysis.aggregation;
 
 import cz.compling.analysis.analysator.poems.aggregation.IAggregation;
-import cz.compling.model.Aggregation;
 import cz.compling.model.AggregationMath;
+import cz.compling.model.Aggregations;
 import cz.slahora.compling.gui.model.WorkingText;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -17,21 +17,24 @@ public class AggregationModelMultipleTexts implements AggregationModel {
 	private AggregationMath math;
 	private final int N;
 
+	private double maxChartValue;
+	private double minChartValue;
+
 	public AggregationModelMultipleTexts(String name, Map<WorkingText, IAggregation> aggregations) {
 		super();
 		this.name = name;
 		this.aggregations = aggregations;
 		final Collection<IAggregation> iAggregations = aggregations.values();
 		
-		final Aggregation[] agg = new Aggregation[iAggregations.size()];
+		final Aggregations[] agg = new Aggregations[iAggregations.size()];
 		int i = 0;
 		int n = AGGREGATION_N;
 		for (IAggregation iAggregation : iAggregations) {
-			agg[i++] = iAggregation.getAggregation();
-			n = Math.min(n, iAggregation.getAggregation().getMaxDistance());
+			agg[i++] = iAggregation.getAggregations();
+			n = Math.min(n, iAggregation.getAggregations().getMaxDistance());
 		}
-		this.math = new AggregationMath(agg);
 		this.N = n;
+		this.math = new AggregationMath(N, agg);
 	}
 
 	@Override
@@ -71,14 +74,32 @@ public class AggregationModelMultipleTexts implements AggregationModel {
 		XYSeries avg = new XYSeries("avg");
 		XYSeries approx = new XYSeries("approx");
 
+		maxChartValue = Double.MIN_VALUE;
+		minChartValue = Double.MAX_VALUE;
+
 		for (int shift = 1; shift <= AGGREGATION_N; shift++) {
-			avg.add(shift, math.computeAvgSimilarity(shift));
-			approx.add(shift, math.computeApproximatedSimilarity(AGGREGATION_N, shift));
+			final double value = math.computeAvgSimilarity(shift);
+			avg.add(shift, value);
+			final double approximation = math.computeApproximatedSimilarity(AGGREGATION_N, shift);
+			approx.add(shift, approximation);
+
+			maxChartValue = Math.max(maxChartValue, Math.max(value, approximation));
+			minChartValue = Math.min(minChartValue, Math.min(value, approximation));
 		}
 
 		dataset.addSeries(avg);
 		dataset.addSeries(approx);
 
 		return dataset;
+	}
+
+	@Override
+	public double getMaxChartValue() {
+		return maxChartValue;
+	}
+
+	@Override
+	public double getMinChartValue() {
+		return minChartValue;
 	}
 }

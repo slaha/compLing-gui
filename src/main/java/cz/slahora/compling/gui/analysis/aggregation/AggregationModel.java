@@ -16,4 +16,8 @@ interface AggregationModel {
 	double getCoefficientD();
 
 	XYDataset getChartDataset();
+
+	double getMaxChartValue();
+
+	double getMinChartValue();
 }
