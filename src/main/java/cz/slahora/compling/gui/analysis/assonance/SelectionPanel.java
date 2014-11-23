@@ -1,0 +1,128 @@
+package cz.slahora.compling.gui.analysis.assonance;
+
+import cz.compling.CompLing;
+import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.utils.IconUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Map;
+
+class SelectionPanel implements ActionListener {
+
+	private static final String ACTION = "action";
+
+	private JPanel left;
+	private JPanel right;
+
+	private final Component parent;
+	private final Map<WorkingText, CompLing> texts;
+	private final Selections selections;
+	private JDialog dialog;
+
+	SelectionPanel(Component parent, Map<WorkingText, CompLing> texts, Selections selections) {
+		this.parent = parent;
+		this.texts = texts;
+		this.selections = selections;
+	}
+
+	int showSelectionsPanel( ) {
+
+		left = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1;
+		c.gridx = 0;
+
+		right = new JPanel(new GridBagLayout());
+		right.setPreferredSize(new Dimension(400, 400));
+
+		JButton add = new JButton(IconUtils.getIcon(IconUtils.Icon.ADD));
+		add.putClientProperty(ACTION, "add");
+
+		left.add(add, c);
+		add.addActionListener(this);
+
+		for (final Map.Entry<WorkingText, CompLing> e : texts.entrySet()) {
+			final WorkingText workingText = e.getKey();
+			JButton button = new JButton(workingText.getName());
+			button.putClientProperty(ACTION, "add_to_group");
+			button.putClientProperty("text", workingText);
+			button.addActionListener(this);
+			left.add(button, c);
+		}
+
+		GridBagConstraints cc = (GridBagConstraints)c.clone();
+		cc.weighty = 1;
+		cc.fill = GridBagConstraints.BOTH;
+		left.add(new JPanel(), cc);
+
+		final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+
+		JPanel allPane = new JPanel(new BorderLayout());
+		allPane.add(splitPane, BorderLayout.NORTH);
+
+		JPanel buttonsPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		JButton ok = new JButton("OK");
+		ok.putClientProperty(ACTION, "ok");
+		ok.addActionListener(this);
+		buttonsPane.add(ok);
+		JButton cancel = new JButton("Cancel");
+		cancel.putClientProperty(ACTION, "cancel");
+		cancel.addActionListener(this);
+		buttonsPane.add(cancel);
+		allPane.add(buttonsPane, BorderLayout.SOUTH);
+
+		dialog = new JDialog((Frame)null, true);
+		dialog.setContentPane(allPane);
+		dialog.setResizable(true);
+		dialog.pack();
+		dialog.setVisible(true);
+
+		dialog.dispose();
+		return allPane.getClientProperty("result") != null ? JOptionPane.OK_OPTION : JOptionPane.CANCEL_OPTION;
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		JComponent source = (JComponent) e.getSource();
+		final String action = (String) source.getClientProperty(ACTION);
+
+		if ("add".equals(action)) {
+
+			final String name = JOptionPane.showInputDialog(parent, "Zadejte jméno nového výběru", "Jméno výběru", JOptionPane.QUESTION_MESSAGE);
+			if (StringUtils.isNotBlank(name)) {
+				selections.addNewName(name);
+
+				JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+				panel.setBorder(BorderFactory.createTitledBorder(name));
+				right.putClientProperty(name, panel);
+				right.add(panel);
+				right.revalidate();
+			}
+
+		} else if ("add_to_group".equals(action)) {
+
+			WorkingText workingText = (WorkingText) source.getClientProperty("text");
+			final String o = (String) JOptionPane.showInputDialog(parent, "Zvolte výběr pro " + workingText.getName(), null, JOptionPane.QUESTION_MESSAGE, null, selections.getAllNames(), null);
+			if (o != null) {
+				selections.addTo(o, workingText, workingText.getCompLing());
+				left.remove(source);
+				left.repaint();
+
+				JPanel targetPanel = (JPanel) right.getClientProperty(o);
+				targetPanel.add(source);
+				targetPanel.revalidate();
+			}
+		} else if ("ok".equals(action)) {
+			((JComponent)dialog.getContentPane()).putClientProperty("result", 1);
+			dialog.setVisible(false);
+		} else if ("cancel".equals(action)) {
+			dialog.setVisible(false);
+		}
+
+	}
+}

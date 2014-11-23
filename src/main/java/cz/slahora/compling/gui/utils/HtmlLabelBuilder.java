@@ -79,13 +79,23 @@ public class HtmlLabelBuilder {
 		return this;
 	}
 
-	public HtmlLabelBuilder text(String text) {
-		builder.append(text);
+	public HtmlLabelBuilder text(String text, Object...args) {
+		builder.append(String.format(text, args));
 		return this;
 	}
 
 	public HtmlLabelBuilder sub(String subText) {
 		builder.append("<sub>").append(subText).append("</sub>");
+		return this;
+	}
+
+	public HtmlLabelBuilder sup(String supText) {
+		builder.append("<sup>").append(supText).append("</sup>");
+		return this;
+	}
+
+	public HtmlLabelBuilder i(String text, Object...args) {
+		builder.append("<i>").append(String.format(text, args)).append("</i>");
 		return this;
 	}
 }

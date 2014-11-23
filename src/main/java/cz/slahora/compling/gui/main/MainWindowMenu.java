@@ -5,6 +5,7 @@ import cz.slahora.compling.gui.about.Licence;
 import cz.slahora.compling.gui.analysis.aggregation.AggregationMultipleTexts;
 import cz.slahora.compling.gui.analysis.aggregation.AggregationSingleText;
 import cz.slahora.compling.gui.analysis.alliteration.AlliterationAnalysis;
+import cz.slahora.compling.gui.analysis.assonance.AssonanceMultipleAnalysis;
 import cz.slahora.compling.gui.analysis.character.CharacterMultipleTextsAnalysis;
 import cz.slahora.compling.gui.analysis.character.CharacterSingleTextAnalysis;
 import cz.slahora.compling.gui.analysis.denotation.DenotationSingleTextAnalysis;
@@ -45,6 +46,7 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 	private static final int ALLITERATION = 30;
 	private static final int AGGREGATION_ONE = 35;
 	private static final int AGGREGATION_ALL = 36;
+	private static final int ASSONANCE_ALL = 41;
 	private static final int DENOTATION = 99;
 	private static final int APP_SETTINGS = 100;
 	private static final int APP_ABOUT = 101;
@@ -102,6 +104,9 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 		JMenuItem alliteration = createMenuItem("Aliterace pro text '%s'", ALLITERATION, null);
 		analyzeMenu.add(alliteration);
 		forActualTextMenus.add(alliteration);
+
+		JMenuItem assonance = createMenuItem("Asonance", ASSONANCE_ALL, null);
+		analyzeMenu.add(assonance);
 
 		JMenu aggregation = new JMenu("Agregace");
 		createAggregationMenu(aggregation);
@@ -180,6 +185,10 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 			case ALLITERATION:
 				controller.analyse(new AlliterationAnalysis());
+				break;
+
+			case ASSONANCE_ALL:
+				controller.analyse(new AssonanceMultipleAnalysis());
 				break;
 
 			case AGGREGATION_ONE:

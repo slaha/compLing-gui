@@ -21,7 +21,7 @@ public class WorkingText {
 
 	private final String name;
 	private String text;
-	private String id;
+	private final String id;
 
 	public WorkingText(String name, String text) {
 		this.id = UUID.randomUUID().toString();
@@ -57,4 +57,5 @@ public class WorkingText {
 	public String toString() {
 		return getName();
 	}
+
 }
