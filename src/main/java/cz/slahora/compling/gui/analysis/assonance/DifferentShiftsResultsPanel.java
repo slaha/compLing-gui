@@ -80,25 +80,26 @@ class DifferentShiftsResultsPanel extends AbstractResultsPanel implements Result
 
 					if (anovaResult.getTestMethodResult() == TestMethodResult.H0_REJECTED) {
 
-						final ScheffeResult scheffeResult = model.getScheffeResult(ALPHA);
-						final WorkingText[] texts = model.getPoemNames();
+						final int n = (int) anovaResult.getSeDegreesOfFreedom();
+						final int k = (int) anovaResult.getSaDegreesOfFreedom();
+						final ScheffeResult scheffeResult = model.getScheffeResult(ALPHA, n, k);
 
-						components.addAll(doScheffe(scheffeResult, texts));
+						components.addAll(doScheffe(scheffeResult));
 					}
 
 					break;
 				case H0_REJECTED:
-
 
 					KruskalWallisResult kwResult = model.getKruskalWallisResult(ALPHA);
 					components = createKruskalWallisLayout(kwResult);
 
 					if (kwResult.getTestMethodResult() == TestMethodResult.H0_REJECTED) {
 
-						final ScheffeResult scheffeResult = model.getScheffeResult(ALPHA);
-						final WorkingText[] texts = model.getPoemNames();
+						final int n = (int) kwResult.getN();
+						final int k = (int) kwResult.getK();
+						final ScheffeResult scheffeResult = model.getScheffeResult(ALPHA, n, k);
 
-						components.addAll(doScheffe(scheffeResult, texts));
+						components.addAll(doScheffe(scheffeResult));
 					}
 
 					label = new HtmlLabelBuilder().b("Na hladině významnosti α=" + ALPHA +  " zamítáme nulovou hypotézu o rovnosti rozptylů.").build();
@@ -233,15 +234,24 @@ class DifferentShiftsResultsPanel extends AbstractResultsPanel implements Result
 		return components;
 	}
 
-	private List<JComponent> doScheffe(ScheffeResult scheffeResult, WorkingText[] groupsNames) {
+	private List<JComponent> doScheffe(ScheffeResult scheffeResult) {
 		List<JComponent> components = new ArrayList<JComponent>();
 
-		Object[][] values = scheffeResult.getValues(groupsNames);
+		final String lbl = "Posun o %d";
+		ScheffeResult.ScheffeLabel scheffeLabel = new ScheffeResult.ScheffeLabel() {
+			@Override
+			public String labelFor(int column) {
+				return String.format(lbl, column);
+			}
+		};
+		Object[][] values = scheffeResult.getValues(scheffeLabel);
 
 		final int length = values[0].length;
 		Object[] headline = new Object[length];
 		headline[0] = "";
-		System.arraycopy(groupsNames, 1, headline, 1, length - 1);
+		for (int i = 1; i < length; i++) {
+			headline[i] = scheffeLabel.labelFor(i + 1);
+		}
 		final JTable jTable = new JTable(values, headline);
 
 		final List<ScheffeTest.Difference> differences = scheffeResult.getDifferences();
@@ -262,7 +272,6 @@ class DifferentShiftsResultsPanel extends AbstractResultsPanel implements Result
 		header.setDefaultRenderer(new HeaderCellRenderer());
 		jTable.setTableHeader(header);
 		jTable.setRowHeight((int) (jTable.getRowHeight() * 1.4));
-		header.setDefaultRenderer(new HeaderCellRenderer());
 
 		JLabel scheffeResultsTableHeadline = new HtmlLabelBuilder().hx(2, "Schéffeho metoda").build();
 
@@ -276,8 +285,8 @@ class DifferentShiftsResultsPanel extends AbstractResultsPanel implements Result
 			components.add(differentPoems);
 
 			for (ScheffeTest.Difference d : differences) {
-				String name1 = groupsNames[d.getRowIndex()].getName();
-				String name2 = groupsNames[d.getColumnIndex() + 1].getName();
+				String name1 = values[d.getRowIndex()][0].toString();
+				String name2 = headline[d.getColumnIndex() + 1].toString();
 
 				JLabel l = new JLabel("    • " + name1 + " a " + name2);
 

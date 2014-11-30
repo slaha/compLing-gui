@@ -1,7 +1,6 @@
 package cz.slahora.compling.gui.analysis.assonance;
 
 import cz.compling.model.ScheffeTest;
-import cz.slahora.compling.gui.model.WorkingText;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
@@ -15,14 +14,14 @@ class ScheffeResult {
 		this.differences = sheffe.getDifferentPairs();
 	}
 
-	public Object[][] getValues(WorkingText[] groupsNames) {
+	public Object[][] getValues(ScheffeLabel firstColumnLabel) {
 
 		final Object[][] res = new Object[values.length][];
 
 		for (int i = 0; i < values.length; i++) {
 			double[] row = values[i];
 			Object[] newRow = new Object[row.length + 1];
-			newRow[0] = groupsNames[i];
+			newRow[0] = firstColumnLabel.labelFor(i + 1);
 			final Double[] doubles = ArrayUtils.toObject(row);
 			System.arraycopy(doubles, 0, newRow, 1, doubles.length);
 			res[i] = newRow;
@@ -33,5 +32,10 @@ class ScheffeResult {
 
 	public List<ScheffeTest.Difference> getDifferences() {
 		return differences;
+	}
+
+	public interface ScheffeLabel {
+
+		String labelFor(int column);
 	}
 }

@@ -6,6 +6,7 @@ class KruskalWallisResult {
 
 	private final double q;
 	private final double k;
+	private final double n;
 
 	private final double criticalValue;
 	private final TestMethodResult testMethodResult;
@@ -16,6 +17,7 @@ class KruskalWallisResult {
 
 		q = kw.getQ();
 		k = kw.getK();
+		n = kw.getN();
 		rankedValues = kw.getRankedValues();
 
 		this.criticalValue = criticalValue;
@@ -30,6 +32,10 @@ class KruskalWallisResult {
 
 	public double getK() {
 		return k;
+	}
+
+	public double getN() {
+		return n;
 	}
 
 	public double getCriticalValue() {

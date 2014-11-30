@@ -121,18 +121,16 @@ class DifferentShiftsModel {
 		return new AnovaResult(anova, criticalValue);
 	}
 
-	private ScheffeTest getSheffe(double alpha) {
+	private ScheffeTest getSheffe(double alpha, int k, int n) {
 		if (this.scheffe == null) {
 			final AnovaTest a = getAnova();
-			final int k = (int) a.getSaDegreesOfFreedom();
-			final int n = (int) a.getSeDegreesOfFreedom();
 			this.scheffe = new ScheffeTest(getTestData(), k, n, alpha);
 		}
 		return scheffe;
 	}
 
-	public ScheffeResult getScheffeResult(double alpha) {
-		final ScheffeTest sheffe = getSheffe(alpha);
+	public ScheffeResult getScheffeResult(double alpha, int n, int k) {
+		final ScheffeTest sheffe = getSheffe(alpha, k, n);
 
 		return new ScheffeResult(sheffe);
 	}
