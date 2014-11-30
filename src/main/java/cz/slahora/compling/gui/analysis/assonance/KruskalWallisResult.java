@@ -1,6 +1,9 @@
 package cz.slahora.compling.gui.analysis.assonance;
 
 import cz.compling.model.KruskalWallisTest;
+import cz.compling.model.TestData;
+
+import java.util.Arrays;
 
 class KruskalWallisResult {
 
@@ -46,33 +49,42 @@ class KruskalWallisResult {
 		return testMethodResult;
 	}
 
-	public Object[][] getRankedTable() {
+	public Object[][] getRankedTable(TableLabels labels) {
 		Object[][] result = new Object[rankedValues.length][];
-
-		final int rowLength = getRowLength() + 1;
 
 		for (int i = 0; i < rankedValues.length; i++) {
 			double[] r = rankedValues[i];
+			final int rowLength = r.length + 1;
 			final Object[] newRow = new Object[rowLength];
 			result[i] = newRow;
-			newRow[0] = (i + 1) + ". výběr";
-			for (int j = 1; j < r.length - 3; j++) {
+			newRow[0] = labels.labelFor(i+1);
+			for (int j = 1; j <= r.length - 3; j++) {
 				newRow[j] = r[j - 1];
 			}
-			for (int j = 0; j < 3; j++) {
+			for (int j = 1; j <= 3; j++) {
 				newRow[newRow.length - j] = r[r.length - j];
 			}
 		}
 		return result;
 	}
 
-	private int getRowLength() {
-		int max = rankedValues[0].length;
+	public static void main(String[] args) {
+		double[][] values = new double[][] {
+			{ 55, 54, 58, 61, 52, 60, 53, 65 },
+			{ 52, 50, 51, 51, 49 },
+			{ 47, 53, 49, 50, 46, 48, 50 } };
+		TestData td = new TestData(values);
+		KruskalWallisTest kw = new KruskalWallisTest(td);
 
-		for (double[] r : rankedValues) {
-			max = Math.max(max, r.length);
+		KruskalWallisResult result = new KruskalWallisResult(kw, 1);
+		TableLabels l = new TableLabels() {
+			@Override
+			public String labelFor(int index) {
+				return index + ". výběr";
+			}
+		};
+		for (Object[] objects : result.getRankedTable(l)) {
+			System.out.println(Arrays.toString(objects));
 		}
-
-		return max;
 	}
 }

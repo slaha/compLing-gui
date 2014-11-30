@@ -6,12 +6,14 @@ import cz.slahora.compling.gui.model.WorkingText;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.FDistribution;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-class DifferentShiftsModel {
-
+class OneShiftModel {
+	private final int shift;
+	private final Selections selections;
+	private final String[] vocals;
 	private final Map<WorkingText, Assonance> assonances;
-	private final int maxSteps;
 
 	private TestData testData;
 	private BartlettTest bartlettTest;
@@ -19,8 +21,11 @@ class DifferentShiftsModel {
 	private ScheffeTest scheffe;
 	private KruskalWallisTest kruskalWallis;
 
-	public DifferentShiftsModel(Map<WorkingText, CompLing> texts, String[] vocals, int maxSteps) {
-		this.maxSteps = maxSteps;
+	public OneShiftModel(int shift, Selections selections, Map<WorkingText, CompLing> texts, String[] vocals) {
+		this.shift = shift;
+		this.selections = selections;
+		this.vocals = vocals;
+
 		assonances = new LinkedHashMap<WorkingText, Assonance>(texts.size());
 
 		for (Map.Entry<WorkingText, CompLing> e : texts.entrySet()) {
@@ -30,32 +35,8 @@ class DifferentShiftsModel {
 		}
 	}
 
-	public WorkingText[] getPoemNames() {
-		Set<WorkingText> workingTexts = assonances.keySet();
-		return workingTexts.toArray(new WorkingText[workingTexts.size()]);
-	}
-
-	public int getAssonanceFor(WorkingText text, int shift) {
-		final Assonance assonance = assonances.get(text);
-		if (assonance == null) {
-			throw new IllegalArgumentException(text + " not found in assonances table");
-		}
-
-		if (shift > assonance.getMaxStep()) {
-			throw new IllegalArgumentException("shift " + shift + " too big. Max shift for text " + text + " is " + assonance.getMaxStep());
-		}
-		return assonance.getAssonanceFor(shift);
-	}
-
-	public int getLowestMaxStep() {
-		int lowestMaxStep = Integer.MAX_VALUE;
-		for (Assonance a : assonances.values()) {
-			int max = a.getMaxStep();
-			if (max < lowestMaxStep) {
-				lowestMaxStep = max;
-			}
-		}
-		return Math.min(maxSteps, lowestMaxStep);
+	public int getShift() {
+		return shift;
 	}
 
 	public boolean isTestingPossible() {
@@ -67,28 +48,25 @@ class DifferentShiftsModel {
 		return true;
 	}
 
-	public BartlettResult getBartlettResult(double alpha) {
-		final int degreesOfFreedom = getTestData().getGroupsCount() - 1;
-		final ChiSquaredDistribution chi = new ChiSquaredDistribution(degreesOfFreedom);
-
-		final double b = getBartlett().getB();
-		final double criticalValue = chi.inverseCumulativeProbability(alpha);
-
-		return new BartlettResult(b, criticalValue, getTestData().getGroupsCount());
+	public String getVocalText(int shift) {
+		return (shift == 1 ? "vokál" : shift >= 5 ? "vokálů" : "vokály");
 	}
 
 	private TestData getTestData() {
 		if (this.testData == null) {
-			double[][] values = new double[maxSteps][assonances.size()];
+			final String[] groupsNames = selections.getAllNames();
+			int groupsCount = groupsNames.length;
+			double[][] values = new double[groupsCount][];
 
-			final Collection<Assonance> entries = assonances.values();
-			List<Assonance> aList = new ArrayList<Assonance>(entries);
-
-			for (int poem = 0; poem < aList.size(); poem++) {
-				Assonance assonance = aList.get(poem);
-				for (int shift = 0; shift < maxSteps; shift++) {
-					values[shift][poem] = assonance.getAssonanceFor(shift + 1);
+			for (int group = 0; group < groupsCount; group++) {
+				final Selections.Selection selection = selections.getGroup(groupsNames[group]);
+				int size = selection.getSize();
+				double v[] = new double[size];
+				int index = 0;
+				for (Map.Entry<WorkingText, CompLing> entry : selection) {
+					v[index++] = assonances.get(entry.getKey()).getAssonanceFor(shift);
 				}
+				values[group] = v;
 			}
 			this.testData = new TestData(values);
 		}
@@ -100,6 +78,16 @@ class DifferentShiftsModel {
 			this.bartlettTest = new BartlettTest(getTestData());
 		}
 		return bartlettTest;
+	}
+
+	public BartlettResult getBartlettResult(double alpha) {
+		final int degreesOfFreedom = getTestData().getGroupsCount() - 1;
+		final ChiSquaredDistribution chi = new ChiSquaredDistribution(degreesOfFreedom);
+
+		final double b = getBartlett().getB();
+		final double criticalValue = chi.inverseCumulativeProbability(alpha);
+
+		return new BartlettResult(b, criticalValue, getTestData().getGroupsCount());
 	}
 
 	private AnovaTest getAnova() {
@@ -150,5 +138,9 @@ class DifferentShiftsModel {
 		final double criticalValue = chi.inverseCumulativeProbability(alpha);
 
 		return new KruskalWallisResult(kw, criticalValue);
+	}
+
+	public String[] getGroupsNames() {
+		return selections.getAllNames();
 	}
 }

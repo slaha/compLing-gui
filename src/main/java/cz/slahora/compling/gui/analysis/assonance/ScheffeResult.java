@@ -14,7 +14,7 @@ class ScheffeResult {
 		this.differences = sheffe.getDifferentPairs();
 	}
 
-	public Object[][] getValues(ScheffeLabel firstColumnLabel) {
+	public Object[][] getValues(TableLabels firstColumnLabel) {
 
 		final Object[][] res = new Object[values.length][];
 
@@ -34,8 +34,4 @@ class ScheffeResult {
 		return differences;
 	}
 
-	public interface ScheffeLabel {
-
-		String labelFor(int column);
-	}
 }

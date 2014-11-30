@@ -143,7 +143,8 @@
           </grid>
           <grid id="16c40" layout-manager="FormLayout">
             <rowspec value="center:28px:noGrow"/>
-            <rowspec value="fill:max(d;4px):grow"/>
+            <rowspec value="top:4dlu:noGrow"/>
+            <rowspec value="fill:d:grow"/>
             <colspec value="fill:max(p;150px):grow"/>
             <constraints>
               <splitpane position="left"/>
@@ -163,17 +164,24 @@
                   <text value="+"/>
                 </properties>
               </component>
-              <grid id="28276" binding="tabsPanel" custom-create="true" layout-manager="BorderLayout" hgap="0" vgap="0">
+              <scrollpane id="29221">
                 <constraints>
-                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                  <forms/>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <forms defaultalign-horz="false" defaultalign-vert="false"/>
                 </constraints>
-                <properties>
-                  <minimumSize width="120" height="12"/>
-                </properties>
+                <properties/>
                 <border type="none"/>
-                <children/>
-              </grid>
+                <children>
+                  <grid id="28276" binding="tabsPanel" custom-create="true" layout-manager="BorderLayout" hgap="0" vgap="0">
+                    <constraints/>
+                    <properties>
+                      <minimumSize width="120" height="12"/>
+                    </properties>
+                    <border type="none"/>
+                    <children/>
+                  </grid>
+                </children>
+              </scrollpane>
             </children>
           </grid>
         </children>

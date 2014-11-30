@@ -5,7 +5,6 @@ import cz.slahora.compling.gui.analysis.Analysis;
 import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
 import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.analysis.ResultsHandler;
-import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.panels.ResultsPanel;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
@@ -23,7 +22,7 @@ import java.util.*;
 
 public class AssonanceMultipleAnalysis implements MultipleTextsAnalysis {
 
-	private final static String[] BASE_VOCALS = new String[] { "a", "e", "i", "o", "u", "y" };
+	private final static String[] BASE_VOCALS = new String[] { "a", "á", "e", "é", "i", "í", "o", "ó", "u", "ů", "ú", "y", "ý" };
 	private static final int MAX_STEPS = 15;
 
 	private final Set<String> vocals;
@@ -56,7 +55,7 @@ public class AssonanceMultipleAnalysis implements MultipleTextsAnalysis {
 				if (i != JOptionPane.OK_OPTION) {
 					return;
 				}
-				handler.handleResult(new AssonanceConstantShiftAnalysis(texts, vocals, assonanceType.shift));
+				handler.handleResult(new AssonanceConstantShiftAnalysis(texts, selections, vocals, assonanceType.shift));
 				break;
 		}
 	}
@@ -244,11 +243,13 @@ public class AssonanceMultipleAnalysis implements MultipleTextsAnalysis {
 
 	private class AssonanceConstantShiftAnalysis implements Analysis {
 		private final Map<WorkingText, CompLing> texts;
+		private final Selections selections;
 		private final int shift;
 		private final String[] vocals;
 
-		public AssonanceConstantShiftAnalysis(Map<WorkingText, CompLing> texts, Collection<String> vocals, int shift) {
+		public AssonanceConstantShiftAnalysis(Map<WorkingText, CompLing> texts, Selections selections, Collection<String> vocals, int shift) {
 			this.texts = texts;
+			this.selections = selections;
 			this.shift = shift;
 			this.vocals = vocals.toArray(new String[vocals.size()]);
 		}
@@ -267,17 +268,10 @@ public class AssonanceMultipleAnalysis implements MultipleTextsAnalysis {
 
 				@Override
 				public ResultsPanel getResultPanel() {
-					return new ResultsPanel() {
-						@Override
-						public JPanel getPanel() {
-							return new JPanel();
-						}
 
-						@Override
-						public CsvData getCsvData() {
-							return null;
-						}
-					};
+					OneShiftModel model = new OneShiftModel(shift, selections, texts, vocals);
+
+					return new OneShiftResultsPanel(model);
 				}
 
 				@Override

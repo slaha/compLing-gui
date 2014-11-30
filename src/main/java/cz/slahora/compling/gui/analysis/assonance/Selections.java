@@ -4,18 +4,24 @@ import cz.compling.CompLing;
 import cz.slahora.compling.gui.model.WorkingText;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Selections {
 
 	private final Map<String, Selection> selections;
+	private String[] allNames;
 
 	public Selections() {
-		selections = new HashMap<String, Selection>();
+		selections = new LinkedHashMap<String, Selection>();
 	}
 
 	public String[] getAllNames() {
-		return selections.keySet().toArray(new String[selections.size()]);
+		if (allNames == null || allNames.length != selections.size()) {
+			allNames = selections.keySet().toArray(new String[selections.size()]);
+		}
+		return allNames;
 	}
 
 	public void addNewName(String name) {
@@ -33,7 +39,24 @@ public class Selections {
 		selection.addText(text, compling);
 	}
 
-	static class Selection {
+	public boolean removeFrom(String group, WorkingText workingText) {
+		final Selection selection = selections.get(group);
+		if (selection == null) {
+			return false;
+		}
+		return selection.removeText(workingText) != null;
+	}
+
+	public int getGroupsCount() {
+		return selections.size();
+	}
+
+	public Selection getGroup(String groupName) {
+		return selections.get(groupName);
+
+	}
+
+	static class Selection implements Iterable<Map.Entry<WorkingText, CompLing>> {
 		private final String name;
 
 		private final Map<WorkingText, CompLing> texts;
@@ -45,6 +68,19 @@ public class Selections {
 
 		public void addText(WorkingText text, CompLing compling) {
 			texts.put(text, compling);
+		}
+
+		public CompLing removeText(WorkingText text) {
+			return texts.remove(text);
+		}
+
+		@Override
+		public Iterator<Map.Entry<WorkingText, CompLing>> iterator() {
+			return texts.entrySet().iterator();
+		}
+
+		public int getSize() {
+			return texts.size();
 		}
 	}
 }
