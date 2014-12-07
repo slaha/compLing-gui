@@ -58,7 +58,7 @@ class SelectionPanel implements ActionListener {
 		right = new JPanel(new GridBagLayout());
 
 		JButton add = new JButton(IconUtils.getIcon(IconUtils.Icon.ADD));
-		add.putClientProperty(ACTION, "add");
+		add.putClientProperty(ACTION, "add_new_group");
 
 		left.add(add, LEFT_PANEL_BUTTON_CONSTRAINTS);
 		add.addActionListener(this);
@@ -125,17 +125,20 @@ class SelectionPanel implements ActionListener {
 		JComponent source = (JComponent) e.getSource();
 		final String action = (String) source.getClientProperty(ACTION);
 
-		if ("add".equals(action)) {
+		if ("add_new_group".equals(action)) {
 
 			final String name = JOptionPane.showInputDialog(parent, "Zadejte jméno nového výběru", "Jméno výběru", JOptionPane.QUESTION_MESSAGE);
 			if (StringUtils.isNotBlank(name)) {
 				selections.addNewName(name);
+				lastSelectedGroup = name;
 
 				JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 				panel.setBorder(BorderFactory.createTitledBorder(name));
 				right.putClientProperty(name, panel);
 				right.add(panel, RIGHT_PANEL_CONSTRAINTS);
 				right.revalidate();
+
+				lastSelectedGroup = name;
 			}
 
 		} else if ("add_to_group".equals(action)) {

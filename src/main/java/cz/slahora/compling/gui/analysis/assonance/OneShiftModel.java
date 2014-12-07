@@ -143,4 +143,20 @@ class OneShiftModel {
 	public String[] getGroupsNames() {
 		return selections.getAllNames();
 	}
+
+	public Selections.Selection getGroup(String groupName) {
+		return selections.getGroup(groupName);
+	}
+
+	public double getAssonanceFor(WorkingText text, int shift) {
+		final Assonance assonance = assonances.get(text);
+		if (assonance == null) {
+			throw new IllegalArgumentException(text + " not found in assonances table");
+		}
+
+		if (shift > assonance.getMaxStep()) {
+			throw new IllegalArgumentException("shift " + shift + " too big. Max shift for text " + text + " is " + assonance.getMaxStep());
+		}
+		return assonance.getAssonanceFor(shift);
+	}
 }
