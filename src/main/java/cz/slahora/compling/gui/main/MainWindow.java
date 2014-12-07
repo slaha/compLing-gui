@@ -2,6 +2,7 @@ package cz.slahora.compling.gui.main;
 
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.model.WorkingTexts;
+import cz.slahora.compling.gui.panels.ScrollablePanel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -39,6 +40,7 @@ public class MainWindow implements ActionListener, TabHolder {
 	private JButton newTabButton;
 	private JLabel nameOfOpenedText;
 	private JPanel tabsPanel;
+	private JScrollPane tabsScrollPane;
 
 	public MainWindow(MainWindowController mainWindowController, WorkingTexts texts) {
 		this.controller = mainWindowController;
@@ -66,12 +68,20 @@ public class MainWindow implements ActionListener, TabHolder {
 
 		textArea.getDocument().addDocumentListener(documentListener);
 		textArea.setBorder(new EmptyBorder(2, 7, 2, 7));
+
 	}
 
 	private void createUIComponents() {
 
-		tabsPanel = new JPanel();
+		ScrollablePanel tabsPanel = new ScrollablePanel();
 		tabsPanel.setLayout(new BoxLayout(tabsPanel, BoxLayout.Y_AXIS));
+		tabsPanel.setScrollableWidth( ScrollablePanel.ScrollableSizeHint.FIT );
+		tabsPanel.setScrollableBlockIncrement(
+			ScrollablePanel.VERTICAL, ScrollablePanel.IncrementType.PERCENT, 100);
+
+		this.tabsPanel = tabsPanel;
+		tabsScrollPane = new JScrollPane(tabsPanel);
+		tabsScrollPane.getViewport().setBackground(new Color(237,236,235));
 	}
 
 	@Override

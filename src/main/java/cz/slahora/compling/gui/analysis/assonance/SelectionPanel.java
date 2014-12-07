@@ -2,6 +2,7 @@ package cz.slahora.compling.gui.analysis.assonance;
 
 import cz.compling.CompLing;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.panels.WrapLayout;
 import cz.slahora.compling.gui.utils.IconUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -132,7 +133,7 @@ class SelectionPanel implements ActionListener {
 				selections.addNewName(name);
 				lastSelectedGroup = name;
 
-				JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+				JPanel panel = new JPanel(new WrapLayout(WrapLayout.LEFT));
 				panel.setBorder(BorderFactory.createTitledBorder(name));
 				right.putClientProperty(name, panel);
 				right.add(panel, RIGHT_PANEL_CONSTRAINTS);
