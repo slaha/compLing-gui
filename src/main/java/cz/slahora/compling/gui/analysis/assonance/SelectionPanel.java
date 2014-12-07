@@ -2,6 +2,7 @@ package cz.slahora.compling.gui.analysis.assonance;
 
 import cz.compling.CompLing;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.panels.ScrollablePanel;
 import cz.slahora.compling.gui.panels.WrapLayout;
 import cz.slahora.compling.gui.utils.IconUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +21,7 @@ class SelectionPanel implements ActionListener {
 	private static final String ACTION = "action";
 	private static final String GROUP = "group";
 
-	private JPanel left;
+	private ScrollablePanel left;
 	private JPanel right;
 	private static final GridBagConstraints RIGHT_PANEL_CONSTRAINTS = new GridBagConstraints();
 	private static final GridBagConstraints LEFT_PANEL_BUTTON_CONSTRAINTS = new GridBagConstraints();
@@ -54,14 +55,14 @@ class SelectionPanel implements ActionListener {
 
 	int showSelectionsPanel( ) {
 
-		left = new JPanel(new GridBagLayout());
+		left = new ScrollablePanel(new GridBagLayout());
+		left.setScrollableWidth( ScrollablePanel.ScrollableSizeHint.FIT );
+		left.setScrollableBlockIncrement(ScrollablePanel.VERTICAL, ScrollablePanel.IncrementType.PERCENT, 100);
 
 		right = new JPanel(new GridBagLayout());
 
 		JButton add = new JButton(IconUtils.getIcon(IconUtils.Icon.ADD));
 		add.putClientProperty(ACTION, "add_new_group");
-
-		left.add(add, LEFT_PANEL_BUTTON_CONSTRAINTS);
 		add.addActionListener(this);
 
 		java.util.List<Map.Entry<WorkingText, CompLing>> sortedTexts = new ArrayList<Map.Entry<WorkingText, CompLing>>(texts.entrySet());
@@ -82,8 +83,10 @@ class SelectionPanel implements ActionListener {
 
 
 		JPanel leftContainer = new JPanel(new BorderLayout());
-		leftContainer.add(left, BorderLayout.NORTH);
-		final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(leftContainer), new JScrollPane(right));
+		final JScrollPane leftScrollPane = new JScrollPane(left);
+		leftContainer.add(add, BorderLayout.NORTH);
+		leftContainer.add(leftScrollPane, BorderLayout.CENTER);
+		final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftContainer, new JScrollPane(right));
 		splitPane.setPreferredSize(new Dimension(500, 500));
 		splitPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
