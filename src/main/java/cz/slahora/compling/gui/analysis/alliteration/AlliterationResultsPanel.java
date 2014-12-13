@@ -21,8 +21,11 @@ import java.util.Collection;
 class AlliterationResultsPanel extends AbstractResultsPanel implements ResultsPanel {
 
 	private static final double ALPHA = 0.05d;
+
 	private static final DecimalFormat P_DECIMAL_FORMAT = new DecimalFormat("0.#####");
 	private static final DecimalFormat KA_DECIMAL_FORMAT = new DecimalFormat("0.##");
+
+	private final AlliterationTableModel tableModel;
 
 	public AlliterationResultsPanel(AlliterationModel model) {
 		super(new ResultsScrollablePanel());
@@ -87,7 +90,7 @@ class AlliterationResultsPanel extends AbstractResultsPanel implements ResultsPa
 
 		addToPanel((JComponent) Box.createRigidArea(new Dimension(0, 10)));
 
-		AlliterationTableModel tableModel = new AlliterationTableModel(P_DECIMAL_FORMAT, KA_DECIMAL_FORMAT);
+		tableModel = new AlliterationTableModel(P_DECIMAL_FORMAT, KA_DECIMAL_FORMAT);
 		for (int verse = 1; verse <= versesCount; verse++) {
 			final Collection<String> phonemes = model.getPhonemes(verse);
 			final int n = model.getWordsCountInVerse(verse);
@@ -105,13 +108,30 @@ class AlliterationResultsPanel extends AbstractResultsPanel implements ResultsPa
 
 	@Override
 	public JPanel getPanel() {
-
 		return panel;
 	}
 
 	@Override
 	public CsvData getCsvData() {
-		//TODO implement
-		return null;
+		CsvData data = new CsvData();
+		data.addSection();
+		final CsvData.CsvDataSection section = data.getCurrentSection();
+		section.addHeader("Číslo verše");
+		section.addHeader("Délka verše (počet hlásek)");
+		section.addHeader("Aliterace ve verši");
+		final int rowCount = tableModel.getRowCount();
+		for (int row = 0; row < rowCount; row++) {
+			final AlliterationTableModel.Row tableModelRow = tableModel.getRow(row);
+			if (!tableModelRow.isContainsAlliteration()) {
+				continue;
+			}
+			section.startNewLine();
+			section.addData(tableModelRow.getVerse());
+			section.addData(tableModelRow.getSize());
+			for (Integer alliteration : tableModelRow.getAlliteration()) {
+				section.addData(alliteration);
+			}
+		}
+		return data;
 	}
 }

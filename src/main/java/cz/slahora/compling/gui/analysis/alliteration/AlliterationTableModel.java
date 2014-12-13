@@ -62,6 +62,10 @@ class AlliterationTableModel  extends AbstractTableModel {
 		rows.add(new Row(verse, phonemes, n, ArrayUtils.toObject(k), p, ka));
 	}
 
+	public Row getRow(int row) {
+		return rows.get(row);
+	}
+
 	private static final int VERSE_NUMBER_INDEX = 0;
 	private static final int PHONEMES_INDEX = VERSE_NUMBER_INDEX + 1;
 	private static final int COUNT_OF_WORDS_INDEX = PHONEMES_INDEX + 1;
@@ -69,7 +73,7 @@ class AlliterationTableModel  extends AbstractTableModel {
 	private static final int PROBABILITY_INDEX = OCCURRENCES_INDEX + 1;
 	private static final int KA_INDEX = PROBABILITY_INDEX + 1;
 
-	private class Row {
+	public class Row {
 
 		private final boolean containsAlliteration;
 
@@ -119,6 +123,22 @@ class AlliterationTableModel  extends AbstractTableModel {
 				default:
 					throw new IllegalArgumentException("Cannot get value for columnIndex " + columnIndex);
 			}
+		}
+
+		public boolean isContainsAlliteration() {
+			return containsAlliteration;
+		}
+
+		public int getVerse() {
+			return verse;
+		}
+
+		public Integer[] getAlliteration() {
+			return k;
+		}
+
+		public int getSize() {
+			return n;
 		}
 	}
 }
