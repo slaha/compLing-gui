@@ -180,7 +180,7 @@ class DifferentShiftsResultsPanel extends AbsAssonanceResultsPanel implements Re
 
 		t.setTableHeader(header);
 		t.setRowHeight((int) (t.getRowHeight() * 1.4));
-		header.setDefaultRenderer(new HeaderCellRenderer());
+		header.setDefaultRenderer(new HeaderCellRenderer(t));
 
 		t.getColumnModel().getColumn(0).setCellRenderer(new FirstColumnRenderer());
 

@@ -3,7 +3,6 @@ package cz.slahora.compling.gui.analysis.assonance;
 import cz.compling.model.ScheffeTest;
 import cz.slahora.compling.gui.panels.AbstractResultsPanel;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
-import sun.swing.table.DefaultTableCellHeaderRenderer;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -60,7 +59,7 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 				return d;
 			}
 		};
-		header.setDefaultRenderer(new HeaderCellRenderer());
+		header.setDefaultRenderer(new HeaderCellRenderer(jTable));
 		jTable.setTableHeader(header);
 		jTable.setRowHeight((int) (jTable.getRowHeight() * 1.4));
 
@@ -163,7 +162,7 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 				return d;
 			}
 		};
-		header.setDefaultRenderer(new HeaderCellRenderer());
+		header.setDefaultRenderer(new HeaderCellRenderer(jTable));
 		jTable.setTableHeader(header);
 		jTable.setRowHeight((int) (jTable.getRowHeight() * 1.4));
 
@@ -241,7 +240,7 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 		jTable.getColumnModel().getColumn(0).setCellRenderer(new FirstColumnRenderer());
 		jTable.setTableHeader(header);
 		jTable.setRowHeight((int) (jTable.getRowHeight() * 1.4));
-		header.setDefaultRenderer(new HeaderCellRenderer());
+		header.setDefaultRenderer(new HeaderCellRenderer(jTable));
 
 		return jTable;
 	}
@@ -275,17 +274,25 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 		jTable.getColumnModel().getColumn(0).setCellRenderer(new FirstColumnRenderer());
 		jTable.setTableHeader(header);
 		jTable.setRowHeight((int) (jTable.getRowHeight() * 1.4));
-		header.setDefaultRenderer(new HeaderCellRenderer());
+		header.setDefaultRenderer(new HeaderCellRenderer(jTable));
 
 		return jTable;
 	}
 
-	protected class HeaderCellRenderer extends DefaultTableCellHeaderRenderer {
+	protected class HeaderCellRenderer implements TableCellRenderer {
+
+		DefaultTableCellRenderer renderer;
+
+		public HeaderCellRenderer(JTable table) {
+			renderer = (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
+			renderer.setHorizontalAlignment(JLabel.CENTER);
+		}
+
 		@Override
 		public Component getTableCellRendererComponent(
 			JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
-			DefaultTableCellHeaderRenderer rendererComponent = (DefaultTableCellHeaderRenderer) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			DefaultTableCellRenderer rendererComponent = (javax.swing.table.DefaultTableCellRenderer) renderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
 			rendererComponent.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, LIGHT_GRAY));
 			rendererComponent.setOpaque(true);
