@@ -148,7 +148,7 @@ class DifferentShiftsResultsPanel extends AbsAssonanceResultsPanel implements Re
 	}
 
 	private ResultsTableModel createResultsTableModel(WorkingText[] poemNames, int maxStep) {
-		return new ResultsTableModel(poemNames, maxStep, model, DECIMAL_FORMAT);
+		return new DifferentShiftResultsTableModel(poemNames, maxStep, model, DECIMAL_FORMAT);
 	}
 
 	private JTable createResultsTable(ResultsTableModel model) {
