@@ -40,8 +40,13 @@ class OneShiftModel {
 	}
 
 	public boolean isTestingPossible() {
-		for (Assonance a : assonances.values()) {
-			if (a.getMaxStep() <= 6) {
+
+		final String[] allNames = selections.getAllNames();
+		if (allNames.length < 2) {
+			return false;
+		}
+		for (String name : allNames) {
+			if (selections.getGroup(name).getSize() <= 6) {
 				return false;
 			}
 		}
