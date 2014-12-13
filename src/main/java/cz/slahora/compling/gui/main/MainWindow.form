@@ -149,8 +149,7 @@
             </children>
           </grid>
           <grid id="16c40" layout-manager="FormLayout">
-            <rowspec value="center:28px:noGrow"/>
-            <rowspec value="top:4dlu:noGrow"/>
+            <rowspec value="center:29px:noGrow"/>
             <rowspec value="fill:d:grow"/>
             <colspec value="fill:max(p;150px):grow"/>
             <constraints>
@@ -167,26 +166,27 @@
                 <properties>
                   <borderPainted value="true"/>
                   <defaultCapable value="true"/>
+                  <icon value="list-add.png"/>
                   <preferredSize width="21" height="40"/>
-                  <text value="+"/>
+                  <text value=""/>
                 </properties>
               </component>
               <scrollpane id="29221" binding="tabsScrollPane" custom-create="true">
                 <constraints>
-                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                   <forms defaultalign-horz="false" defaultalign-vert="false"/>
                 </constraints>
                 <properties>
                   <horizontalScrollBarPolicy value="31"/>
                 </properties>
-                <border type="none"/>
+                <border type="empty"/>
                 <children>
                   <grid id="28276" binding="tabsPanel" custom-create="true" layout-manager="BorderLayout" hgap="0" vgap="0">
                     <constraints/>
                     <properties>
                       <minimumSize width="120" height="12"/>
                     </properties>
-                    <border type="none"/>
+                    <border type="empty"/>
                     <children/>
                   </grid>
                 </children>
