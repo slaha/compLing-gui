@@ -1,4 +1,4 @@
-package cz.slahora.compling.gui.panels.words;
+package cz.slahora.compling.gui.ui.words;
 
 import cz.compling.model.WordFrequency;
 import org.apache.commons.math3.distribution.PoissonDistribution;

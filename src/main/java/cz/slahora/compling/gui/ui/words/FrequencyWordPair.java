@@ -1,4 +1,4 @@
-package cz.slahora.compling.gui.panels.words;
+package cz.slahora.compling.gui.ui.words;
 
 
 import cz.slahora.compling.gui.model.StringableArrayList;

@@ -1,8 +1,8 @@
-package cz.slahora.compling.gui.panels.words;
+package cz.slahora.compling.gui.ui.words;
 
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.Selection;
+import cz.slahora.compling.gui.ui.Selection;
 import cz.slahora.compling.gui.utils.MapUtils;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;

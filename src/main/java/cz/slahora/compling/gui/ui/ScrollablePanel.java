@@ -1,4 +1,4 @@
-package cz.slahora.compling.gui.panels;
+package cz.slahora.compling.gui.ui;
 
 import javax.swing.JPanel;
 import javax.swing.JViewport;

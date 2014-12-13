@@ -1,4 +1,4 @@
-package cz.slahora.compling.gui.panels;
+package cz.slahora.compling.gui.ui;
 
 import org.apache.commons.lang3.text.StrBuilder;
 

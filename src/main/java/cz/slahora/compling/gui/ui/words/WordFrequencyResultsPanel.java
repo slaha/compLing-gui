@@ -1,12 +1,11 @@
-package cz.slahora.compling.gui.panels.words;
+package cz.slahora.compling.gui.ui.words;
 
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
-import cz.slahora.compling.gui.MultipleLinesLabel;
 import cz.slahora.compling.gui.analysis.ToggleHeader;
 import cz.slahora.compling.gui.analysis.words.WordTextAnalysisType;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.*;
+import cz.slahora.compling.gui.ui.*;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 import org.jdesktop.swingx.JXCollapsiblePane;

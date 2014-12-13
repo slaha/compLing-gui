@@ -1,6 +1,6 @@
-package cz.slahora.compling.gui.panels.words;
+package cz.slahora.compling.gui.ui.words;
 
-import cz.slahora.compling.gui.panels.ChartPanelWrapper;
+import cz.slahora.compling.gui.ui.ChartPanelWrapper;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.plot.CategoryPlot;
 

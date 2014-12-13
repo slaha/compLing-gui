@@ -1,4 +1,4 @@
-package cz.slahora.compling.gui.panels;
+package cz.slahora.compling.gui.ui;
 
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import org.jfree.chart.ChartPanel;

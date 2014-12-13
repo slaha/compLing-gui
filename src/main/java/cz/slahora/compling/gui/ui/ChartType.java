@@ -1,9 +1,6 @@
-package cz.slahora.compling.gui.panels;
+package cz.slahora.compling.gui.ui;
 
 /**
-*
-* TODO
-*
 * <dl>
 * <dt>Created by:</dt>
 * <dd>slaha</dd>

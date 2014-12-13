@@ -1,10 +1,10 @@
-package cz.slahora.compling.gui.panels.words;
+package cz.slahora.compling.gui.ui.words;
 
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
 import cz.compling.model.WordFrequency;
 import cz.compling.utils.Reference;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.Selection;
+import cz.slahora.compling.gui.ui.Selection;
 import cz.slahora.compling.gui.utils.MapUtils;
 import cz.slahora.compling.gui.utils.StatisticUtils;
 import gnu.trove.map.TIntIntMap;
@@ -25,9 +25,6 @@ import javax.swing.table.TableModel;
 import java.util.*;
 
 /**
- *
- * TODO
- *
  * <dl>
  * <dt>Created by:</dt>
  * <dd>slaha</dd>

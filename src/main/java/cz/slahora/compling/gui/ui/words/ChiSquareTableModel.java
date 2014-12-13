@@ -1,4 +1,4 @@
-package cz.slahora.compling.gui.panels.words;
+package cz.slahora.compling.gui.ui.words;
 
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 /**
  *
- * TODO
+ * Table model for Chi Square Test
  *
  * <dl>
  * <dt>Created by:</dt>

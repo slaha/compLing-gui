@@ -1,4 +1,4 @@
-package cz.slahora.compling.gui.panels;
+package cz.slahora.compling.gui.ui;
 
 import javax.swing.JPanel;
 import javax.swing.Scrollable;
@@ -7,7 +7,7 @@ import java.awt.Rectangle;
 
 /**
 *
-* TODO
+* Panel for displaying analysis results. Supports scrolling
 *
 * <dl>
 * <dt>Created by:</dt>

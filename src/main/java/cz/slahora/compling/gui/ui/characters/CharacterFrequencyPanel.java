@@ -1,11 +1,10 @@
-package cz.slahora.compling.gui.panels.characters;
+package cz.slahora.compling.gui.ui.characters;
 
 import cz.compling.model.CharacterFrequency;
-import cz.slahora.compling.gui.MultipleLinesLabel;
 import cz.slahora.compling.gui.model.CharacterFrequencyModel;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.*;
+import cz.slahora.compling.gui.ui.*;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;

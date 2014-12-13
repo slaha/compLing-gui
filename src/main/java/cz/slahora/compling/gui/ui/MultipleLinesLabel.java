@@ -1,11 +1,11 @@
-package cz.slahora.compling.gui;
+package cz.slahora.compling.gui.ui;
 
 import javax.swing.JTextArea;
 import java.awt.Dimension;
 
 /**
  *
- * TODO 
+ * Label (actually {@link JTextArea}) which can display multiple lines of text and wraps its content
  *
  * <dl>
  * <dt>Created by:</dt>

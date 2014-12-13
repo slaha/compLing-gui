@@ -3,7 +3,7 @@ package cz.slahora.compling.gui.analysis.assonance;
 import cz.slahora.compling.gui.analysis.ToggleHeader;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.ResultsPanel;
+import cz.slahora.compling.gui.ui.ResultsPanel;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 import org.jdesktop.swingx.JXCollapsiblePane;
 
@@ -24,6 +24,7 @@ class DifferentShiftsResultsPanel extends AbsAssonanceResultsPanel implements Re
 
 	private static final double ALPHA = 0.95;
 	private final DifferentShiftsModel model;
+	private final ResultsTableModel resultsTableModel;
 
 	public DifferentShiftsResultsPanel(DifferentShiftsModel model) {
 		super(new JPanel(), ALPHA);
@@ -40,7 +41,8 @@ class DifferentShiftsResultsPanel extends AbsAssonanceResultsPanel implements Re
 
 		int maxStep = model.getLowestMaxStep();
 
-		JTable resultsTable = createResultsTable(poemNames, maxStep);
+		resultsTableModel = createResultsTableModel(poemNames, maxStep);
+		JTable resultsTable = createResultsTable(resultsTableModel);
 
 		JXCollapsiblePane resultsPanel = new JXCollapsiblePane();
 		resultsPanel.setLayout(new GridBagLayout());
@@ -145,30 +147,13 @@ class DifferentShiftsResultsPanel extends AbsAssonanceResultsPanel implements Re
 		panel.add(dummy, cc);
 	}
 
-	private JTable createResultsTable(WorkingText[] poemNames, int maxStep) {
-		Object[][] table = new Object[maxStep][poemNames.length + 1];
+	private ResultsTableModel createResultsTableModel(WorkingText[] poemNames, int maxStep) {
+		return new ResultsTableModel(poemNames, maxStep, model, DECIMAL_FORMAT);
+	}
 
-		for (int row = 0; row < table.length; row++) {
-			for (int column = 0; column < table[row].length; column++) {
+	private JTable createResultsTable(ResultsTableModel model) {
 
-				Object o;
-				if (column == 0) {
-					o = "Posun o " + (row + 1);
-
-				} else {
-					WorkingText uid = poemNames[column - 1];
-					final int shift = row + 1;
-					double value = model.getAssonanceFor(uid, shift);
-					o = DECIMAL_FORMAT.format(value);
-				}
-				table[row][column] = o;
-			}
-		}
-
-		Object[] columnNames = new Object[table[0].length];
-		columnNames[0] = "";
-		System.arraycopy(poemNames, 0, columnNames, 1, poemNames.length);
-		JTable t = new NonEditableTable(table, columnNames);
+		JTable t = new NonEditableTable(model);
 
 		JTableHeader header = new JTableHeader(t.getColumnModel()) {
 			@Override public Dimension getPreferredSize() {
@@ -194,7 +179,17 @@ class DifferentShiftsResultsPanel extends AbsAssonanceResultsPanel implements Re
 
 	@Override
 	public CsvData getCsvData() {
-		return null;
+		CsvData data = new CsvData();
+		data.addSection();
+		final CsvData.CsvDataSection currentSection = data.getCurrentSection();
+		currentSection.addHeader(resultsTableModel.getHeader());
+		for (Object[] row : resultsTableModel) {
+			currentSection.startNewLine();
+			for (Object value : row) {
+				currentSection.addData(value);
+			}
+		}
+		return data;
 	}
 
 }

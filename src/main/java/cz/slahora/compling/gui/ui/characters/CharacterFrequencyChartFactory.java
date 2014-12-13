@@ -1,7 +1,7 @@
-package cz.slahora.compling.gui.panels.characters;
+package cz.slahora.compling.gui.ui.characters;
 
 import cz.slahora.compling.gui.model.CharacterFrequencyModel;
-import cz.slahora.compling.gui.panels.ChartType;
+import cz.slahora.compling.gui.ui.ChartType;
 import cz.slahora.compling.gui.utils.ChartUtils;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;

@@ -1,6 +1,6 @@
-package cz.slahora.compling.gui.panels.words;
+package cz.slahora.compling.gui.ui.words;
 
-import cz.slahora.compling.gui.panels.ChartType;
+import cz.slahora.compling.gui.ui.ChartType;
 import cz.slahora.compling.gui.utils.ChartUtils;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -13,8 +13,6 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- *
- * TODO 
  *
  * <dl>
  * <dt>Created by:</dt>

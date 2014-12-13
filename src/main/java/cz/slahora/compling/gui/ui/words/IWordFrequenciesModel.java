@@ -1,4 +1,4 @@
-package cz.slahora.compling.gui.panels.words;
+package cz.slahora.compling.gui.ui.words;
 
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
 import cz.slahora.compling.gui.model.WorkingText;
@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
- * TODO 
  *
  * <dl>
  * <dt>Created by:</dt>
