@@ -1,10 +1,10 @@
 package cz.slahora.compling.gui.analysis.alliteration;
 
-import cz.slahora.compling.gui.MultipleLinesLabel;
 import cz.slahora.compling.gui.model.CsvData;
-import cz.slahora.compling.gui.panels.AbstractResultsPanel;
-import cz.slahora.compling.gui.panels.ResultsPanel;
-import cz.slahora.compling.gui.panels.ResultsScrollablePanel;
+import cz.slahora.compling.gui.ui.AbstractResultsPanel;
+import cz.slahora.compling.gui.ui.MultipleLinesLabel;
+import cz.slahora.compling.gui.ui.ResultsPanel;
+import cz.slahora.compling.gui.ui.ResultsScrollablePanel;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 
 import javax.swing.*;
@@ -111,6 +111,7 @@ class AlliterationResultsPanel extends AbstractResultsPanel implements ResultsPa
 
 	@Override
 	public CsvData getCsvData() {
+		//TODO implement
 		return null;
 	}
 }

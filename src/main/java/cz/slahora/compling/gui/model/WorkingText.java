@@ -1,12 +1,13 @@
 package cz.slahora.compling.gui.model;
 
 import cz.compling.CompLing;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.UUID;
 
 /**
  *
- * TODO 
+ * One opened text
  *
  * <dl>
  * <dt>Created by:</dt>
@@ -30,7 +31,7 @@ public class WorkingText {
 	}
 
 	public String getName() {
-		if (name.length() > TXT_SUFFIX_LENGTH && name.endsWith(TXT_SUFFIX)) {
+		if (name.length() > TXT_SUFFIX_LENGTH && StringUtils.endsWithIgnoreCase(name, TXT_SUFFIX)) {
 			return name.substring(0, name.length() - TXT_SUFFIX_LENGTH);
 		}
 

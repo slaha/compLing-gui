@@ -2,7 +2,7 @@ package cz.slahora.compling.gui.model;
 
 import cz.compling.model.CharacterFrequency;
 import cz.compling.utils.TrooveUtils;
-import cz.slahora.compling.gui.panels.Selection;
+import cz.slahora.compling.gui.ui.Selection;
 import gnu.trove.map.hash.TObjectDoubleHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.procedure.TObjectIntProcedure;

@@ -5,7 +5,7 @@ import java.util.Collection;
 
 /**
 *
-* TODO
+* Classic {@link ArrayList} whose values ar split by {@link #SPLITTER} in {@link #toString()} method
 *
 * <dl>
 * <dt>Created by:</dt>

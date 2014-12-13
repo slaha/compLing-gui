@@ -7,7 +7,7 @@ import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.analysis.ResultsHandler;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.ResultsPanel;
+import cz.slahora.compling.gui.ui.ResultsPanel;
 import cz.slahora.compling.gui.utils.MapUtils;
 
 import javax.swing.JPanel;

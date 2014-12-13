@@ -7,7 +7,7 @@ import cz.slahora.compling.gui.analysis.ResultsHandler;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.ResultsPanel;
+import cz.slahora.compling.gui.ui.ResultsPanel;
 import cz.slahora.compling.gui.utils.MapUtils;
 
 import javax.swing.JFrame;
@@ -122,6 +122,7 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 
 				@Override
 				public CsvData getCsvData() {
+					//TODO implement
 					return new CsvData();
 				}
 			};

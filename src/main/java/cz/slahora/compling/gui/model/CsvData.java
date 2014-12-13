@@ -8,7 +8,7 @@ import java.util.*;
 
 /**
  *
- * TODO 
+ * Class for creating CSV file with multiple sections
  *
  * <dl>
  * <dt>Created by:</dt>
@@ -19,12 +19,7 @@ import java.util.*;
  */
 public class CsvData {
 
-	private static final List<Object> EMPTY_LINE = new ArrayList<Object>() {
-		@Override
-		public String toString() {
-			return "-------------------------";
-		}
-	};
+	private static final String EMPTY_LINE_AS_STRING = "-------------------------";
 
 	private TIntObjectMap<CsvDataSection> sections;
 	private CsvDataSection currentSection;
@@ -86,7 +81,7 @@ public class CsvData {
 		//..body
 		while (iterator.hasNext()) {
 			String line = iterator.next();
-			if (EMPTY_LINE.toString().equals(line)) {
+			if (EMPTY_LINE_AS_STRING.equals(line)) {
 				addHeader(iterator);
 			} else {
 				currentSection.startNewLine();
@@ -114,7 +109,7 @@ public class CsvData {
 		if (sectionNumbers.length > 0) {
 			lines.addAll(sections.get(sectionNumbers[0]).toLines());
 			for (int i = 1; i < sectionNumbers.length; i++) {
-				lines.add(EMPTY_LINE);
+				lines.add(EMPTY_LINE_AS_STRING);
 				lines.addAll(sections.get(sectionNumbers[i]).toLines());
 			}
 		}

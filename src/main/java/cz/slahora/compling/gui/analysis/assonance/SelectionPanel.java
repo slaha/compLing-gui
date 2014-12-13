@@ -2,8 +2,8 @@ package cz.slahora.compling.gui.analysis.assonance;
 
 import cz.compling.CompLing;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.ScrollablePanel;
-import cz.slahora.compling.gui.panels.WrapLayout;
+import cz.slahora.compling.gui.ui.ScrollablePanel;
+import cz.slahora.compling.gui.ui.WrapLayout;
 import cz.slahora.compling.gui.utils.IconUtils;
 import org.apache.commons.lang3.StringUtils;
 

@@ -2,7 +2,7 @@ package cz.slahora.compling.gui.main;
 
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.model.WorkingTexts;
-import cz.slahora.compling.gui.panels.ScrollablePanel;
+import cz.slahora.compling.gui.ui.ScrollablePanel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

@@ -1,11 +1,15 @@
 package cz.slahora.compling.gui.analysis;
 
 import cz.slahora.compling.gui.model.LastDirectory;
-import cz.slahora.compling.gui.panels.ResultsPanel;
+import cz.slahora.compling.gui.ui.ResultsPanel;
 import cz.slahora.compling.gui.utils.FileChooserUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.JToolBar;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PageFormat;

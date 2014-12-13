@@ -1,12 +1,12 @@
 package cz.slahora.compling.gui.model;
 
-import cz.compling.CompLing;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *
- * TODO
+ * Holder of all currently opened {@link WorkingText}
  *
  * <dl>
  * <dt>Created by:</dt>
@@ -43,9 +43,5 @@ public class WorkingTexts {
 
 	public void remove(String id) {
 		texts.remove(id);
-	}
-
-	public CompLing createCompLing(String id) {
-		return texts.get(id).getCompLing();
 	}
 }

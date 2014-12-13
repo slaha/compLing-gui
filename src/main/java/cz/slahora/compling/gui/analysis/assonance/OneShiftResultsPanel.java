@@ -4,7 +4,7 @@ import cz.compling.CompLing;
 import cz.slahora.compling.gui.analysis.ToggleHeader;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.ResultsPanel;
+import cz.slahora.compling.gui.ui.ResultsPanel;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 import org.jdesktop.swingx.JXCollapsiblePane;

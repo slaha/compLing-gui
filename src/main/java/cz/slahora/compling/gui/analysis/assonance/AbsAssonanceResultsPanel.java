@@ -1,7 +1,7 @@
 package cz.slahora.compling.gui.analysis.assonance;
 
 import cz.compling.model.ScheffeTest;
-import cz.slahora.compling.gui.panels.AbstractResultsPanel;
+import cz.slahora.compling.gui.ui.AbstractResultsPanel;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 
 import javax.swing.*;

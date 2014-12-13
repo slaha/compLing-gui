@@ -3,8 +3,8 @@ package cz.slahora.compling.gui.analysis.words;
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
 import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.panels.ResultsPanel;
-import cz.slahora.compling.gui.panels.words.WordFrequencyResultsPanel;
+import cz.slahora.compling.gui.ui.ResultsPanel;
+import cz.slahora.compling.gui.ui.words.WordFrequencyResultsPanel;
 import cz.slahora.compling.gui.utils.MapUtils;
 
 import java.util.Map;

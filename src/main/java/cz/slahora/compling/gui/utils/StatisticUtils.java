@@ -1,20 +1,9 @@
 package cz.slahora.compling.gui.utils;
 
-import cz.slahora.compling.gui.panels.words.WordLengthFrequenciesChiQTest;
+import cz.slahora.compling.gui.ui.words.WordLengthFrequenciesChiQTest;
 
 import java.util.Arrays;
 
-/**
- *
- * TODO 
- *
- * <dl>
- * <dt>Created by:</dt>
- * <dd>slaha</dd>
- * <dt>On:</dt>
- * <dd> 24.8.14 14:03</dd>
- * </dl>
- */
 public class StatisticUtils {
 
 	public static double maxLikelihood(int[] i, long[] Xi) {

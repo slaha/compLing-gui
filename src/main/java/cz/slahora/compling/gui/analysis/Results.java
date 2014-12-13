@@ -1,6 +1,6 @@
 package cz.slahora.compling.gui.analysis;
 
-import cz.slahora.compling.gui.panels.ResultsPanel;
+import cz.slahora.compling.gui.ui.ResultsPanel;
 
 /**
  *

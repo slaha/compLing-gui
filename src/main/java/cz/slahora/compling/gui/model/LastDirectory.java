@@ -5,7 +5,7 @@ import java.io.File;
 
 /**
  *
- * TODO 
+ * Class for holding directory where last file was opened/saved from
  *
  * <dl>
  * <dt>Created by:</dt>
