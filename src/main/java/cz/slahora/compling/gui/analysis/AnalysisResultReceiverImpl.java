@@ -10,17 +10,6 @@ import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.util.Locale;
 
-/**
- *
- * TODO 
- *
- * <dl>
- * <dt>Created by:</dt>
- * <dd>slaha</dd>
- * <dt>On:</dt>
- * <dd> 25.3.14 21:51</dd>
- * </dl>
- */
 public class AnalysisResultReceiverImpl implements AnalysisResultReceiver {
 
 	@Override
@@ -31,6 +20,7 @@ public class AnalysisResultReceiverImpl implements AnalysisResultReceiver {
 
 		JPanel panel = result.getPanel();
 		JToolBar topPanel = new AnalysisReceiverToolbar(result);
+		topPanel.setFloatable(false);
 		JScrollPane scrollPane = new JScrollPane(panel);
 
 		JPanel contentPanel = new JPanel(new BorderLayout());
