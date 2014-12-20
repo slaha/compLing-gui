@@ -106,6 +106,11 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 		private boolean analysisComplete;
 		private WorkingText text;
 		private IDenotation denotation;
+		private GuiDenotationResults guiDenotationResults;
+
+		public DenotationSingleTextAnalysisResults() {
+			guiDenotationResults = new GuiDenotationResults(text, denotation);
+		}
 
 		@Override
 		public boolean resultsOk() {
@@ -117,13 +122,16 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 			return new ResultsPanel() {
 				@Override
 				public JPanel getPanel() {
-					return new GuiDenotationResults(text, denotation).getPanel();
+
+					return guiDenotationResults.getPanel();
 				}
 
 				@Override
 				public CsvData getCsvData() {
-					//TODO implement
-					return new CsvData();
+					CsvData data = new CsvData();
+					final GuiDenotationResultsModel model = guiDenotationResults.getModel();
+
+					return data;
 				}
 			};
 		}

@@ -1,5 +1,6 @@
 package cz.slahora.compling.gui.analysis.aggregation;
 
+import cz.slahora.compling.gui.model.CsvData;
 import org.jfree.data.xy.XYDataset;
 
 interface AggregationModel {
@@ -20,4 +21,6 @@ interface AggregationModel {
 	double getMaxChartValue();
 
 	double getMinChartValue();
+
+	CsvData getCsvData();
 }

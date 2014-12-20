@@ -81,7 +81,7 @@ public class CsvData {
 		//..body
 		while (iterator.hasNext()) {
 			String line = iterator.next();
-			if (EMPTY_LINE_AS_STRING.equals(line)) {
+			if (StringUtils.startsWith(line, EMPTY_LINE_AS_STRING)) {
 				addHeader(iterator);
 			} else {
 				currentSection.startNewLine();
@@ -107,10 +107,15 @@ public class CsvData {
 		Collection<Object> lines = new ArrayList<Object>();
 		Arrays.sort(sectionNumbers);
 		if (sectionNumbers.length > 0) {
-			lines.addAll(sections.get(sectionNumbers[0]).toLines());
+			CsvDataSection section = sections.get(sectionNumbers[0]);
+			if (StringUtils.isNotBlank(section.getHeadline())) {
+				lines.add(EMPTY_LINE_AS_STRING + section.getHeadline());
+			}
+			lines.addAll(section.toLines());
 			for (int i = 1; i < sectionNumbers.length; i++) {
-				lines.add(EMPTY_LINE_AS_STRING);
-				lines.addAll(sections.get(sectionNumbers[i]).toLines());
+				section = sections.get(sectionNumbers[i]);
+				lines.add(EMPTY_LINE_AS_STRING + section.getHeadline());
+				lines.addAll(section.toLines());
 			}
 		}
 		return lines;
@@ -120,6 +125,7 @@ public class CsvData {
 		private final List<Object> header;
 		private final List<List<Object>> data;
 		private List<Object> currentRow;
+		private String headline;
 
 		public CsvDataSection() {
 			this.header = new ArrayList<Object>() {
@@ -211,6 +217,14 @@ public class CsvData {
 
 		public List<List<Object>> getDataLines() {
 			return data;
+		}
+
+		public String getHeadline() {
+			return headline == null ? "" : headline;
+		}
+
+		public void setHeadline(String headline) {
+			this.headline = headline;
 		}
 	}
 }

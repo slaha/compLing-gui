@@ -29,9 +29,12 @@ import java.text.NumberFormat;
 class AggregationResultsPanel extends AbstractResultsPanel implements ResultsPanel {
 
 	private static final NumberFormat NUMBER_FORMAT = new DecimalFormat("0.##");
+	private final AggregationModel model;
 
 	public AggregationResultsPanel(final AggregationModel model) {
 		super(new ResultsScrollablePanel());
+		this.model = model;
+
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
 		JLabel headline = new HtmlLabelBuilder().hx(1, "Agregace %s %s",
@@ -124,8 +127,16 @@ class AggregationResultsPanel extends AbstractResultsPanel implements ResultsPan
 
 	@Override
 	public CsvData getCsvData() {
-		//TODO implement
-		return null;
+		return model.getCsvData();
+	}
+
+	private void addSections(CsvData.CsvDataSection section) {
+		section.addHeader("Velikost Ai");
+		section.addHeader("Velikost Aj");
+		section.addHeader("Velikost průniku Ai s Aj");
+		section.addHeader("Velikost Bi");
+		section.addHeader("Velikost Bj");
+		section.addHeader("Velikost průniku Bi s Bj");
 	}
 
 	private static class FirstColumnTableCellRenderer extends DefaultTableCellRenderer {

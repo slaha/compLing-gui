@@ -345,6 +345,10 @@ public class GuiDenotationResults {
 		return panel;
 	}
 
+	public GuiDenotationResultsModel getModel() {
+		return model;
+	}
+
 	private class PositionSpikePanel extends JPanel {
 		public PositionSpikePanel(int spikeNumber, List<Integer> wordNumbers) {
 			super(new GridBagLayout());
