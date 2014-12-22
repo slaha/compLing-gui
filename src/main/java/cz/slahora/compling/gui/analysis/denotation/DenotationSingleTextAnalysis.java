@@ -2,6 +2,9 @@ package cz.slahora.compling.gui.analysis.denotation;
 
 import cz.compling.CompLing;
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
+import cz.compling.model.denotation.DenotationElement;
+import cz.compling.model.denotation.DenotationWord;
+import cz.compling.model.denotation.Spike;
 import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.analysis.ResultsHandler;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
@@ -99,6 +102,7 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 		results.analysisComplete = true;
 		results.text = text;
 		results.denotation = denotationPanel.getDenotation();
+		results.guiDenotationResults = new GuiDenotationResults(text, results.denotation);
 		frame.dispose();
 	}
 
@@ -109,7 +113,6 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 		private GuiDenotationResults guiDenotationResults;
 
 		public DenotationSingleTextAnalysisResults() {
-			guiDenotationResults = new GuiDenotationResults(text, denotation);
 		}
 
 		@Override
@@ -131,10 +134,54 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 					CsvData data = new CsvData();
 					final GuiDenotationResultsModel model = guiDenotationResults.getModel();
 
+					data.addSection();
+					final CsvData.CsvDataSection s = data.getCurrentSection();
+
+					s.setHeadline("Hřeby");
+					s.addHeader("Číslo hřebu");
+					s.addHeader("Rozsah hřebu");
+					s.addHeader("Hřeb");
+
+					for (Spike spike : model.getAllSpikes()) {
+						s.startNewLine();
+						s.addData(spike.getNumber());
+						s.addData(spike.getWords().size());
+						s.addData(spikeToString(spike));
+					}
 					return data;
+				}
+
+				private String spikeToString(Spike s) {
+					StringBuilder sb = new StringBuilder("[");
+
+					for (DenotationWord dw : s.getWords()) {
+
+						for (DenotationElement el : dw.getDenotationElements()) {
+							if (el.getSpike().getNumber() == s.getNumber()) {
+								String normalized =  normalize(el.getText());
+								sb.append(normalized).append(' ');
+								sb.append(el.getNumber()).append(", ");
+							}
+						}
+					}
+					if (sb.length() > 1) {
+						sb.delete(sb.length() - 2, sb.length()); //remove ", "
+					}
+					return sb.append(']').toString();
+				}
+
+				private String normalize(String word) {
+					String res = "";
+					for (char c : word.toCharArray()) {
+						if (Character.isLetter(c) || c == '(' || c == ')') {
+							res += c;
+						}
+					}
+					return res;
 				}
 			};
 		}
+
 
 		@Override
 		public String getAnalysisName() {
