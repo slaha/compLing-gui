@@ -19,10 +19,10 @@ import java.awt.print.PrinterJob;
 import java.io.File;
 import java.io.IOException;
 
+import static cz.slahora.compling.gui.utils.IconUtils.Icon;
+import static cz.slahora.compling.gui.utils.IconUtils.getIcon;
+
 /**
- *
- * TODO 
- *
  * <dl>
  * <dt>Created by:</dt>
  * <dd>slaha</dd>
@@ -40,7 +40,7 @@ public class AnalysisReceiverToolbar extends JToolBar implements ActionListener 
 	public AnalysisReceiverToolbar(ResultsPanel panel) {
 		this.panel = panel;
 
-		JButton export = new JButton("Export");
+		JButton export = new JButton("Export vstupních dat do CSV", getIcon(Icon.DOCUMENT_SAVE));
 		export.addActionListener(this);
 		export.putClientProperty("id", EXPORT);
 		add(export);
