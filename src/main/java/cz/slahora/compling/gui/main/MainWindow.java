@@ -1,5 +1,9 @@
 package cz.slahora.compling.gui.main;
 
+import cz.slahora.compling.gui.analysis.Analysis;
+import cz.slahora.compling.gui.analysis.AnalysisFactory;
+import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
+import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.ui.ScrollablePanel;
 
@@ -41,6 +45,8 @@ public class MainWindow implements ActionListener, TabHolder {
 	private JScrollPane tabsScrollPane;
 	private JLabel nameLabel;
 	private JPanel namePanel;
+	private JButton oneTextAnalyse;
+	private JButton multipleTextAnalyse;
 
 	public MainWindow(final MainWindowController mainWindowController) {
 		this.controller = mainWindowController;
@@ -79,6 +85,88 @@ public class MainWindow implements ActionListener, TabHolder {
 			}
 		};
 		namePanel.addMouseListener(labelOnClick);
+
+		oneTextAnalyse.setComponentPopupMenu(createOneTextAnalyseMenu(createMenuListener()));
+		oneTextAnalyse.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				oneTextAnalyse.getComponentPopupMenu().show(oneTextAnalyse, 10, oneTextAnalyse.getHeight());
+			}
+		});
+
+		multipleTextAnalyse.setComponentPopupMenu(createMultipleTextAnalyseMenu(createMenuListener()));
+		multipleTextAnalyse.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				multipleTextAnalyse.getComponentPopupMenu().show(multipleTextAnalyse, 10, multipleTextAnalyse.getHeight());
+			}
+		});
+
+		oneTextAnalyse.setEnabled(false);
+		multipleTextAnalyse.setEnabled(false);
+	}
+
+	private ActionListener createMenuListener() {
+		return new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComponent component = (JComponent) e.getSource();
+				int id = (Integer)component.getClientProperty("id");
+				final Analysis analysis = AnalysisFactory.create(id);
+				if (analysis instanceof SingleTextAnalysis) {
+					controller.analyse((SingleTextAnalysis)analysis);
+				} else if (analysis instanceof MultipleTextsAnalysis) {
+					controller.analyse((MultipleTextsAnalysis)analysis);
+				}
+			}
+		};
+	}
+
+	private JPopupMenu createOneTextAnalyseMenu(ActionListener l) {
+		final JPopupMenu menu = new JPopupMenu();
+		JMenuItem characterFrequency = createMenuItem("Četnost znaků", AnalysisFactory.CHARACTER_COUNTS_ONE, l);
+		JMenuItem wordFrequency = createMenuItem("Četnost slov", AnalysisFactory.WORD_COUNTS_ONE, l);
+
+		JMenuItem alliteration = createMenuItem("Aliterace", AnalysisFactory.ALLITERATION, l);
+		JMenuItem aggregation = createMenuItem("Agregace", AnalysisFactory.AGGREGATION_ONE, l);
+
+		JMenuItem denotation = createMenuItem("Denotační analýza", AnalysisFactory.DENOTATION, l);
+
+		menu.add(characterFrequency);
+		menu.add(wordFrequency);
+		menu.addSeparator();
+		menu.add(alliteration);
+		menu.add(aggregation);
+		menu.addSeparator();
+		menu.add(denotation);
+
+		return menu;
+	}
+
+	private JPopupMenu createMultipleTextAnalyseMenu(ActionListener l) {
+
+		final JPopupMenu menu = new JPopupMenu();
+		JMenuItem characterFrequency = createMenuItem("Četnost znaků", AnalysisFactory.CHARACTER_COUNTS_ALL, l);
+		JMenuItem wordFrequency = createMenuItem("Četnost slov", AnalysisFactory.WORD_COUNTS_ALL, l);
+
+		JMenuItem assonance = createMenuItem("Asonance", AnalysisFactory.ASSONANCE_ALL, l);
+		JMenuItem aggregation = createMenuItem("Agregace", AnalysisFactory.AGGREGATION_ALL, l);
+
+
+		menu.add(characterFrequency);
+		menu.add(wordFrequency);
+		menu.addSeparator();
+		menu.add(assonance);
+		menu.add(aggregation);
+
+		return menu;
+	}
+	
+	private JMenuItem createMenuItem(String text, int actionId, ActionListener l) {
+		JMenuItem item = new JMenuItem(text);
+		item.putClientProperty("id", actionId);
+		item.addActionListener(l);
+		return item;
 	}
 
 	private void createUIComponents() {
@@ -122,6 +210,10 @@ public class MainWindow implements ActionListener, TabHolder {
 				tabsPanel.repaint();
 			}
 		});
+
+		boolean analysisPossible = controller.getAllPanels().iterator().hasNext();
+		oneTextAnalyse.setEnabled(analysisPossible);
+		multipleTextAnalyse.setEnabled(analysisPossible);
 	}
 
 	@Override

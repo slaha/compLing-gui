@@ -1,15 +1,10 @@
 package cz.slahora.compling.gui.main;
 
 import cz.slahora.compling.gui.about.AboutFrame;
-import cz.slahora.compling.gui.analysis.aggregation.AggregationMultipleTexts;
-import cz.slahora.compling.gui.analysis.aggregation.AggregationSingleText;
-import cz.slahora.compling.gui.analysis.alliteration.AlliterationAnalysis;
-import cz.slahora.compling.gui.analysis.assonance.AssonanceMultipleAnalysis;
-import cz.slahora.compling.gui.analysis.character.CharacterMultipleTextsAnalysis;
-import cz.slahora.compling.gui.analysis.character.CharacterSingleTextAnalysis;
-import cz.slahora.compling.gui.analysis.denotation.DenotationSingleTextAnalysis;
-import cz.slahora.compling.gui.analysis.words.WordMultipleTextsAnalysis;
-import cz.slahora.compling.gui.analysis.words.WordSingleTextAnalysis;
+import cz.slahora.compling.gui.analysis.Analysis;
+import cz.slahora.compling.gui.analysis.AnalysisFactory;
+import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
+import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
 import cz.slahora.compling.gui.model.WorkingTexts;
 import cz.slahora.compling.gui.utils.IconUtils;
 import org.jfree.ui.about.ProjectInfo;
@@ -38,16 +33,7 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 	private static final int EXIT = 0;
 	private static final int OPEN = 1;
-	private static final int CHARACTER_COUNTS_ONE = 10;
-	private static final int CHARACTER_COUNTS_ALL = 11;
-	private static final int WORD_COUNTS_ONE = 15;
-	private static final int WORD_COUNTS_ALL = 16;
-	private static final int ALLITERATION = 30;
-	private static final int AGGREGATION_ONE = 35;
-	private static final int AGGREGATION_ALL = 36;
-	private static final int ASSONANCE_ALL = 41;
-	private static final int DENOTATION = 99;
-	private static final int APP_SETTINGS = 100;
+	//	private static final int APP_SETTINGS = 100;
 	private static final int APP_ABOUT = 101;
 
 	private final MainWindowController controller;
@@ -77,11 +63,11 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 	private JMenu createFileApplication() {
 		JMenu application = new JMenu("Aplikace");
 
-		JMenuItem settings = createMenuItem("Nastavení aplikace", APP_SETTINGS, IconUtils.Icon.SETTINGS);
-		settings.setEnabled(false);
+//		JMenuItem settings = createMenuItem("Nastavení aplikace", APP_SETTINGS, IconUtils.Icon.SETTINGS);
+//		settings.setEnabled(false);
 		JMenuItem about = createMenuItem("O aplikaci", APP_ABOUT, IconUtils.Icon.ABOUT);
 
-		application.add(settings);
+//		application.add(settings);
 		application.addSeparator();
 		application.add(about);
 		return application;
@@ -100,11 +86,11 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 		analyzeMenu.addSeparator();
 
-		JMenuItem alliteration = createMenuItem("Aliterace pro text '%s'", ALLITERATION, null);
+		JMenuItem alliteration = createMenuItem("Aliterace pro text '%s'", AnalysisFactory.ALLITERATION, null);
 		analyzeMenu.add(alliteration);
 		forActualTextMenus.add(alliteration);
 
-		JMenuItem assonance = createMenuItem("Asonance", ASSONANCE_ALL, null);
+		JMenuItem assonance = createMenuItem("Asonance", AnalysisFactory.ASSONANCE_ALL, null);
 		analyzeMenu.add(assonance);
 
 		JMenu aggregation = new JMenu("Agregace");
@@ -113,7 +99,7 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 		analyzeMenu.addSeparator();
 
-		JMenuItem denotation = createMenuItem("Denotační analýza pro '%s'", DENOTATION, null);
+		JMenuItem denotation = createMenuItem("Denotační analýza pro '%s'", AnalysisFactory.DENOTATION, null);
 		analyzeMenu.add(denotation);
 		forActualTextMenus.add(denotation);
 
@@ -123,31 +109,31 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 	}
 
 	private void createCharacterCountMenu(JMenu parent) {
-		JMenuItem forActual = createMenuItem("Pro aktuální text '%s'", CHARACTER_COUNTS_ONE, null);
+		JMenuItem forActual = createMenuItem("Pro aktuální text '%s'", AnalysisFactory.CHARACTER_COUNTS_ONE, null);
 		parent.add(forActual);
 		forActualTextMenus.add(forActual);
 
-		JMenuItem forAll = createMenuItem("Pro všechny texty", CHARACTER_COUNTS_ALL, null);
+		JMenuItem forAll = createMenuItem("Pro všechny texty", AnalysisFactory.CHARACTER_COUNTS_ALL, null);
 		parent.add(forAll);
 	}
 
 	private void createWordCountMenu(JMenu parent) {
 
-		JMenuItem forActual = createMenuItem("Pro aktuální text '%s'", WORD_COUNTS_ONE, null);
+		JMenuItem forActual = createMenuItem("Pro aktuální text '%s'", AnalysisFactory.WORD_COUNTS_ONE, null);
 		parent.add(forActual);
 		forActualTextMenus.add(forActual);
 
-		JMenuItem forAll = createMenuItem("Pro všechny texty", WORD_COUNTS_ALL, null);
+		JMenuItem forAll = createMenuItem("Pro všechny texty", AnalysisFactory.WORD_COUNTS_ALL, null);
 		parent.add(forAll);
 	}
 
 	private void createAggregationMenu(JMenu parent) {
 
-		JMenuItem forActual = createMenuItem("Pro aktuální text '%s'", AGGREGATION_ONE, null);
+		JMenuItem forActual = createMenuItem("Pro aktuální text '%s'", AnalysisFactory.AGGREGATION_ONE, null);
 		parent.add(forActual);
 		forActualTextMenus.add(forActual);
 
-		JMenuItem forAll = createMenuItem("Pro všechny texty", AGGREGATION_ALL, null);
+		JMenuItem forAll = createMenuItem("Pro všechny texty", AnalysisFactory.AGGREGATION_ALL, null);
 		parent.add(forAll);
 	}
 
@@ -168,37 +154,21 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 				controller.openFileUsingDialog(parentComponent);
 				break;
 
-			case CHARACTER_COUNTS_ONE:
-				controller.analyse(new CharacterSingleTextAnalysis());
-				break;
-			case CHARACTER_COUNTS_ALL:
-				controller.analyse(new CharacterMultipleTextsAnalysis());
-				break;
-
-			case WORD_COUNTS_ONE:
-				controller.analyse(new WordSingleTextAnalysis());
-				break;
-			case WORD_COUNTS_ALL:
-				controller.analyse(new WordMultipleTextsAnalysis());
-				break;
-
-			case ALLITERATION:
-				controller.analyse(new AlliterationAnalysis());
-				break;
-
-			case ASSONANCE_ALL:
-				controller.analyse(new AssonanceMultipleAnalysis());
-				break;
-
-			case AGGREGATION_ONE:
-				controller.analyse(new AggregationSingleText());
-				break;
-			case AGGREGATION_ALL:
-				controller.analyse(new AggregationMultipleTexts());
-				break;
-
-			case DENOTATION:
-				controller.analyse(new DenotationSingleTextAnalysis());
+			case AnalysisFactory.CHARACTER_COUNTS_ONE:
+			case AnalysisFactory.CHARACTER_COUNTS_ALL:
+			case AnalysisFactory.WORD_COUNTS_ONE:
+			case AnalysisFactory.WORD_COUNTS_ALL:
+			case AnalysisFactory.ALLITERATION:
+			case AnalysisFactory.ASSONANCE_ALL:
+			case AnalysisFactory.AGGREGATION_ONE:
+			case AnalysisFactory.AGGREGATION_ALL:
+			case AnalysisFactory.DENOTATION:
+				Analysis analysis = AnalysisFactory.create(id);
+				if (analysis instanceof SingleTextAnalysis) {
+					controller.analyse((SingleTextAnalysis)analysis);
+				} else if (analysis instanceof MultipleTextsAnalysis) {
+					controller.analyse((MultipleTextsAnalysis)analysis);
+				}
 				break;
 
 			case APP_ABOUT:
@@ -207,8 +177,8 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 				new AboutFrame("O aplikaci", "https://github.com/slaha/compLing-gui", projectInfo).setVisible(true);
 				break;
-			case APP_SETTINGS:
-				break;
+//			case APP_SETTINGS:
+//				break;
 			case EXIT:
 				controller.exit(0);
 				break;

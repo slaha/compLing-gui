@@ -49,6 +49,21 @@
                   <text value="Otevřít soubor"/>
                 </properties>
               </component>
+              <component id="2270" class="javax.swing.JButton" binding="oneTextAnalyse">
+                <constraints/>
+                <properties>
+                  <icon value="analysis-one.png"/>
+                  <text value="Analýza jednoho textu"/>
+                </properties>
+              </component>
+              <component id="b56fe" class="javax.swing.JButton" binding="multipleTextAnalyse">
+                <constraints/>
+                <properties>
+                  <horizontalTextPosition value="4"/>
+                  <icon value="analysis-multiple.png"/>
+                  <text value="Hromadní analýza "/>
+                </properties>
+              </component>
             </children>
           </toolbar>
         </children>
