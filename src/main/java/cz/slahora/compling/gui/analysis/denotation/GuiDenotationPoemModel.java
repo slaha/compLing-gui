@@ -23,7 +23,7 @@ public class GuiDenotationPoemModel implements Csv<GuiDenotationPoemModel> {
 	}
 
 	private GuiDenotationPoemModel(WorkingText text, boolean compute) {
-		this.poem = text.getCompLing().poemAnalysis().poem;
+		this.poem = text.getCompLing().poemAnalysis().getPoem();
 		this.denotation = text.getCompLing().poemAnalysis().denotationAnalysis();
 	}
 
