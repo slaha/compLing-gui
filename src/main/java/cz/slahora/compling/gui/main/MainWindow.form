@@ -69,8 +69,9 @@
         <border type="none"/>
         <children>
           <grid id="4d71e" layout-manager="FormLayout">
-            <rowspec value="center:15px:noGrow"/>
-            <rowspec value="top:5dlu:noGrow"/>
+            <rowspec value="center:max(d;2px):noGrow"/>
+            <rowspec value="top:2dlu:noGrow"/>
+            <rowspec value="center:25px:noGrow"/>
             <rowspec value="fill:d:grow"/>
             <colspec value="fill:d:grow"/>
             <constraints>
@@ -79,7 +80,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <grid id="51b5c" layout-manager="FormLayout">
+              <grid id="51b5c" binding="namePanel" layout-manager="FormLayout">
                 <rowspec value="center:d:grow"/>
                 <rowspec value="top:0dlu:noGrow"/>
                 <rowspec value="center:max(d;4px):noGrow"/>
@@ -87,13 +88,15 @@
                 <colspec value="left:4dlu:noGrow"/>
                 <colspec value="fill:max(d;4px):grow"/>
                 <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                   <forms/>
                 </constraints>
-                <properties/>
+                <properties>
+                  <toolTipText value="Kliknutím přejmenujete aktuální text"/>
+                </properties>
                 <border type="none"/>
                 <children>
-                  <component id="df5e5" class="javax.swing.JLabel">
+                  <component id="df5e5" class="javax.swing.JLabel" binding="nameLabel">
                     <constraints>
                       <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                       <forms/>
@@ -116,7 +119,7 @@
               </grid>
               <grid id="44002" layout-manager="BorderLayout" hgap="0" vgap="0">
                 <constraints>
-                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                   <forms defaultalign-horz="false" defaultalign-vert="false"/>
                 </constraints>
                 <properties/>

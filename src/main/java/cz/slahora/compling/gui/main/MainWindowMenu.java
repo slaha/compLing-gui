@@ -1,7 +1,6 @@
 package cz.slahora.compling.gui.main;
 
 import cz.slahora.compling.gui.about.AboutFrame;
-import cz.slahora.compling.gui.about.Licence;
 import cz.slahora.compling.gui.analysis.aggregation.AggregationMultipleTexts;
 import cz.slahora.compling.gui.analysis.aggregation.AggregationSingleText;
 import cz.slahora.compling.gui.analysis.alliteration.AlliterationAnalysis;
@@ -203,18 +202,10 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 				break;
 
 			case APP_ABOUT:
-				ProjectInfo projectInfo = new ProjectInfo(
-					"CompLing Gui", //..name of app
-					"0.1_ALPHA",  //..version
-					"<html><p style='text-align:center;'>This application provides graphical user interface for using <a href='https://github.com/slaha/compLing'>compLing - the computional linguistic library</a>."
-					+ "<p style='text-align:center;'>The application is developed as part of my diploma thesis on Univerzita Pardubice</html>",
-					null,
-					"Jan Šlahora",
-					"Unlicense - Public Domain",
-					Licence.LICENCE
-				);
 
-				new AboutFrame("O aplikaci", "https://github.com/slaha/compLing-gui",projectInfo).setVisible(true);
+				ProjectInfo projectInfo = new CompLingGuiInfo();
+
+				new AboutFrame("O aplikaci", "https://github.com/slaha/compLing-gui", projectInfo).setVisible(true);
 				break;
 			case APP_SETTINGS:
 				break;

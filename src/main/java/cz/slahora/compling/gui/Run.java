@@ -1,8 +1,12 @@
 package cz.slahora.compling.gui;
 
+import org.apache.commons.lang3.SystemUtils;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import javax.swing.UIDefaults;
 import javax.swing.UIManager;
+import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
@@ -34,6 +38,12 @@ public class Run {
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
+		}
+
+		if (SystemUtils.IS_OS_WINDOWS) {
+			final UIDefaults defaults = UIManager.getDefaults();
+			final Font font = UIManager.getFont("TextArea.font" /*"TextField.font"*/);
+			defaults.put("TextArea.font", font.deriveFont(12f));
 		}
 		AppContext appContext = new AppContext() {
 			@Override

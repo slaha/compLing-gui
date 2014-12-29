@@ -19,15 +19,17 @@ public class TabPanels {
 
 	private final Map<String, TabPanel> panels;
 	private final Stack<String> stack;
+	private final MainWindowController mainWindowController;
 	private TabPanel currentPanel;
 
-	public TabPanels() {
+	public TabPanels(MainWindowController mainWindowController) {
+		this.mainWindowController = mainWindowController;
 		panels = new LinkedHashMap<String, TabPanel>();
 		this.stack = new Stack<String>();
 	}
 
 	public void addPanel(WorkingText text, TabHolder tabHolder) {
-		TabPanel panel = new TabPanel(text.getId(), text.getName(), tabHolder);
+		TabPanel panel = new TabPanel(text.getId(), text.getName(), tabHolder, mainWindowController);
 		panels.put(text.getId(), panel);
 	}
 

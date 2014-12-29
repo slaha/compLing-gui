@@ -20,9 +20,9 @@ public class WorkingText {
 	private static final String TXT_SUFFIX = ".txt";
 	private static final int TXT_SUFFIX_LENGTH = TXT_SUFFIX.length();
 
-	private final String name;
-	private String text;
 	private final String id;
+	private String name;
+	private String text;
 
 	public WorkingText(String name, String text) {
 		this.id = UUID.randomUUID().toString();
@@ -59,4 +59,7 @@ public class WorkingText {
 		return getName();
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
 }

@@ -53,7 +53,7 @@ public class MainWindowControllerImpl implements MainWindowController {
 	public MainWindowControllerImpl(AppContext appContext, WorkingTexts workingTexts) {
 		this.appContext = appContext;
 		this.workingTexts = workingTexts;
-		this.tabPanels = new TabPanels();
+		this.tabPanels = new TabPanels(this);
 		this.lastDirectory = LastDirectory.getInstance();
 		this.resultReceiver = new AnalysisResultReceiverImpl();
 		this.onTabSelectedListeners = new ArrayList<OnTabSelected>();
@@ -179,6 +179,13 @@ public class MainWindowControllerImpl implements MainWindowController {
 	public void textChanged(String newText) {
 		workingTexts.get(getCurrentPanelId()).setText(newText);
 
+	}
+
+	@Override
+	public void renameText(String id, String newName) {
+		workingTexts.get(id).setName(newName);
+		tabPanels.getPanel(id).setNewTextName(newName);
+		tabHolder.onTabChange(id);
 	}
 
 	private void notifyNewTab(List<WorkingText> newTexts) {

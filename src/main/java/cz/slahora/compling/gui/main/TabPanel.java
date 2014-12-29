@@ -27,16 +27,6 @@ public class TabPanel extends JPanel {
 	private static final int BUTTON_SIZE = 16;
 	private static final Dimension BUTTON_DIMENSION = new Dimension(BUTTON_SIZE, BUTTON_SIZE);
 
-	private static final ActionListener CLOSE_LISTENER = new ActionListener() {
-		@Override
-		public void actionPerformed(final ActionEvent e) {
-		if (e.getSource() instanceof JButton) {
-			TabPanel panel = (TabPanel) ((JButton) e.getSource()).getParent();
-			panel.tabHolder.onTabClose(panel.id);
-		}
-		}
-	};
-
 	private static final MouseAdapter MOUSE_ADAPTER = new MouseAdapter() {
 
 		@Override
@@ -92,12 +82,13 @@ public class TabPanel extends JPanel {
 	public static final Icon ICON_HOVERED = IconUtils.getIcon(IconUtils.Icon.CLOSE_HOVERED);
 
 	private final JLabel nameLabel;
-	private final JButton closeButton;
 	private final String id;
 	private final TabHolder tabHolder;
+	private final ActionListener closeAction;
+	private final ActionListener renameAction;
 	private boolean active;
 
-	public TabPanel(String id, String name, TabHolder tabHolder) {
+	public TabPanel(final String id, String name, final TabHolder tabHolder, final MainWindowController mainWindowController) {
 		super(new GridBagLayout());
 
 		this.id = id;
@@ -117,11 +108,19 @@ public class TabPanel extends JPanel {
 		};
 		nameLabel.setOpaque(false);
 
-		this.closeButton = new JButton(ICON_NORMAL);
+		closeAction = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tabHolder.onTabClose(id);
+			}
+		};
+
+		JButton closeButton = new JButton(ICON_NORMAL);
 		closeButton.setPreferredSize(BUTTON_DIMENSION);
 		closeButton.setMaximumSize(BUTTON_DIMENSION);
 		closeButton.setMinimumSize(BUTTON_DIMENSION);
-		closeButton.addActionListener(CLOSE_LISTENER);
+
+		closeButton.addActionListener(closeAction);
 		closeButton.setContentAreaFilled(false);
 		closeButton.setOpaque(false);
 		closeButton.addMouseListener(CLOSE_BUTTON_MOUSE_ADAPTER);
@@ -148,6 +147,17 @@ public class TabPanel extends JPanel {
 
 		setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
 		addMouseListener(MOUSE_ADAPTER);
+
+		renameAction = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String newName = MainWindowUtils.renameTabDialog(TabPanel.this, id, nameLabel.getText());
+				if (newName != null) {
+					mainWindowController.renameText(id, newName);
+				}
+			}
+		};
+		setComponentPopupMenu(new TabPanelPopUp());
 	}
 
 	public String getId() {
@@ -156,5 +166,22 @@ public class TabPanel extends JPanel {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public void setNewTextName(String newTextName) {
+		nameLabel.setText(newTextName);
+	}
+
+	private class TabPanelPopUp extends JPopupMenu {
+
+		public TabPanelPopUp() {
+			JMenuItem rename = new JMenuItem("Přejmenovat");
+			rename.addActionListener(renameAction);
+			add(rename);
+
+			JMenuItem close = new JMenuItem("Zavřít");
+			close.addActionListener(closeAction);
+			add(close);
+		}
 	}
 }

@@ -32,7 +32,7 @@ public class Application {
 		this.context = context;
 		WorkingTexts workingTexts = new WorkingTexts();
 		MainWindowController ctx = new MainWindowControllerImpl(context, workingTexts);
-		mainWindow = new MainWindow(ctx, workingTexts);
+		mainWindow = new MainWindow(ctx);
 		mainWindowMenu = new MainWindowMenu(ctx, mainWindow.mainPanel, workingTexts);
 		ctx.setMainPanel(mainWindow.mainPanel);
 	}

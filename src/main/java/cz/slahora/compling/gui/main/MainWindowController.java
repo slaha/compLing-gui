@@ -47,6 +47,8 @@ public interface MainWindowController extends AppContext {
 
 	void textChanged(String newText);
 
+	void renameText(String id, String newName);
+
 	public interface OnTabSelected {
 		void onTabSelected(String id);
 	}

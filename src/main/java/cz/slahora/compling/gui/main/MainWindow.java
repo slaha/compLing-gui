@@ -1,7 +1,6 @@
 package cz.slahora.compling.gui.main;
 
 import cz.slahora.compling.gui.model.WorkingText;
-import cz.slahora.compling.gui.model.WorkingTexts;
 import cz.slahora.compling.gui.ui.ScrollablePanel;
 
 import javax.swing.*;
@@ -30,7 +29,6 @@ import java.awt.event.MouseEvent;
 public class MainWindow implements ActionListener, TabHolder {
 
 	private final MainWindowController controller;
-	private final WorkingTexts texts;
 
 	private final DocumentListener documentListener;
 
@@ -41,11 +39,12 @@ public class MainWindow implements ActionListener, TabHolder {
 	private JLabel nameOfOpenedText;
 	private JPanel tabsPanel;
 	private JScrollPane tabsScrollPane;
+	private JLabel nameLabel;
+	private JPanel namePanel;
 
-	public MainWindow(MainWindowController mainWindowController, WorkingTexts texts) {
+	public MainWindow(final MainWindowController mainWindowController) {
 		this.controller = mainWindowController;
 		this.controller.registerTabHolder(this);
-		this.texts = texts;
 		openFileButton.addActionListener(this);
 		newTabButton.addActionListener(this);
 
@@ -69,19 +68,30 @@ public class MainWindow implements ActionListener, TabHolder {
 		textArea.getDocument().addDocumentListener(documentListener);
 		textArea.setBorder(new EmptyBorder(2, 7, 2, 7));
 
+		final MouseAdapter labelOnClick = new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+
+				String newName = MainWindowUtils.renameTabDialog(namePanel, controller.getCurrentPanelId(), nameOfOpenedText.getText());
+				if (newName != null) {
+					controller.renameText(controller.getCurrentPanelId(), newName);
+				}
+			}
+		};
+		namePanel.addMouseListener(labelOnClick);
 	}
 
 	private void createUIComponents() {
 
 		ScrollablePanel tabsPanel = new ScrollablePanel();
 		tabsPanel.setLayout(new BoxLayout(tabsPanel, BoxLayout.Y_AXIS));
-		tabsPanel.setScrollableWidth( ScrollablePanel.ScrollableSizeHint.FIT );
+		tabsPanel.setScrollableWidth(ScrollablePanel.ScrollableSizeHint.FIT);
 		tabsPanel.setScrollableBlockIncrement(
 			ScrollablePanel.VERTICAL, ScrollablePanel.IncrementType.PERCENT, 100);
 
 		this.tabsPanel = tabsPanel;
 		tabsScrollPane = new JScrollPane(tabsPanel);
-		tabsScrollPane.getViewport().setBackground(new Color(237,236,235));
+		tabsScrollPane.getViewport().setBackground(new Color(237, 236, 235));
 	}
 
 	@Override

@@ -6,7 +6,7 @@
 
     <groupId>cz.slahora.compling.gui</groupId>
     <artifactId>guiCompling</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.99.0-SNAPSHOT</version>
 
     <dependencies>
         <!--Compling library-->
@@ -148,6 +148,9 @@
                     <archive>
                         <manifest>
                             <mainClass>cz.slahora.compling.gui.Run</mainClass>
+                            <addDefaultImplementationEntries>
+                                true
+                            </addDefaultImplementationEntries>
                         </manifest>
                     </archive>
                 </configuration>
