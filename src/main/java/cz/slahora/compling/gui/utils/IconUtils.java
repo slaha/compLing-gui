@@ -33,7 +33,8 @@ public class IconUtils {
 		CLOSE_HOVERED("close-hovered.png"),
 		EXIT("exit.png"),
 		SETTINGS("settings.png"),
-		ABOUT("about.png");
+		ABOUT("about.png"),
+		RENAME("rename.png");
 
 		private final String fileName;
 		Icon(String fileName) {

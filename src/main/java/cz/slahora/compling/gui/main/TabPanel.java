@@ -175,11 +175,11 @@ public class TabPanel extends JPanel {
 	private class TabPanelPopUp extends JPopupMenu {
 
 		public TabPanelPopUp() {
-			JMenuItem rename = new JMenuItem("Přejmenovat");
+			JMenuItem rename = new JMenuItem("Přejmenovat", IconUtils.getIcon(IconUtils.Icon.RENAME));
 			rename.addActionListener(renameAction);
 			add(rename);
 
-			JMenuItem close = new JMenuItem("Zavřít");
+			JMenuItem close = new JMenuItem("Zavřít", IconUtils.getIcon(IconUtils.Icon.CLOSE));
 			close.addActionListener(closeAction);
 			add(close);
 		}

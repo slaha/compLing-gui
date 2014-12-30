@@ -46,11 +46,10 @@ public class MainWindow implements ActionListener, TabHolder {
 	private JLabel nameOfOpenedText;
 	private JPanel tabsPanel;
 	private JScrollPane tabsScrollPane;
-	private JLabel nameLabel;
-	private JPanel namePanel;
 	private JButton oneTextAnalyse;
 	private JButton multipleTextAnalyse;
 	private TextStatusBar statusBar;
+	private JButton renameButton;
 
 	public MainWindow(final MainWindowController mainWindowController) {
 		this.controller = mainWindowController;
@@ -78,17 +77,7 @@ public class MainWindow implements ActionListener, TabHolder {
 		textArea.getDocument().addDocumentListener(documentListener);
 		textArea.setBorder(new EmptyBorder(2, 7, 2, 7));
 
-		final MouseAdapter labelOnClick = new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-
-				String newName = MainWindowUtils.renameTabDialog(namePanel, controller.getCurrentPanelId(), nameOfOpenedText.getText());
-				if (newName != null) {
-					controller.renameText(controller.getCurrentPanelId(), newName);
-				}
-			}
-		};
-		namePanel.addMouseListener(labelOnClick);
+		renameButton.addActionListener(this);
 
 		oneTextAnalyse.setComponentPopupMenu(createOneTextAnalyseMenu());
 		oneTextAnalyse.addActionListener(this);
@@ -173,6 +162,11 @@ public class MainWindow implements ActionListener, TabHolder {
 			oneTextAnalyse.getComponentPopupMenu().show(oneTextAnalyse, 10, oneTextAnalyse.getHeight());
 		} else if (source == multipleTextAnalyse) {
 			multipleTextAnalyse.getComponentPopupMenu().show(multipleTextAnalyse, 10, multipleTextAnalyse.getHeight());
+		} else if (source == renameButton) {
+			String newName = MainWindowUtils.renameTabDialog(textArea, controller.getCurrentPanelId(), nameOfOpenedText.getText());
+			if (newName != null) {
+				controller.renameText(controller.getCurrentPanelId(), newName);
+			}
 		} else if (source instanceof JMenuItem) {
 
 			int id = (Integer)((JMenuItem)source).getClientProperty("id");
@@ -223,6 +217,7 @@ public class MainWindow implements ActionListener, TabHolder {
 		documentListener.workingText = workingText;
 		textArea.setText(workingText == null ? "" : workingText.getText());
 		textArea.setEnabled(workingText != null);
+		renameButton.setEnabled(workingText != null);
 		textArea.setCaretPosition(0);
 		nameOfOpenedText.setText(workingText == null ? "" : workingText.getName());
 		textArea.getDocument().addDocumentListener(documentListener);
@@ -234,6 +229,7 @@ public class MainWindow implements ActionListener, TabHolder {
 
 		if (workingText == null) {
 			statusBar.onNoText();
+			renameButton.setToolTipText(null);
 		} else {
 			CompLing compLing = workingText.getCompLing();
 			ICharacterFrequency charFrequency = compLing.generalAnalysis().characterFrequency();
@@ -243,6 +239,8 @@ public class MainWindow implements ActionListener, TabHolder {
 			final int countOfWords = wordFrequency.getWordFrequency().getCountOfWords();
 
 			statusBar.onTextSelected(countOfChars, countOfWords);
+
+			renameButton.setToolTipText("Kliknutím přejmenujete text");
 		}
 	}
 
