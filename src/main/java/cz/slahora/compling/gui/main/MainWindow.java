@@ -1,5 +1,8 @@
 package cz.slahora.compling.gui.main;
 
+import cz.compling.CompLing;
+import cz.compling.analysis.analysator.frequency.character.ICharacterFrequency;
+import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
 import cz.slahora.compling.gui.analysis.Analysis;
 import cz.slahora.compling.gui.analysis.AnalysisFactory;
 import cz.slahora.compling.gui.analysis.MultipleTextsAnalysis;
@@ -47,6 +50,7 @@ public class MainWindow implements ActionListener, TabHolder {
 	private JPanel namePanel;
 	private JButton oneTextAnalyse;
 	private JButton multipleTextAnalyse;
+	private TextStatusBar statusBar;
 
 	public MainWindow(final MainWindowController mainWindowController) {
 		this.controller = mainWindowController;
@@ -69,7 +73,7 @@ public class MainWindow implements ActionListener, TabHolder {
 			}
 		});
 
-		this.documentListener = new DocumentListener(controller);
+		this.documentListener = new DocumentListener(controller, statusBar);
 
 		textArea.getDocument().addDocumentListener(documentListener);
 		textArea.setBorder(new EmptyBorder(2, 7, 2, 7));
@@ -86,51 +90,25 @@ public class MainWindow implements ActionListener, TabHolder {
 		};
 		namePanel.addMouseListener(labelOnClick);
 
-		oneTextAnalyse.setComponentPopupMenu(createOneTextAnalyseMenu(createMenuListener()));
-		oneTextAnalyse.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				oneTextAnalyse.getComponentPopupMenu().show(oneTextAnalyse, 10, oneTextAnalyse.getHeight());
-			}
-		});
+		oneTextAnalyse.setComponentPopupMenu(createOneTextAnalyseMenu());
+		oneTextAnalyse.addActionListener(this);
 
-		multipleTextAnalyse.setComponentPopupMenu(createMultipleTextAnalyseMenu(createMenuListener()));
-		multipleTextAnalyse.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				multipleTextAnalyse.getComponentPopupMenu().show(multipleTextAnalyse, 10, multipleTextAnalyse.getHeight());
-			}
-		});
+		multipleTextAnalyse.setComponentPopupMenu(createMultipleTextAnalyseMenu());
+		multipleTextAnalyse.addActionListener(this);
 
 		oneTextAnalyse.setEnabled(false);
 		multipleTextAnalyse.setEnabled(false);
 	}
 
-	private ActionListener createMenuListener() {
-		return new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JComponent component = (JComponent) e.getSource();
-				int id = (Integer)component.getClientProperty("id");
-				final Analysis analysis = AnalysisFactory.create(id);
-				if (analysis instanceof SingleTextAnalysis) {
-					controller.analyse((SingleTextAnalysis)analysis);
-				} else if (analysis instanceof MultipleTextsAnalysis) {
-					controller.analyse((MultipleTextsAnalysis)analysis);
-				}
-			}
-		};
-	}
-
-	private JPopupMenu createOneTextAnalyseMenu(ActionListener l) {
+	private JPopupMenu createOneTextAnalyseMenu() {
 		final JPopupMenu menu = new JPopupMenu();
-		JMenuItem characterFrequency = createMenuItem("Četnost znaků", AnalysisFactory.CHARACTER_COUNTS_ONE, l);
-		JMenuItem wordFrequency = createMenuItem("Četnost slov", AnalysisFactory.WORD_COUNTS_ONE, l);
+		JMenuItem characterFrequency = createMenuItem("Četnost znaků", AnalysisFactory.CHARACTER_COUNTS_ONE);
+		JMenuItem wordFrequency = createMenuItem("Četnost slov", AnalysisFactory.WORD_COUNTS_ONE);
 
-		JMenuItem alliteration = createMenuItem("Aliterace", AnalysisFactory.ALLITERATION, l);
-		JMenuItem aggregation = createMenuItem("Agregace", AnalysisFactory.AGGREGATION_ONE, l);
+		JMenuItem alliteration = createMenuItem("Aliterace", AnalysisFactory.ALLITERATION);
+		JMenuItem aggregation = createMenuItem("Agregace", AnalysisFactory.AGGREGATION_ONE);
 
-		JMenuItem denotation = createMenuItem("Denotační analýza", AnalysisFactory.DENOTATION, l);
+		JMenuItem denotation = createMenuItem("Denotační analýza", AnalysisFactory.DENOTATION);
 
 		menu.add(characterFrequency);
 		menu.add(wordFrequency);
@@ -143,14 +121,14 @@ public class MainWindow implements ActionListener, TabHolder {
 		return menu;
 	}
 
-	private JPopupMenu createMultipleTextAnalyseMenu(ActionListener l) {
+	private JPopupMenu createMultipleTextAnalyseMenu() {
 
 		final JPopupMenu menu = new JPopupMenu();
-		JMenuItem characterFrequency = createMenuItem("Četnost znaků", AnalysisFactory.CHARACTER_COUNTS_ALL, l);
-		JMenuItem wordFrequency = createMenuItem("Četnost slov", AnalysisFactory.WORD_COUNTS_ALL, l);
+		JMenuItem characterFrequency = createMenuItem("Četnost znaků", AnalysisFactory.CHARACTER_COUNTS_ALL);
+		JMenuItem wordFrequency = createMenuItem("Četnost slov", AnalysisFactory.WORD_COUNTS_ALL);
 
-		JMenuItem assonance = createMenuItem("Asonance", AnalysisFactory.ASSONANCE_ALL, l);
-		JMenuItem aggregation = createMenuItem("Agregace", AnalysisFactory.AGGREGATION_ALL, l);
+		JMenuItem assonance = createMenuItem("Asonance", AnalysisFactory.ASSONANCE_ALL);
+		JMenuItem aggregation = createMenuItem("Agregace", AnalysisFactory.AGGREGATION_ALL);
 
 
 		menu.add(characterFrequency);
@@ -162,10 +140,10 @@ public class MainWindow implements ActionListener, TabHolder {
 		return menu;
 	}
 	
-	private JMenuItem createMenuItem(String text, int actionId, ActionListener l) {
+	private JMenuItem createMenuItem(String text, int actionId) {
 		JMenuItem item = new JMenuItem(text);
 		item.putClientProperty("id", actionId);
-		item.addActionListener(l);
+		item.addActionListener(this);
 		return item;
 	}
 
@@ -185,11 +163,25 @@ public class MainWindow implements ActionListener, TabHolder {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 
-		if (e.getSource() == openFileButton) {
+		final Object source = e.getSource();
+		if (source == openFileButton) {
 			controller.openFileUsingDialog(mainPanel);
 
-		} else if (e.getSource() == newTabButton) {
+		} else if (source == newTabButton) {
 			controller.newEmptyTab(mainPanel);
+		} else if (source == oneTextAnalyse) {
+			oneTextAnalyse.getComponentPopupMenu().show(oneTextAnalyse, 10, oneTextAnalyse.getHeight());
+		} else if (source == multipleTextAnalyse) {
+			multipleTextAnalyse.getComponentPopupMenu().show(multipleTextAnalyse, 10, multipleTextAnalyse.getHeight());
+		} else if (source instanceof JMenuItem) {
+
+			int id = (Integer)((JMenuItem)source).getClientProperty("id");
+			final Analysis analysis = AnalysisFactory.create(id);
+			if (analysis instanceof SingleTextAnalysis) {
+				controller.analyse((SingleTextAnalysis)analysis);
+			} else if (analysis instanceof MultipleTextsAnalysis) {
+				controller.analyse((MultipleTextsAnalysis)analysis);
+			}
 		}
 	}
 
@@ -210,10 +202,6 @@ public class MainWindow implements ActionListener, TabHolder {
 				tabsPanel.repaint();
 			}
 		});
-
-		boolean analysisPossible = controller.getAllPanels().iterator().hasNext();
-		oneTextAnalyse.setEnabled(analysisPossible);
-		multipleTextAnalyse.setEnabled(analysisPossible);
 	}
 
 	@Override
@@ -224,8 +212,6 @@ public class MainWindow implements ActionListener, TabHolder {
 	@Override
 	public void onTabClose(String id) {
 		controller.removeTab(id);
-
-
 		refreshTabs();
 	}
 
@@ -234,21 +220,42 @@ public class MainWindow implements ActionListener, TabHolder {
 		WorkingText workingText = controller.onTabChange(id);
 
 		documentListener.suppress(true);
+		documentListener.workingText = workingText;
 		textArea.setText(workingText == null ? "" : workingText.getText());
 		textArea.setEnabled(workingText != null);
 		textArea.setCaretPosition(0);
 		nameOfOpenedText.setText(workingText == null ? "" : workingText.getName());
 		textArea.getDocument().addDocumentListener(documentListener);
 		documentListener.suppress(false);
+
+		boolean analysisPossible = controller.getAllPanels().iterator().hasNext();
+		oneTextAnalyse.setEnabled(analysisPossible);
+		multipleTextAnalyse.setEnabled(analysisPossible);
+
+		if (workingText == null) {
+			statusBar.onNoText();
+		} else {
+			CompLing compLing = workingText.getCompLing();
+			ICharacterFrequency charFrequency = compLing.generalAnalysis().characterFrequency();
+			final int countOfChars = charFrequency.getCharacterFrequency().getCharactersCount();
+
+			final IWordFrequency wordFrequency = compLing.generalAnalysis().wordFrequency();
+			final int countOfWords = wordFrequency.getWordFrequency().getCountOfWords();
+
+			statusBar.onTextSelected(countOfChars, countOfWords);
+		}
 	}
 
 	private static class DocumentListener implements javax.swing.event.DocumentListener {
 
 		private final MainWindowController controller;
+		private final TextStatusBar statusBar;
 		private boolean suppressed;
+		private WorkingText workingText;
 
-		private DocumentListener(MainWindowController controller) {
+		private DocumentListener(MainWindowController controller, TextStatusBar statusBar) {
 			this.controller = controller;
+			this.statusBar = statusBar;
 		}
 
 		public void suppress(boolean suppress) {
@@ -276,6 +283,17 @@ public class MainWindow implements ActionListener, TabHolder {
 				try {
 					String newText = document.getText(0, document.getLength());
 					controller.textChanged(newText);
+
+					if (workingText != null) {
+						CompLing compLing = workingText.getCompLing();
+						ICharacterFrequency charFrequency = compLing.generalAnalysis().characterFrequency();
+						final int countOfChars = charFrequency.getCharacterFrequency().getCharactersCount();
+
+						final IWordFrequency wordFrequency = compLing.generalAnalysis().wordFrequency();
+						final int countOfWords = wordFrequency.getWordFrequency().getCountOfWords();
+
+						statusBar.onTextSelected(countOfChars, countOfWords);
+					}
 				} catch (BadLocationException ex) {
 					ex.printStackTrace();
 				}

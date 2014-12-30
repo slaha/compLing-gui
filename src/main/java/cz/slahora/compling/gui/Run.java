@@ -7,8 +7,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import java.awt.Font;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 
 /**
  *
@@ -64,13 +62,7 @@ public class Run {
 
 	private static void createAndShowGUI(Application application) {
 		JFrame frame = application.createFrame();
-		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-		int width = gd.getDisplayMode().getWidth();
-		int height = gd.getDisplayMode().getHeight();
 
-		int windowWidth =  (int)(width * 0.85);
-		int windowHeight = (int)(height * 0.85);
-		frame.setSize(windowWidth, windowHeight);
 		frame.setVisible(true);
 
 	}

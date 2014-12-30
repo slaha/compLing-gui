@@ -29,7 +29,7 @@ import java.util.Collection;
  * <dd> 22.3.14 10:48</dd>
  * </dl>
  */
-public class MainWindowMenu extends JMenuBar implements MainWindowController.OnTabSelected,ActionListener{
+public class MainWindowMenu extends JMenuBar implements MainWindowController.OnTabSelected, ActionListener{
 
 	private static final int EXIT = 0;
 	private static final int OPEN = 1;
