@@ -3,6 +3,7 @@ package cz.slahora.compling.gui.main;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.IconUtils;
+import org.apache.commons.io.FileUtils;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
@@ -11,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.charset.Charset;
 
 /**
  *
@@ -36,6 +38,7 @@ public class TabPanel extends JPanel {
 	private final ActionListener closeAction;
 	private final ActionListener renameAction;
 	private final ActionListener saveAction;
+	private final ActionListener loadAgainAction;
 	private final TabPanelMouseAdapter tabPanelMouseAdapter;
 	private final WorkingText text;
 
@@ -118,6 +121,22 @@ public class TabPanel extends JPanel {
 				mainWindowController.save(text.getId(), false);
 			}
 		};
+
+		loadAgainAction = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					String loadedText = FileUtils.readFileToString(text.getFile(), Charset.forName("utf-8"));
+					text.setText(loadedText);
+					text.onSave(text.getFile());
+					mainWindowController.onTabContentChanged(text);
+					updateTextName();
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null, "Nepodařilo se nahrát text ze souboru " + text.getFile(), "Chyba", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		};
+
 		setComponentPopupMenu(new TabPanelPopUp());
 	}
 
@@ -132,9 +151,13 @@ public class TabPanel extends JPanel {
 	public void updateTextName() {
 		String name = text.getName() + (text.isDirty() ? " *" : "");
 		nameLabel.setText(name);
+		TabPanelPopUp popUp = (TabPanelPopUp) getComponentPopupMenu();
+		popUp.loadAgain.setEnabled(text.getFile() != null);
 	}
 
 	private class TabPanelPopUp extends JPopupMenu {
+
+		private final JMenuItem loadAgain;
 
 		public TabPanelPopUp() {
 			JMenuItem rename = new JMenuItem("Přejmenovat", IconUtils.getIcon(IconUtils.Icon.RENAME));
@@ -144,6 +167,14 @@ public class TabPanel extends JPanel {
 			JMenuItem save = new JMenuItem("Uložit", IconUtils.getIcon(IconUtils.Icon.DOCUMENT_SAVE));
 			save.addActionListener(saveAction);
 			add(save);
+
+			loadAgain = new JMenuItem("Nahrát znovu", IconUtils.getIcon(IconUtils.Icon.REFRESH));
+			loadAgain.addActionListener(loadAgainAction);
+			add(loadAgain);
+
+			if (text.getFile() == null) {
+				loadAgain.setEnabled(false);
+			}
 
 			JMenuItem close = new JMenuItem("Zavřít", IconUtils.getIcon(IconUtils.Icon.CLOSE));
 			close.addActionListener(closeAction);

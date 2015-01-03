@@ -225,6 +225,13 @@ public class MainWindowControllerImpl implements MainWindowController {
 		}
 	}
 
+	@Override
+	public void onTabContentChanged(WorkingText text) {
+		if (text.getId().equals(getCurrentPanelId())) {
+			tabHolder.onTabChange(getCurrentPanelId());
+		}
+	}
+
 	private void notifyNewTab(List<WorkingText> newTexts) {
 		if (tabHolder != null) {
 			List<String> ids = new ArrayList<String>();

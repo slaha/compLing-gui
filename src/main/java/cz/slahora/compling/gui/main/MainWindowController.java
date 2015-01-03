@@ -51,6 +51,8 @@ public interface MainWindowController extends AppContext {
 
 	void save(String id, boolean saveAs);
 
+	void onTabContentChanged(WorkingText text);
+
 	public interface OnTabSelected {
 		void onTabSelected(String id);
 	}

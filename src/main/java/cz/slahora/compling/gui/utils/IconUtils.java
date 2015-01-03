@@ -37,7 +37,8 @@ public class IconUtils {
 		ABOUT("about.png"),
 		RENAME("rename.png"),
 		RIGHT("right.png"),
-		DOWN("down.png");
+		DOWN("down.png"),
+		REFRESH("refresh.png");
 
 		private final String fileName;
 		Icon(String fileName) {
