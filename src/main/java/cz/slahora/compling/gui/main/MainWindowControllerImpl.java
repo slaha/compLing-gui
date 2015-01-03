@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -86,9 +87,21 @@ public class MainWindowControllerImpl implements MainWindowController {
 	}
 
 	@Override
-	public void removeTab(String id) {
+	public boolean removeTab(String id) {
+		if (workingTexts.get(id).isDirty()) {
+			int option = JOptionPane.showConfirmDialog(mainPanel,
+				"Text byl změněn. Chcete změny uložit?",
+				"Uložit změny",
+				JOptionPane.YES_NO_CANCEL_OPTION);
+			if (option == JOptionPane.CANCEL_OPTION) {
+				return false;
+			} else if (option == JOptionPane.YES_OPTION) {
+				save(id, false);
+			}
+		}
 		workingTexts.remove(id);
 		tabPanels.removePanel(id);
+		return true;
 	}
 
 	@Override
@@ -180,17 +193,18 @@ public class MainWindowControllerImpl implements MainWindowController {
 	@Override
 	public void textChanged(String newText) {
 		workingTexts.get(getCurrentPanelId()).setText(newText);
+		tabPanels.getPanel(getCurrentPanelId()).updateTextName();
 	}
 
 	@Override
 	public void renameText(String id, String newName) {
 		workingTexts.get(id).setName(newName);
-		tabPanels.getPanel(id).setNewTextName(newName);
+		tabPanels.getPanel(id).updateTextName();
 		tabHolder.onTabChange(id);
 	}
 
 	@Override
-	public void save(String id, boolean saveAs) {
+	public void save(final String id, boolean saveAs) {
 		final WorkingText text = workingTexts.get(id);
 
 		File file = text.getFile();
@@ -204,7 +218,8 @@ public class MainWindowControllerImpl implements MainWindowController {
 				@Override
 				public void perform() throws IOException {
 					IOUtils.write(text.getText(), new FileOutputStream(file), cz.slahora.compling.gui.utils.FileUtils.UTF8);
-					text.setFile(file);
+					text.onSave(file);
+					tabPanels.getPanel(id).updateTextName();
 				}
 			}, mainPanel);
 		}
@@ -234,6 +249,7 @@ public class MainWindowControllerImpl implements MainWindowController {
 	@Override
 	public void settingsChanged() {
 		appContext.settingsChanged();
-
 	}
+
+
 }

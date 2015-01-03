@@ -29,7 +29,7 @@ public class TabPanels {
 	}
 
 	public void addPanel(WorkingText text, TabHolder tabHolder) {
-		TabPanel panel = new TabPanel(text.getId(), text.getName(), tabHolder, mainWindowController);
+		TabPanel panel = new TabPanel(text, tabHolder, mainWindowController);
 		panels.put(text.getId(), panel);
 	}
 

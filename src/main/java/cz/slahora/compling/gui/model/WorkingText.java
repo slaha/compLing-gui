@@ -27,6 +27,8 @@ public class WorkingText {
 	private String name;
 	private String text;
 
+	private boolean textChanged;
+
 	public WorkingText(String name, String text, File file) {
 		this.id = UUID.randomUUID().toString();
 		this.name = name;
@@ -56,6 +58,7 @@ public class WorkingText {
 
 	public void setText(String newText) {
 		text = newText;
+		textChanged = true;
 	}
 
 	@Override
@@ -71,7 +74,13 @@ public class WorkingText {
 		return file;
 	}
 
-	public void setFile(File file) {
+	public void onSave(File file) {
 		this.file = file;
+		textChanged = false;
 	}
+
+	public boolean isDirty() {
+		return textChanged;
+	}
+
 }

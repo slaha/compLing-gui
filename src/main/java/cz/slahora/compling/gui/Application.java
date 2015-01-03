@@ -9,9 +9,12 @@ import cz.slahora.compling.gui.model.WorkingTexts;
 
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Locale;
 
 /**
@@ -34,10 +37,11 @@ public class Application implements MainWindowController.OnTabSelected {
 	private MainWindow mainWindow;
 	private JFrame frame;
 	private final WorkingTexts workingTexts;
+	private final MainWindowController ctx;
 
 	public Application(AppContext context) {
 		workingTexts = new WorkingTexts();
-		MainWindowController ctx = new MainWindowControllerImpl(context, workingTexts);
+		ctx = new MainWindowControllerImpl(context, workingTexts);
 		ctx.registerOnTabChange(this);
 		mainWindow = new MainWindow(ctx);
 		mainWindowMenu = new MainWindowMenu(ctx, mainWindow.mainPanel, workingTexts);
@@ -48,7 +52,24 @@ public class Application implements MainWindowController.OnTabSelected {
 		frame = new JFrame(TITLE);
 		frame.setJMenuBar(mainWindowMenu);
 		frame.setContentPane(mainWindow.mainPanel);
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if (workingTexts.allTextsSaved()) {
+					ctx.exit(0);
+				} else {
+					int value = JOptionPane.showConfirmDialog(frame,
+						"Jsou otevřeny texty, které byly změněny, ale ještě nebyly uloženy.\n\nChcete aplikaci přes to ukončit?",
+						"Soubory nejsou uloženy",
+						JOptionPane.YES_NO_OPTION
+						);
+					if (value == JOptionPane.YES_OPTION) {
+						ctx.exit(0);
+					}
+				}
+			}
+		});
 		frame.pack();
 
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();

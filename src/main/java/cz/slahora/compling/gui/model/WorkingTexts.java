@@ -45,4 +45,13 @@ public class WorkingTexts {
 	public void remove(String id) {
 		texts.remove(id);
 	}
+
+	public boolean allTextsSaved() {
+		for (WorkingText text : texts.values()) {
+			if (text.isDirty()) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

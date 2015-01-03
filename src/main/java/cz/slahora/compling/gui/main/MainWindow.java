@@ -205,8 +205,9 @@ public class MainWindow implements ActionListener, TabHolder {
 
 	@Override
 	public void onTabClose(String id) {
-		controller.removeTab(id);
-		refreshTabs();
+		if (controller.removeTab(id)) {
+			refreshTabs();
+		}
 	}
 
 	@Override

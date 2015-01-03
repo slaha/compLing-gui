@@ -1,5 +1,6 @@
 package cz.slahora.compling.gui.main;
 
+import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import cz.slahora.compling.gui.utils.IconUtils;
 
@@ -31,20 +32,22 @@ public class TabPanel extends JPanel {
 	public static final Icon ICON_HOVERED = IconUtils.getIcon(IconUtils.Icon.CLOSE_HOVERED);
 
 	private final JLabel nameLabel;
-	private final String id;
 	private final TabHolder tabHolder;
 	private final ActionListener closeAction;
 	private final ActionListener renameAction;
+	private final ActionListener saveAction;
 	private final TabPanelMouseAdapter tabPanelMouseAdapter;
+	private final WorkingText text;
+
 	private boolean active;
 
-	public TabPanel(final String id, String name, final TabHolder tabHolder, final MainWindowController mainWindowController) {
+	public TabPanel(final WorkingText text, final TabHolder tabHolder, final MainWindowController mainWindowController) {
 		super(new GridBagLayout());
 
-		this.id = id;
+		this.text = text;
 		this.tabHolder = tabHolder;
 
-		this.nameLabel = new JLabel(name) {
+		this.nameLabel = new JLabel(text.getName()) {
 
 			@Override
 			public void paint(Graphics g) {
@@ -61,7 +64,7 @@ public class TabPanel extends JPanel {
 		closeAction = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tabHolder.onTabClose(id);
+				tabHolder.onTabClose(text.getId());
 			}
 		};
 
@@ -102,25 +105,33 @@ public class TabPanel extends JPanel {
 		renameAction = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String newName = MainWindowUtils.renameTabDialog(TabPanel.this, id, nameLabel.getText());
+				String newName = MainWindowUtils.renameTabDialog(TabPanel.this, text.getId(), nameLabel.getText());
 				if (newName != null) {
-					mainWindowController.renameText(id, newName);
+					mainWindowController.renameText(text.getId(), newName);
 				}
+			}
+		};
+
+		saveAction = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainWindowController.save(text.getId(), false);
 			}
 		};
 		setComponentPopupMenu(new TabPanelPopUp());
 	}
 
 	public String getId() {
-		return id;
+		return text.getId();
 	}
 
 	public void setActive(boolean active) {
 		this.active = active;
 	}
 
-	public void setNewTextName(String newTextName) {
-		nameLabel.setText(newTextName);
+	public void updateTextName() {
+		String name = text.getName() + (text.isDirty() ? " *" : "");
+		nameLabel.setText(name);
 	}
 
 	private class TabPanelPopUp extends JPopupMenu {
@@ -129,6 +140,10 @@ public class TabPanel extends JPanel {
 			JMenuItem rename = new JMenuItem("Přejmenovat", IconUtils.getIcon(IconUtils.Icon.RENAME));
 			rename.addActionListener(renameAction);
 			add(rename);
+
+			JMenuItem save = new JMenuItem("Uložit", IconUtils.getIcon(IconUtils.Icon.DOCUMENT_SAVE));
+			save.addActionListener(saveAction);
+			add(save);
 
 			JMenuItem close = new JMenuItem("Zavřít", IconUtils.getIcon(IconUtils.Icon.CLOSE));
 			close.addActionListener(closeAction);

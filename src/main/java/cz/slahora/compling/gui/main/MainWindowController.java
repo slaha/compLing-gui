@@ -23,7 +23,7 @@ public interface MainWindowController extends AppContext {
 
 	java.util.List<WorkingText> openFileUsingDialog(JComponent parent);
 
-	void removeTab(String id);
+	boolean removeTab(String id);
 
 	WorkingText onTabChange(String id);
 
