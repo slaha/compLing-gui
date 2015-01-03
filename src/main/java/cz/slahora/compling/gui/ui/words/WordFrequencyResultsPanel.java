@@ -2,6 +2,7 @@ package cz.slahora.compling.gui.ui.words;
 
 import cz.compling.analysis.analysator.frequency.words.IWordFrequency;
 import cz.slahora.compling.gui.analysis.ToggleHeader;
+import cz.slahora.compling.gui.analysis.assonance.NonEditableTable;
 import cz.slahora.compling.gui.analysis.words.WordTextAnalysisType;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
@@ -90,7 +91,7 @@ public class WordFrequencyResultsPanel<T> extends AbstractResultsPanel implement
 		panel.add(createVerticalSpace());
 		panel.add(tableHeadline);
 		//table with words occurrences
-		JTable table = new JTable(model.getTableModel());
+		JTable table = new NonEditableTable(model.getTableModel());
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowSelectionAllowed(false);
 		table.setColumnSelectionAllowed(false);
@@ -216,7 +217,7 @@ public class WordFrequencyResultsPanel<T> extends AbstractResultsPanel implement
 
 		final WordLengthFrequenciesModel.ChiSquare chiSquareModel = model.getChiSquareFor(workingText);
 		//table with words occurrences
-		JTable table = new JTable(chiSquareModel.tableModel);
+		JTable table = new NonEditableTable(chiSquareModel.tableModel);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowSelectionAllowed(false);
 		table.setColumnSelectionAllowed(false);

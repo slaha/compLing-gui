@@ -1,10 +1,12 @@
 package cz.slahora.compling.gui.analysis.aggregation;
 
+import cz.slahora.compling.gui.analysis.assonance.NonEditableTable;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.ui.AbstractResultsPanel;
 import cz.slahora.compling.gui.ui.ResultsPanel;
 import cz.slahora.compling.gui.ui.ResultsScrollablePanel;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
+import org.jdesktop.swingx.JXTable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -50,7 +52,7 @@ class AggregationResultsPanel extends AbstractResultsPanel implements ResultsPan
 		text.setBorder(new EmptyBorder(30, 0, 30, 0));
 		addToPanel(text);
 
-		JTable aggregationTable = new JTable(new AggregationTableModel(model));
+		JXTable aggregationTable = new NonEditableTable(new AggregationTableModel(model));
 		aggregationTable.setBorder(BorderFactory.createLineBorder(Color.black));
 		aggregationTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		aggregationTable.setColumnSelectionAllowed(true);

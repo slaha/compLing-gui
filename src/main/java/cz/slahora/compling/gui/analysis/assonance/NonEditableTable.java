@@ -1,9 +1,10 @@
 package cz.slahora.compling.gui.analysis.assonance;
 
-import javax.swing.JTable;
+import org.jdesktop.swingx.JXTable;
+
 import javax.swing.table.TableModel;
 
-public class NonEditableTable extends JTable {
+public class NonEditableTable extends JXTable {
 
 	public NonEditableTable(Object[][] table, Object[] columnNames) {
 		super(table, columnNames);

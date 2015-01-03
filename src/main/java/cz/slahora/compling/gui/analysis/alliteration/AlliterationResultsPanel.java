@@ -1,11 +1,13 @@
 package cz.slahora.compling.gui.analysis.alliteration;
 
+import cz.slahora.compling.gui.analysis.assonance.NonEditableTable;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.ui.AbstractResultsPanel;
 import cz.slahora.compling.gui.ui.MultipleLinesLabel;
 import cz.slahora.compling.gui.ui.ResultsPanel;
 import cz.slahora.compling.gui.ui.ResultsScrollablePanel;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
+import org.jdesktop.swingx.JXTable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -101,7 +103,7 @@ class AlliterationResultsPanel extends AbstractResultsPanel implements ResultsPa
 			tableModel.addRow(verse, phonemes, n, k, p, ka);
 		}
 
-		JTable table = new JTable(tableModel);
+		JXTable table = new NonEditableTable(tableModel);
 		addToPanel(table.getTableHeader());
 		addToPanel(table);
 	}

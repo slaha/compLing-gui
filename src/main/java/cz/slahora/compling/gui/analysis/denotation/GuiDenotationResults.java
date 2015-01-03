@@ -5,6 +5,7 @@ import cz.compling.model.denotation.Coincidence;
 import cz.compling.model.denotation.GuiPoemAsSpikeNumbers;
 import cz.compling.model.denotation.Spike;
 import cz.slahora.compling.gui.analysis.ToggleHeader;
+import cz.slahora.compling.gui.analysis.assonance.NonEditableTable;
 import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.ui.MultipleLinesLabel;
@@ -112,7 +113,7 @@ public class GuiDenotationResults {
 			}
 		}
 
-		ToggleHeader toggle = new ToggleHeader(diffusionSpikes.getActionMap().get("toggle"),
+		ToggleHeader toggle = new ToggleHeader(diffusionSpikes,
 			new HtmlLabelBuilder().hx(2, "Difuznost hřebů").build().getText());
 
 		panel.add(
@@ -407,8 +408,7 @@ public class GuiDenotationResults {
 			corePanel = new SpikeDetailsCollapsiblePanel();
 			corePanel.setCollapsed(collapseCore);
 			corePanel.addSpikes(core.getCore(), this);
-			Action action = corePanel.getActionMap().get("toggle");
-			ToggleHeader toggleHeader = new ToggleHeader(action, new HtmlLabelBuilder().hx(3, "Jádro textu").build().getText());
+			ToggleHeader toggleHeader = new ToggleHeader(corePanel, new HtmlLabelBuilder().hx(3, "Jádro textu").build().getText());
 			add(
 				toggleHeader,
 				new GridBagConstraintBuilder().weightY(1).gridXY(0, 0).anchor(GridBagConstraints.NORTHWEST).build()
@@ -425,8 +425,7 @@ public class GuiDenotationResults {
 			outsideCorePanel.setLayout(new GridBagLayout());
 			outsideCorePanel.addSpikes(core.getNotInCore(), this);
 
-			action = outsideCorePanel.getActionMap().get("toggle");
-			toggleHeader = new ToggleHeader(action, new HtmlLabelBuilder().hx(3, "Hřeby mimo jádro").build().getText());
+			toggleHeader = new ToggleHeader(outsideCorePanel, new HtmlLabelBuilder().hx(3, "Hřeby mimo jádro").build().getText());
 			add(
 				toggleHeader,
 				new GridBagConstraintBuilder().weightY(1).weightX(1).gridXY(0, 1).anchor(GridBagConstraints.NORTHWEST).build()
@@ -442,8 +441,7 @@ public class GuiDenotationResults {
 			coreTopikalnostPanel.setCollapsed(collapseTopikalnostCore);
 			coreTopikalnostPanel.addSpikes(computeTopikalnost(), null);
 
-			action = coreTopikalnostPanel.getActionMap().get("toggle");
-			toggleHeader = new ToggleHeader(action, new HtmlLabelBuilder().hx(3, "Topikálnost jádrových hřebů").build().getText());
+			toggleHeader = new ToggleHeader(coreTopikalnostPanel, new HtmlLabelBuilder().hx(3, "Topikálnost jádrových hřebů").build().getText());
 			add(
 				toggleHeader,
 				new GridBagConstraintBuilder().weightY(1).weightX(1).gridXY(0, 2).anchor(GridBagConstraints.NORTHWEST).build()
@@ -629,7 +627,7 @@ public class GuiDenotationResults {
 				}
 
 			};
-			table = new JXTable(model);
+			table = new NonEditableTable(model);
 			table.setSortable(false);
 			add(table.getTableHeader(), BorderLayout.NORTH);
 			add(table, BorderLayout.CENTER);

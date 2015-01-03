@@ -1,11 +1,13 @@
 package cz.slahora.compling.gui.ui.characters;
 
 import cz.compling.model.CharacterFrequency;
+import cz.slahora.compling.gui.analysis.assonance.NonEditableTable;
 import cz.slahora.compling.gui.model.CharacterFrequencyModel;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.ui.*;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
+import org.jdesktop.swingx.JXTable;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
@@ -82,7 +84,7 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 
 
 		//table with character occurrences
-		JTable table = new JTable(model.getTableModel());
+		JXTable table = new NonEditableTable(model.getTableModel());
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowSelectionAllowed(false);
 		table.setColumnSelectionAllowed(false);

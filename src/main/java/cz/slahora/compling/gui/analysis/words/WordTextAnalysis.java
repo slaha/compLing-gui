@@ -5,6 +5,7 @@ import cz.compling.text.Text;
 import cz.compling.text.TextModificationRule;
 import cz.compling.utils.Reference;
 import cz.slahora.compling.gui.analysis.RulesTable;
+import cz.slahora.compling.gui.analysis.assonance.NonEditableTable;
 import cz.slahora.compling.gui.utils.GridBagConstraintBuilder;
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,7 +66,7 @@ abstract class WordTextAnalysis {
 			buttonsPanel.add(minusBtn, new GridBagConstraintBuilder().gridXY(0, 1).build());
 
 			final RulesTable.RulesTableModel model = new RulesTable.RulesTableModel<WordFrequencyRule>(replaceRules);
-			final JTable jTable = new JTable(model);
+			final JTable jTable = new NonEditableTable(model);
 			jTable.setColumnSelectionAllowed(false);
 			jTable.setCellSelectionEnabled(false);
 			jTable.setRowSelectionAllowed(true);
