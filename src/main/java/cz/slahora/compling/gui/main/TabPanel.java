@@ -27,57 +27,6 @@ public class TabPanel extends JPanel {
 	private static final int BUTTON_SIZE = 16;
 	private static final Dimension BUTTON_DIMENSION = new Dimension(BUTTON_SIZE, BUTTON_SIZE);
 
-	private static final MouseAdapter MOUSE_ADAPTER = new MouseAdapter() {
-
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			if (e.getSource() instanceof TabPanel) {
-				TabPanel panel = (TabPanel) e.getSource();
-				panel.tabHolder.onTabChange(panel.getId());
-			}
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-			if (e.getSource() instanceof TabPanel) {
-				TabPanel btn = (TabPanel)e.getSource();
-				btn.setBackground(new Color(139, 163, 232));
-			}
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-			if (e.getSource() instanceof TabPanel) {
-				TabPanel btn = (TabPanel)e.getSource();
-				btn.setBackground(UIManager.getColor("Panel.background"));
-			}
-		}
-	};
-
-	private static final MouseAdapter CLOSE_BUTTON_MOUSE_ADAPTER = new MouseAdapter() {
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-			if (e.getSource() instanceof JButton) {
-				JButton btn = (JButton)e.getSource();
-				btn.setIcon(ICON_HOVERED);
-				btn.setFont(btn.getFont().deriveFont(Font.BOLD));
-				e.setSource(btn.getParent());
-				MOUSE_ADAPTER.mouseEntered(e);
-			}
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-			if (e.getSource() instanceof JButton) {
-				JButton btn = (JButton)e.getSource();
-				btn.setIcon(ICON_NORMAL);
-				btn.setFont(btn.getFont().deriveFont(Font.PLAIN));
-				e.setSource(btn.getParent());
-				MOUSE_ADAPTER.mouseExited(e);
-			}
-		}
-	};
 	public static final Icon ICON_NORMAL = IconUtils.getIcon(IconUtils.Icon.CLOSE);
 	public static final Icon ICON_HOVERED = IconUtils.getIcon(IconUtils.Icon.CLOSE_HOVERED);
 
@@ -86,6 +35,7 @@ public class TabPanel extends JPanel {
 	private final TabHolder tabHolder;
 	private final ActionListener closeAction;
 	private final ActionListener renameAction;
+	private final TabPanelMouseAdapter tabPanelMouseAdapter;
 	private boolean active;
 
 	public TabPanel(final String id, String name, final TabHolder tabHolder, final MainWindowController mainWindowController) {
@@ -123,7 +73,7 @@ public class TabPanel extends JPanel {
 		closeButton.addActionListener(closeAction);
 		closeButton.setContentAreaFilled(false);
 		closeButton.setOpaque(false);
-		closeButton.addMouseListener(CLOSE_BUTTON_MOUSE_ADAPTER);
+		closeButton.addMouseListener(new CloseButtonMouseAdapter(closeButton));
 
 		setPreferredSize(new Dimension(145, 25));
 		setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
@@ -146,7 +96,8 @@ public class TabPanel extends JPanel {
 		add(closeButton, buttonConstraints.build());
 
 		setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
-		addMouseListener(MOUSE_ADAPTER);
+		tabPanelMouseAdapter = new TabPanelMouseAdapter();
+		addMouseListener(tabPanelMouseAdapter);
 
 		renameAction = new ActionListener() {
 			@Override
@@ -184,4 +135,45 @@ public class TabPanel extends JPanel {
 			add(close);
 		}
 	}
+
+	private class CloseButtonMouseAdapter extends MouseAdapter {
+
+		private final JButton closeButton;
+
+		public CloseButtonMouseAdapter(JButton closeButton) {
+			this.closeButton = closeButton;
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			closeButton.setIcon(ICON_HOVERED);
+			closeButton.setFont(closeButton.getFont().deriveFont(Font.BOLD));
+			tabPanelMouseAdapter.mouseEntered(null);
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			closeButton.setIcon(ICON_NORMAL);
+			closeButton.setFont(closeButton.getFont().deriveFont(Font.PLAIN));
+			tabPanelMouseAdapter.mouseExited(null);
+		}
+	}
+
+	private class TabPanelMouseAdapter extends MouseAdapter {
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			tabHolder.onTabChange(getId());
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			setBackground(new Color(139, 163, 232));
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			setBackground(UIManager.getColor("Panel.background"));
+		}
+	};
 }

@@ -1,5 +1,6 @@
 package cz.slahora.compling.gui.model;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -23,8 +24,8 @@ public class WorkingTexts {
 		this.texts = new LinkedHashMap<String, WorkingText>();
 	}
 
-	public WorkingText add(String name, String text) {
-		WorkingText workingText = new WorkingText(name, text);
+	public WorkingText add(String name, String text, File file) {
+		WorkingText workingText = new WorkingText(name, text, file);
 		texts.put(workingText.getId(), workingText);
 		return workingText;
 	}

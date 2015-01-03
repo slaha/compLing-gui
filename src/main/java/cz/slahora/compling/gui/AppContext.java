@@ -14,4 +14,6 @@ package cz.slahora.compling.gui;
 public interface AppContext {
 
 	void exit(int code);
+
+	void settingsChanged();
 }

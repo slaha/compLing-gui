@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="cz.slahora.compling.gui.main.MainWindow">
   <grid id="27dc6" binding="mainPanel" layout-manager="FormLayout">
-    <rowspec value="center:36px:noGrow"/>
+    <rowspec value="center:d:noGrow"/>
     <rowspec value="top:0px:noGrow"/>
     <rowspec value="fill:d:grow"/>
     <colspec value="fill:d:grow"/>
@@ -85,10 +85,10 @@
         <children>
           <grid id="4d71e" layout-manager="FormLayout">
             <rowspec value="center:max(d;2px):noGrow"/>
-            <rowspec value="center:25px:noGrow"/>
+            <rowspec value="center:d:noGrow"/>
             <rowspec value="fill:317px:grow"/>
             <rowspec value="top:1dlu:noGrow"/>
-            <rowspec value="center:22px:noGrow"/>
+            <rowspec value="center:d:noGrow"/>
             <rowspec value="top:1dlu:noGrow"/>
             <colspec value="fill:d:grow"/>
             <constraints>

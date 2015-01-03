@@ -7,12 +7,14 @@ import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.model.WorkingTexts;
 import cz.slahora.compling.gui.utils.FileChooserUtils;
+import cz.slahora.compling.gui.utils.FileIOUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import javax.swing.JComponent;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -68,7 +70,7 @@ public class MainWindowControllerImpl implements MainWindowController {
 			for (File file : files) {
 				try {
 					String text = FileUtils.readFileToString(file, UTF8_CHARSET);
-					WorkingText workingText = workingTexts.add(file.getName(), text);
+					WorkingText workingText = workingTexts.add(file.getName(), text, file);
 					newTexts.add(workingText);
 					tabPanels.addPanel(workingText, tabHolder);
 				} catch (IOException e) {
@@ -103,9 +105,9 @@ public class MainWindowControllerImpl implements MainWindowController {
 
 	@Override
 	public WorkingText newEmptyTab(JComponent parent) {
-		String name = JOptionPane.showInputDialog(parent, "Zadejte prosím jméno nového textu", "Jméno nového textu", JOptionPane.QUESTION_MESSAGE);
+		String name = MainWindowUtils.enterTabDialog(parent);
 		if (name != null) {
-			WorkingText workingText = workingTexts.add(name, "");
+			WorkingText workingText = workingTexts.add(name, "", null);
 			tabPanels.addPanel(workingText, tabHolder);
 			notifyNewTab(Collections.singletonList(workingText));
 			return workingText;
@@ -178,7 +180,6 @@ public class MainWindowControllerImpl implements MainWindowController {
 	@Override
 	public void textChanged(String newText) {
 		workingTexts.get(getCurrentPanelId()).setText(newText);
-
 	}
 
 	@Override
@@ -186,6 +187,27 @@ public class MainWindowControllerImpl implements MainWindowController {
 		workingTexts.get(id).setName(newName);
 		tabPanels.getPanel(id).setNewTextName(newName);
 		tabHolder.onTabChange(id);
+	}
+
+	@Override
+	public void save(String id, boolean saveAs) {
+		final WorkingText text = workingTexts.get(id);
+
+		File file = text.getFile();
+		if (saveAs || file == null) {
+			File dir = LastDirectory.getInstance().getLastDirectory();
+			file = FileChooserUtils.getFileToSave(dir, mainPanel, "txt");
+		}
+
+		if (FileIOUtils.checkFile(file, mainPanel, !saveAs)) { //..don't notify file exists when saving existing file
+			FileIOUtils.perform(new FileIOUtils.IoOperation(file) {
+				@Override
+				public void perform() throws IOException {
+					IOUtils.write(text.getText(), new FileOutputStream(file), cz.slahora.compling.gui.utils.FileUtils.UTF8);
+					text.setFile(file);
+				}
+			}, mainPanel);
+		}
 	}
 
 	private void notifyNewTab(List<WorkingText> newTexts) {
@@ -207,5 +229,11 @@ public class MainWindowControllerImpl implements MainWindowController {
 	@Override
 	public void exit(int code) {
 		appContext.exit(code);
+	}
+
+	@Override
+	public void settingsChanged() {
+		appContext.settingsChanged();
+
 	}
 }

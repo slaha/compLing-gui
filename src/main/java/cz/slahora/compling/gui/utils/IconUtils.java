@@ -20,6 +20,7 @@ public class IconUtils {
 	public enum Icon {
 		DOCUMENT_OPEN("document-open.png"),
 		DOCUMENT_SAVE("document-save.png"),
+		DOCUMENT_SAVE_AS("document-save-as.png"),
 
 		ADD("list-add.png"),
 		REMOVE("list-remove.png"),
@@ -34,7 +35,9 @@ public class IconUtils {
 		EXIT("exit.png"),
 		SETTINGS("settings.png"),
 		ABOUT("about.png"),
-		RENAME("rename.png");
+		RENAME("rename.png"),
+		RIGHT("right.png"),
+		DOWN("down.png");
 
 		private final String fileName;
 		Icon(String fileName) {

@@ -3,10 +3,10 @@ package cz.slahora.compling.gui.analysis;
 import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.ui.ResultsPanel;
 import cz.slahora.compling.gui.utils.FileChooserUtils;
+import cz.slahora.compling.gui.utils.FileIOUtils;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -67,21 +67,15 @@ public class AnalysisReceiverToolbar extends JToolBar implements ActionListener 
 			case EXPORT:
 				LastDirectory lastDirectory = LastDirectory.getInstance();
 				File csvFile = FileChooserUtils.getFileToSave(lastDirectory.getLastDirectory(), getParent(), "csv");
-				if (csvFile == null) {
-					return;
-				} else if (csvFile.exists()) {
-					int i = JOptionPane.showConfirmDialog(getParent(), "Soubor " + csvFile.getName() + " již existuje. Chcete jej přepsat?", "Soubor již existuje", JOptionPane.YES_NO_OPTION);
-					if (i != JOptionPane.YES_OPTION) {
-						return;
-					}
-				}
-				CsvExporter csvExporter = new CsvExporter(panel.getCsvData());
-				try {
-					csvExporter.export(csvFile);
-				} catch (IOException ex) {
-					JOptionPane.showMessageDialog(getParent(), "Chyba při ukládání souboru " + csvFile.getName(), "Chyba", JOptionPane.ERROR_MESSAGE);
-				} finally {
-					lastDirectory.setLastDirectory(csvFile.getParentFile());
+				if (FileIOUtils.checkFile(csvFile, getParent(), false)) {
+					FileIOUtils.perform(new FileIOUtils.IoOperation(csvFile) {
+						@Override
+						public void perform() throws IOException {
+							CsvExporter csvExporter = new CsvExporter(panel.getCsvData());
+							csvExporter.export(file);
+
+						}
+					}, getParent());
 				}
 				break;
 			case PRINT:

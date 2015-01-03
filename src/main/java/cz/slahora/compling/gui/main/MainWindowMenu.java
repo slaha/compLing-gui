@@ -33,7 +33,10 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 	private static final int EXIT = 0;
 	private static final int OPEN = 1;
-	//	private static final int APP_SETTINGS = 100;
+	private static final int ADD = 2;
+	private static final int SAVE = 3;
+	private static final int SAVE_AS = 4;
+	private static final int APP_SETTINGS = 100;
 	private static final int APP_ABOUT = 101;
 
 	private final MainWindowController controller;
@@ -42,6 +45,8 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 	private final JMenu analyzeMenu;
 	private final Collection<JMenuItem> forActualTextMenus;
+	private JMenuItem saveMenuItem;
+	private JMenuItem saveAsMenuItem;
 
 	public MainWindowMenu(MainWindowController controller, JComponent parentComponent, WorkingTexts workingTexts) {
 		this.controller = controller;
@@ -58,16 +63,17 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 
 		add(createFileApplication());
+
+		onTabSelected(null);
 	}
 
 	private JMenu createFileApplication() {
 		JMenu application = new JMenu("Aplikace");
 
-//		JMenuItem settings = createMenuItem("Nastavení aplikace", APP_SETTINGS, IconUtils.Icon.SETTINGS);
-//		settings.setEnabled(false);
+		JMenuItem settings = createMenuItem("Nastavení aplikace", APP_SETTINGS, IconUtils.Icon.SETTINGS);
 		JMenuItem about = createMenuItem("O aplikaci", APP_ABOUT, IconUtils.Icon.ABOUT);
 
-//		application.add(settings);
+		application.add(settings);
 		application.addSeparator();
 		application.add(about);
 		return application;
@@ -139,7 +145,19 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 	private JMenu createFileMenu() {
 		JMenu fileMenu = new JMenu("Soubor");
+		fileMenu.add(createMenuItem("Nový prázdný panel", ADD, IconUtils.Icon.ADD));
 		fileMenu.add(createMenuItem("Otevřít", OPEN, IconUtils.Icon.DOCUMENT_OPEN));
+
+		saveMenuItem = createMenuItem("Uložit %s", SAVE, IconUtils.Icon.DOCUMENT_SAVE);
+		saveMenuItem.setEnabled(false);
+		forActualTextMenus.add(saveMenuItem);
+
+		saveAsMenuItem = createMenuItem("Uložit jako", SAVE_AS, IconUtils.Icon.DOCUMENT_SAVE_AS);
+		saveAsMenuItem.setEnabled(false);
+
+		fileMenu.add(saveMenuItem);
+		fileMenu.add(saveAsMenuItem);
+
 		fileMenu.addSeparator();
 		fileMenu.add(createMenuItem("Ukončit", EXIT, IconUtils.Icon.EXIT));
 		return fileMenu;
@@ -150,8 +168,16 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 		final JComponent component = (JComponent) e.getSource();
 		final int id = (Integer)component.getClientProperty("id");
 		switch (id) {
+			case ADD:
+				controller.newEmptyTab(parentComponent);
+				break;
 			case OPEN:
 				controller.openFileUsingDialog(parentComponent);
+				break;
+
+			case SAVE:
+			case SAVE_AS:
+				controller.save(controller.getCurrentPanelId(), id == SAVE_AS);
 				break;
 
 			case AnalysisFactory.CHARACTER_COUNTS_ONE:
@@ -177,8 +203,12 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 
 				new AboutFrame("O aplikaci", "https://github.com/slaha/compLing-gui", projectInfo).setVisible(true);
 				break;
-//			case APP_SETTINGS:
-//				break;
+			case APP_SETTINGS:
+				Settings dialog = new Settings(controller);
+				dialog.setLocationByPlatform(true);
+				dialog.pack();
+				dialog.setVisible(true);
+				break;
 			case EXIT:
 				controller.exit(0);
 				break;
@@ -199,11 +229,12 @@ public class MainWindowMenu extends JMenuBar implements MainWindowController.OnT
 	@Override
 	public void onTabSelected(String id) {
 		analyzeMenu.setEnabled(id != null);
-		if (id != null) {
-			final String name = workingTexts.get(id).getName();
-			for (JMenuItem item : forActualTextMenus) {
-				item.setText(String.format((String) item.getClientProperty("text"), name));
-			}
+		saveMenuItem.setEnabled(id != null);
+		saveAsMenuItem.setEnabled(id != null);
+
+		final String name = (id != null) ? workingTexts.get(id).getName() : "";
+		for (JMenuItem item : forActualTextMenus) {
+			item.setText(String.format((String) item.getClientProperty("text"), name));
 		}
 	}
 }

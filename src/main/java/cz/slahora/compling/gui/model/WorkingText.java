@@ -3,6 +3,7 @@ package cz.slahora.compling.gui.model;
 import cz.compling.CompLing;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.util.UUID;
 
 /**
@@ -21,13 +22,16 @@ public class WorkingText {
 	private static final int TXT_SUFFIX_LENGTH = TXT_SUFFIX.length();
 
 	private final String id;
+	private File file;
+
 	private String name;
 	private String text;
 
-	public WorkingText(String name, String text) {
+	public WorkingText(String name, String text, File file) {
 		this.id = UUID.randomUUID().toString();
 		this.name = name;
 		this.text = text;
+		this.file = file;
 	}
 
 	public String getName() {
@@ -61,5 +65,13 @@ public class WorkingText {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public File getFile() {
+		return file;
+	}
+
+	public void setFile(File file) {
+		this.file = file;
 	}
 }
