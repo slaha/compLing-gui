@@ -59,6 +59,9 @@ class DifferentShiftsModel {
 	}
 
 	public boolean isTestingPossible() {
+		if (assonances.size() < 2) {
+			return false;
+		}
 		for (Assonance a : assonances.values()) {
 			if (a.getMaxStep() <= 6) {
 				return false;

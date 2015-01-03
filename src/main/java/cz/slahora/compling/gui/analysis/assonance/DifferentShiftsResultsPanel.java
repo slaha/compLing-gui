@@ -136,7 +136,7 @@ class DifferentShiftsResultsPanel extends AbsAssonanceResultsPanel implements Re
 
 		} else {
 			JLabel noTesting = new HtmlLabelBuilder().text("Pro testování shody rozptylů je nutné, aby velikost jednotlivých výběrů ").i("n<sub>i</sub>").text(" byla větší než 6.").build();
-			resultsPanel.add(noTesting, c);
+			panel.add(noTesting, c);
 		}
 
 		GridBagConstraints cc = (GridBagConstraints) c.clone();
