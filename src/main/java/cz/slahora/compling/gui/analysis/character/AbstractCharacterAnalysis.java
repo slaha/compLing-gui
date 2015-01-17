@@ -115,7 +115,7 @@ public abstract class AbstractCharacterAnalysis {
 			if (i != JOptionPane.OK_OPTION) {
 				return null;
 			}
-			else if (StringUtils.isBlank(panel.mWhatToFind)
+			else if (StringUtils.isEmpty(panel.mWhatToFind)
 				|| (panel.mRuleType == RulesTable.RuleType.REPLACE && StringUtils.isBlank(panel.mReplaceWith)))
 			{
 				JOptionPane.showMessageDialog(this, "Potřebné položky pro vytvoření pravidla nebyly správně vyplněny", "Chybné zadání", JOptionPane.ERROR_MESSAGE);
