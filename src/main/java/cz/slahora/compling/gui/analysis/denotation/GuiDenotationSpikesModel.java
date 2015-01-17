@@ -121,6 +121,9 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 		TIntObjectMap<String> map = new TIntObjectHashMap<String>();
 		for (DenotationWord dw : spike.getWords()) {
 			for (DenotationElement element : dw.getDenotationElements()) {
+				if (element.getSpike() == null) {
+					continue;
+				}
 				if (element.getSpike().getNumber() == spike.getNumber()) {
 					String s;
 					if (StringUtils.isEmpty(element.getText())) {
