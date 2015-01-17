@@ -222,4 +222,49 @@ public class TabPanel extends JPanel {
 			setBackground(UIManager.getColor("Panel.background"));
 		}
 	};
+
+	public static void main (String[] args) throws java.lang.Exception
+	{
+		final String[] texts = new String[] {"Sazba","bez DPH","DPH","s DPH"};
+		final int width = 24;
+
+		final int firstColumnLength = texts[0].length();
+		String format = "%1$-" + firstColumnLength + "s";
+
+		final int restWidth = width - firstColumnLength;
+
+		int partLength = restWidth / (texts.length - 1);
+
+		int size[] = new int[texts.length - 1];
+		int partLengthSum = 0;
+		for (int i = 0; i < size.length; i++) {
+			size[i] = partLength;
+			partLengthSum += partLength;
+		}
+
+		if (partLengthSum != restWidth) {
+			int rest = restWidth - partLengthSum;
+			int index = 0;
+			while (rest > 0) {
+				size[index++]++;
+				rest--;
+				if (rest > 0) {
+					size[size.length - index]++;
+					rest--;
+				}
+			}
+		}
+
+
+		for(int i = 0; i < size.length; i++) {
+			format += "%" + (i+2) + "$" + size[i] + "s";
+		}
+
+		System.out.println(format);
+		String result = String.format(format, "Sazba","bez DPH","DPH","s DPH");
+		System.out.println(result);
+		System.out.println(String.format(format, "0%", "100,00", "20,00", "120,00"));
+		System.out.println(result.length());
+
+	}
 }

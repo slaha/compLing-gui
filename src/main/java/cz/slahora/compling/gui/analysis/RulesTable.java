@@ -1,5 +1,7 @@
 package cz.slahora.compling.gui.analysis;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
 
@@ -23,7 +25,7 @@ public class RulesTable {
 	public static class RulesTableModel<T> extends AbstractTableModel {
 
 		private final List<RuleHolder<T>> replaceRules;
-		private static final String[] COLUMN_NAMES = {"Characters to replace", "Replace with"};
+		private static final String[] COLUMN_NAMES = {"Znaky k nahrazení", "Nahradit za"};
 
 		public RulesTableModel(List<RuleHolder<T>> replaceRules) {
 			this.replaceRules = replaceRules;
@@ -54,7 +56,11 @@ public class RulesTable {
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			RuleHolder ruleHolder = replaceRules.get(rowIndex);
 			if (columnIndex == 0) {
-				return ruleHolder.whatToFind;
+				String c = ruleHolder.whatToFind;
+				if (StringUtils.isBlank(c)) {
+					c = '\'' + c + '\'';
+				}
+				return c;
 			}
 			return ruleHolder.replaceWith;
 		}
