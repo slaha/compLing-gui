@@ -586,56 +586,66 @@ public class DenotationAnalysis {
 				spikesDuplicateMenu.removeAll();
 				spikesRemoveMenu.removeAll();
 				int menuPosition = 0;
-				if (denotation.getSpikes().size() > 0 && !word.getDenotationWord().isIgnored()) {
+
+				final int spikesCount = denotation.getSpikes().size();
+				if (spikesCount > 0 && !word.getDenotationWord().isIgnored()) {
 
 					JMenu[] spikesSubMenus = createSpikesSubmenus();
 
-					String menuItemMessage;
-					String menuItemName;
-					if (word.getDenotationWord().hasFreeElement()) {
-						menuItemMessage = "Přidat do hřebu č. ";
-						menuItemName = SPIKES_ADD_SUBMENU;
-					} else {
-						menuItemMessage = "Duplikovat do hřebu č. ";
-						menuItemName = SPIKES_DUPLICATE_SUBMENU;
-					}
+					if (spikesSubMenus.length > 0) {
+						String menuItemMessage;
+						String menuItemName;
+						if (word.getDenotationWord().hasFreeElement()) {
+							menuItemMessage = "Přidat do hřebu č. ";
+							menuItemName = SPIKES_ADD_SUBMENU;
+						} else {
+							menuItemMessage = "Duplikovat do hřebu č. ";
+							menuItemName = SPIKES_DUPLICATE_SUBMENU;
+						}
 
-					for (Spike spike : denotation.getSpikes()) {
-						if (!word.getDenotationWord().isInSpike(spike)) {
-							JMenuItem spikeItem = new JMenuItem(menuItemMessage + spike.getNumber());
-							spikeItem.setName(menuItemName);
-							spikeItem.putClientProperty(SPIKE_KEY, spike);
-							spikeItem.addActionListener(this);
-							int index = spike.getNumber() / SPIKES_PER_MENU;
-							//..we need to decrement index. But only if there is no not-full menu
-							if (spike.getNumber() % SPIKES_PER_MENU == 0) {
-								index--;
+						for (Spike spike : denotation.getSpikes()) {
+							if (!word.getDenotationWord().isInSpike(spike)) {
+								JMenuItem spikeItem = new JMenuItem(menuItemMessage + spike.getNumber());
+								spikeItem.setName(menuItemName);
+								spikeItem.putClientProperty(SPIKE_KEY, spike);
+								spikeItem.addActionListener(this);
+								int index = spike.getNumber() / SPIKES_PER_MENU;
+								//..we need to decrement index. But only if there is no not-full menu
+								if (spike.getNumber() % SPIKES_PER_MENU == 0) {
+									index--;
+								}
+								spikesSubMenus[index].add(spikeItem);
 							}
-							spikesSubMenus[index].add(spikeItem);
 						}
-					}
 
-					final JMenu toAdd, toRemove;
-					if (word.getDenotationWord().hasFreeElement()) {
-						toAdd = spikesAddMenu;
-						toRemove = spikesDuplicateMenu;
-					} else {
-						toAdd = spikesDuplicateMenu;
-						toRemove = spikesAddMenu;
-					}
-					for (JMenu spikesSubMenu : spikesSubMenus) {
-						if (spikesSubMenu.getMenuComponentCount() > 0) {
-							toAdd.add(spikesSubMenu);
+						final JMenu toAdd, toRemove;
+						if (word.getDenotationWord().hasFreeElement()) {
+							toAdd = spikesAddMenu;
+							toRemove = spikesDuplicateMenu;
+						} else {
+							toAdd = spikesDuplicateMenu;
+							toRemove = spikesAddMenu;
 						}
+						for (JMenu spikesSubMenu : spikesSubMenus) {
+							if (spikesSubMenu.getMenuComponentCount() > 0) {
+								toAdd.add(spikesSubMenu);
+							}
+						}
+
+						add(toAdd, menuPosition++);
+						remove(toRemove);
+
+					} else {
+						//..no spike available
+						remove(spikesAddMenu);
+						remove(spikesDuplicateMenu);
 					}
-					add(toAdd, menuPosition++);
-					remove(toRemove);
 				} else {
 					remove(spikesAddMenu);
 					remove(spikesDuplicateMenu);
 					remove(spikesRemoveMenu);
 				}
-				if (denotation.getSpikes().size() > 0 && !word.getDenotationWord().isIgnored() && word.getDenotationWord().isInSpike()) {
+				if (spikesCount > 0 && !word.getDenotationWord().isIgnored() && word.getDenotationWord().isInSpike()) {
 					for (Spike spike : denotation.getSpikes()) {
 						if (word.getDenotationWord().isInSpike(spike)) {
 							JMenuItem spikeItem = new JMenuItem("Odebrat z hřebu č. " + spike.getNumber());
