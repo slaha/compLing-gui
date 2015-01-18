@@ -42,6 +42,9 @@ public class TabPanel extends JPanel {
 	private final TabPanelMouseAdapter tabPanelMouseAdapter;
 	private final WorkingText text;
 
+	private Font nameLabelActiveFont;
+	private final Font nameLabelInactiveFont;
+
 	private boolean active;
 
 	public TabPanel(final WorkingText text, final TabHolder tabHolder, final MainWindowController mainWindowController) {
@@ -50,18 +53,10 @@ public class TabPanel extends JPanel {
 		this.text = text;
 		this.tabHolder = tabHolder;
 
-		this.nameLabel = new JLabel(text.getName()) {
+		this.nameLabel = new JLabel(text.getName());
+		nameLabelInactiveFont = nameLabel.getFont();
+		nameLabelActiveFont = nameLabelInactiveFont.deriveFont(Font.BOLD);
 
-			@Override
-			public void paint(Graphics g) {
-				if (active) {
-					setFont(getFont().deriveFont(Font.BOLD));
-				} else {
-					setFont(getFont().deriveFont(Font.PLAIN));
-				}
-				super.paint(g);
-			}
-		};
 		nameLabel.setOpaque(false);
 
 		closeAction = new ActionListener() {
@@ -145,7 +140,15 @@ public class TabPanel extends JPanel {
 	}
 
 	public void setActive(boolean active) {
+		if (this.active == active) {
+			return;
+		}
 		this.active = active;
+		if (active) {
+			nameLabel.setFont(nameLabelActiveFont);
+		} else {
+			nameLabel.setFont(nameLabelInactiveFont);
+		}
 	}
 
 	public void updateTextName() {
@@ -222,49 +225,4 @@ public class TabPanel extends JPanel {
 			setBackground(UIManager.getColor("Panel.background"));
 		}
 	};
-
-	public static void main (String[] args) throws java.lang.Exception
-	{
-		final String[] texts = new String[] {"Sazba","bez DPH","DPH","s DPH"};
-		final int width = 24;
-
-		final int firstColumnLength = texts[0].length();
-		String format = "%1$-" + firstColumnLength + "s";
-
-		final int restWidth = width - firstColumnLength;
-
-		int partLength = restWidth / (texts.length - 1);
-
-		int size[] = new int[texts.length - 1];
-		int partLengthSum = 0;
-		for (int i = 0; i < size.length; i++) {
-			size[i] = partLength;
-			partLengthSum += partLength;
-		}
-
-		if (partLengthSum != restWidth) {
-			int rest = restWidth - partLengthSum;
-			int index = 0;
-			while (rest > 0) {
-				size[index++]++;
-				rest--;
-				if (rest > 0) {
-					size[size.length - index]++;
-					rest--;
-				}
-			}
-		}
-
-
-		for(int i = 0; i < size.length; i++) {
-			format += "%" + (i+2) + "$" + size[i] + "s";
-		}
-
-		System.out.println(format);
-		String result = String.format(format, "Sazba","bez DPH","DPH","s DPH");
-		System.out.println(result);
-		System.out.println(String.format(format, "0%", "100,00", "20,00", "120,00"));
-		System.out.println(result.length());
-
-	}
 }
