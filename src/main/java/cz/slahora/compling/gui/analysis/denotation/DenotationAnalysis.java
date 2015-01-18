@@ -15,6 +15,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.procedure.TIntObjectProcedure;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jdesktop.swingx.JXTable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -646,6 +647,10 @@ public class DenotationAnalysis {
 				} else {
 					remove(spikesRemoveMenu);
 				}
+				if (!word.getDenotationWord().isIgnored() && !word.getDenotationWord().hasFreeElement()) {
+					remove(spikesAddMenu);
+				}
+
 			}
 
 			private JMenu[] createSpikesSubmenus() {
@@ -748,7 +753,7 @@ public class DenotationAnalysis {
 			add(toolBar, builder.build());
 
 
-			table = new JTable(tableModel) {
+			table = new JXTable(tableModel) {
 
 				final int _rowHeight = getRowHeight();
 

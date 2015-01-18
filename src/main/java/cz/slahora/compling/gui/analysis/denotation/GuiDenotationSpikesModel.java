@@ -149,24 +149,22 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 			section.addHeader("Word number(s) [word number\\denotation element\\value]");
 			for (Spike spike : object.getSpikes()) {
 				section.startNewLine();
+				section.addData(spike.getNumber());
+				PipeArrayList<GuiSpikeWordsBundle> spikeWordsBundles = new PipeArrayList<GuiSpikeWordsBundle>(spike.size());
 				for (DenotationWord w : spike.getWords()) {
 					if (w.isInSpike(spike)) {
-						section.addData(new GuiSpikeWordsBundle(w.getNumber(), spike.getNumber(), getAlias(spike, w)));
+
+						final DenotationElement elementInSpike = w.getElementInSpike(spike);
+						spikeWordsBundles.add(new GuiSpikeWordsBundle(w.getNumber(), elementInSpike.getNumber(), elementInSpike.getText()));
 					}
 				}
+				section.addData(spikeWordsBundles);
+
 
 			}
 			return data;
 		}
 
-		String getAlias(Spike spike, DenotationWord word) {
-			for (DenotationElement element : word.getDenotationElements()) {
-				if (word.isInSpike(spike)) {
-					return element.getText();
-				}
-			}
-			throw new IllegalArgumentException("word " + word + " (" + word.getNumber() + ") is not in spike " + spike + " (" + spike.getNumber() + ")");
-		}
 	}
 
 	private static class DenotationSpikesModelLoader extends CsvLoader<GuiDenotationSpikesModel> {
