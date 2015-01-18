@@ -155,7 +155,8 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 					if (w.isInSpike(spike)) {
 
 						final DenotationElement elementInSpike = w.getElementInSpike(spike);
-						spikeWordsBundles.add(new GuiSpikeWordsBundle(w.getNumber(), elementInSpike.getNumber(), elementInSpike.getText()));
+						String text = elementInSpike.getText() == null ? w.toString() : elementInSpike.getText();
+						spikeWordsBundles.add(new GuiSpikeWordsBundle(w.getNumber(), elementInSpike.getNumber(), text));
 					}
 				}
 				section.addData(spikeWordsBundles);

@@ -565,9 +565,11 @@ public class DenotationAnalysis {
 					} else if (SPIKES_DUPLICATE_SUBMENU.equals(menuItem.getName())) {
 
 						Spike spike = (Spike) menuItem.getClientProperty(SPIKE_KEY);
-						word.duplicate(word.getHighestDenotationElement());
-						parent.refreshSpikes(spike.getNumber());
+						DenotationElement duplicate = word.duplicate(word.getHighestDenotationElement());
 
+						spike.addWord(word.getDenotationWord(), duplicate.getText(), duplicate.getNumber());
+						duplicate.onAddToSpike(spike);
+						parent.refreshSpikes(spike.getNumber());
 
 					} else if (SPIKES_REMOVE_SUBMENU.equals(menuItem.getName())) {
 						Spike spike = (Spike) menuItem.getClientProperty(SPIKE_KEY);
@@ -647,10 +649,6 @@ public class DenotationAnalysis {
 				} else {
 					remove(spikesRemoveMenu);
 				}
-				if (!word.getDenotationWord().isIgnored() && !word.getDenotationWord().hasFreeElement()) {
-					remove(spikesAddMenu);
-				}
-
 			}
 
 			private JMenu[] createSpikesSubmenus() {
@@ -770,6 +768,7 @@ public class DenotationAnalysis {
 			table.setColumnSelectionAllowed(false);
 			table.setRowSelectionAllowed(true);
 			table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+			table.setAutoCreateRowSorter(false);
 
 			table.getModel().addTableModelListener(new TableModelListener() {
 				public void tableChanged(TableModelEvent e) {
@@ -861,7 +860,9 @@ public class DenotationAnalysis {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						table.setRowHeight(row, getWrappedLines() * rowHeight);
+						if (row >= 0 && row < table.getRowCount()) {
+							table.setRowHeight(row, getWrappedLines() * rowHeight);
+						}
 					}
 				});
 

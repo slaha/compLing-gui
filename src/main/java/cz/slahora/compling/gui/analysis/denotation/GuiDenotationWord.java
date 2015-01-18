@@ -127,8 +127,8 @@ public class GuiDenotationWord {
 
 	}
 
-	public void duplicate(DenotationElement element) {
-		denotation.duplicateElement(denotationWord.getNumber(), element);
+	public DenotationElement duplicate(DenotationElement element) {
+		return denotation.duplicateElement(denotationWord.getNumber(), element);
 	}
 
 	public void removeElement(DenotationElement element) {
