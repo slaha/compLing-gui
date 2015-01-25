@@ -184,13 +184,55 @@ public class GuiDenotationResults {
 			toggle,
 			new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).anchor(GridBagConstraints.WEST).build()
 		);
+
+		toggle = new ToggleHeader(poemAsSpikeNumbersPanel, new HtmlLabelBuilder().hx(3, "Báseň jako pořadová čísla hřebů").build().getText());
+		panel.add(
+			toggle,
+			new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).anchor(GridBagConstraints.WEST).build()
+		);
 		panel.add(
 			poemAsSpikeNumbersPanel,
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
-		final List<Coincidence> coincidenceFor14 = model.getCoincidenceFor(14);
+
+		final JPanel coincidenceParentPanel = new JPanel();
+		coincidenceParentPanel.setBackground(Color.white);
+		JLabel coincidenceLabel = new JLabel("Koincidence pro hřeb č.:");
+
+		SpinnerModel coincidenceSpinnerModel = new SpinnerNumberModel(1, 1, model.getSpikesCount(), 1);
+		final JSpinner coincidenceSpinner = new JSpinner(coincidenceSpinnerModel);
+		final ChangeListener listener = new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Number number = (Number) coincidenceSpinner.getValue();
+
+				coincidenceParentPanel.removeAll();
+				List<Coincidence> coincidenceFor = model.getCoincidenceFor(number.intValue());
+				coincidenceParentPanel.add(new CoincidenceDetailPanel(coincidenceFor));
+				coincidenceParentPanel.validate();
+			}
+		};
+		coincidenceSpinner.addChangeListener(listener);
+		listener.stateChanged(new ChangeEvent(coincidenceSpinner));
+
+		JPanel coincidenceSpinnerPanel = new JPanel();
+		coincidenceSpinnerPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
+		coincidenceSpinnerPanel.add(coincidenceLabel);
+		coincidenceSpinnerPanel.add(coincidenceSpinner);
+
+		JXCollapsiblePane coincidenceAllPanel = new JXCollapsiblePane(new BorderLayout());
+		coincidenceAllPanel.setBackground(Color.white);
+		coincidenceAllPanel.setCollapsed(true);
+		coincidenceAllPanel.add(coincidenceSpinnerPanel, BorderLayout.NORTH);
+		coincidenceAllPanel.add(coincidenceParentPanel, BorderLayout.CENTER);
+
+		toggle = new ToggleHeader(coincidenceAllPanel, new HtmlLabelBuilder().hx(3, "Tabulka koincidence").build().getText());
 		panel.add(
-			new CoincidenceDetailPanel(coincidenceFor14),
+			toggle,
+			new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).anchor(GridBagConstraints.WEST).build()
+		);
+		panel.add(
+			coincidenceAllPanel,
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
@@ -571,8 +613,10 @@ public class GuiDenotationResults {
 			setLayout(new GridBagLayout());
 
 			fill(poemAsSpikeNumbers);
-
+			setBorder(BorderFactory.createLineBorder(getBackground(), 20));
 			add(poemPanel);
+
+			setCollapsed(true);
 		}
 
 		private void fill(GuiPoemAsSpikeNumbers poem) {
