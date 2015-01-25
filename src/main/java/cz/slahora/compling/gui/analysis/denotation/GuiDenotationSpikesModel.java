@@ -104,6 +104,9 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 			return "-";
 		}
 		final TIntObjectMap<String> map = getElementsInSpike(spike);
+		if (map.isEmpty()) {
+			return "-";
+		}
 		final int[] keys = map.keys();
 		Arrays.sort(keys);
 		StringBuilder b = new StringBuilder();

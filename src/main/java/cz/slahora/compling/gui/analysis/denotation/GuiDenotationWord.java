@@ -143,4 +143,9 @@ public class GuiDenotationWord {
 	public void setIgnored(boolean ignored) {
 		denotation.ignoreWord(denotationWord.getNumber(), ignored);
 	}
+
+	@Override
+	public String toString() {
+		return denotationWord == null ? "null" : denotationWord.toString();
+	}
 }

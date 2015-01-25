@@ -509,9 +509,19 @@ public class DenotationAnalysis {
 					if (!isIgnoredNow && word.getDenotationWord().isInSpike()) {
 						if (!MessagesUtils.notifyIsInSpike(parent, word)) {
 							return;
+						} else {
+							for (DenotationElement element : word.getDenotationWord().getDenotationElements()) {
+								final Spike spike = element.getSpike();
+								if (spike != null) {
+									spike.remove(word.getDenotationWord());
+								}
+
+							}
+
 						}
 					}
-					word.setIgnored(!word.getDenotationWord().isIgnored());
+
+					word.setIgnored(!isIgnoredNow);
 
 				} else if (source == addElement) {
 					word.addElement();
