@@ -6,6 +6,7 @@ import org.jdesktop.swingx.JXCollapsiblePane;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.SwingConstants;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -41,6 +42,7 @@ public class ToggleHeader extends JButton implements ActionListener {
 		setOpaque(false);
 		setAlignmentX(LEFT);
 		setText(text);
+		setBackground(Color.white);
 		setIcon(IconUtils.getIcon(IconUtils.Icon.RIGHT));
 		setIconTextGap(10);
 		addActionListener(this);

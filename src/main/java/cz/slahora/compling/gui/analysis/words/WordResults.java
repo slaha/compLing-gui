@@ -38,6 +38,6 @@ class WordResults implements Results {
 		String text = frequencies.size() == 1 ?  "textu" : "textů";
 		String textNames = MapUtils.getAllTextNames(frequencies);
 
-		return "Analýza četnosti slov (dle " + type + ") " + text + textNames;
+		return "Analýza četnosti slov (dle " + type + ") " + text + ' ' + textNames;
 	}
 }

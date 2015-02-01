@@ -123,7 +123,7 @@ abstract class WordTextAnalysis {
 				JOptionPane.showMessageDialog(this, "Potřebné položky pro vytvoření pravidla nebyly správně vyplněny", "Chybné zadání", JOptionPane.ERROR_MESSAGE);
 				return null;
 			}
-			return new RuleHolderFactory().create(panel.mRuleType, panel.mWhatToFind, panel.mReplaceWith);
+			return new RuleHolderFactory().create(panel.mRuleType, panel.mWhatToFind, panel.mReplaceWith, panel.onlyExactlyMatch());
 		}
 
 		public boolean applyCaseInsensitiveRule() {
@@ -148,19 +148,18 @@ abstract class WordTextAnalysis {
 
 		private class RuleHolderFactory {
 
-			public RulesTable.RuleHolder<WordFrequencyRule> create(RulesTable.RuleType ruleType, String whatToFind, String replaceWith) {
+			public RulesTable.RuleHolder<WordFrequencyRule> create(RulesTable.RuleType ruleType, String whatToFind, String replaceWith, boolean onlyExactlyMatch) {
 				WordFrequencyRule rule;
 				String whatToFindDesc, replaceWithDesc;
 				switch (ruleType) {
 					case IGNORE:
-						rule = createIgnore(whatToFind);
+						rule = createIgnore(whatToFind, onlyExactlyMatch);
 						replaceWithDesc = "Ignorovat";
 						break;
 					case REPLACE:
-						rule = createReplace(whatToFind, replaceWith);
+						rule = createReplace(whatToFind, replaceWith, onlyExactlyMatch);
 						replaceWithDesc = replaceWith;
 						break;
-					case AS_ONE_CHAR:
 					default:
 						throw new IllegalArgumentException("RuleType " + ruleType + " is unknown. No rule can be created");
 				}
@@ -168,10 +167,15 @@ abstract class WordTextAnalysis {
 				return new RulesTable.RuleHolder<WordFrequencyRule>(rule, whatToFindDesc, replaceWithDesc);
 			}
 
-			private WordFrequencyRule createReplace(final String whatToFind, final String replaceWith) {
+			private WordFrequencyRule createReplace(final String whatToFind, final String replaceWith, final boolean onlyExactlyMatch) {
 				return new WordFrequencyRule() {
 					@Override
 					public boolean modify(Reference<String> word, Reference<Integer> length) {
+
+						if (onlyExactlyMatch && !word.value.equals(whatToFind)) {
+							return false;
+						}
+
 						String v = StringUtils.replace(word.value, whatToFind, replaceWith);
 						if (!v.equals(word.value)) {
 							length.value = v.length();
@@ -183,11 +187,16 @@ abstract class WordTextAnalysis {
 				};
 			}
 
-			private WordFrequencyRule createIgnore(final String whatToFind) {
+			private WordFrequencyRule createIgnore(final String whatToFind, final boolean onlyExactlyMatch) {
 				return new WordFrequencyRule() {
 					@Override
 					public boolean modify(Reference<String> word, Reference<Integer> length) {
-						if (word.value.equals(whatToFind)) {
+
+						if (onlyExactlyMatch && word.value.equals(whatToFind)) {
+							word.value = null;
+							length.value = 0;
+							return true;
+						} else if (word.value.startsWith(whatToFind)) {
 							word.value = null;
 							length.value = 0;
 							return true;
@@ -203,20 +212,25 @@ abstract class WordTextAnalysis {
 		public String mWhatToFind;
 		public String mReplaceWith;
 		public RulesTable.RuleType mRuleType;
+		private final JCheckBox onlyExactly;
+
+		public boolean onlyExactlyMatch() {
+			return onlyExactly.isSelected();
+		}
 
 		private WordFrequencyRulePanel() {
 			super(new GridBagLayout());
 
-			JLabel whatToFindLbl = new JLabel("Nahrazovaný znak:");
-			JLabel whatWithItLbl = new JLabel("Nahrazený znak:");
+			JLabel whatToFindLbl = new JLabel("Hledané slovo:");
+			onlyExactly = new JCheckBox("Pouze přesné shody");
+			JLabel whatWithItLbl = new JLabel("Nalezené slovo:");
 
 			final JRadioButton ignore = new JRadioButton("Ignorovat");
-//			final JRadioButton asOneCharacter = new JRadioButton("Jako jeden znak");
 			final JRadioButton replaceWithButton = new JRadioButton("Nahradit za");
+
 
 			ButtonGroup whatToDoGroup = new ButtonGroup();
 			whatToDoGroup.add(ignore);
-//			whatToDoGroup.add(asOneCharacter);
 			whatToDoGroup.add(replaceWithButton);
 
 			JTextField whatToFind = new JTextField();
@@ -281,8 +295,6 @@ abstract class WordTextAnalysis {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
 						if (e.getSource() == ignore) {
 							mRuleType = RulesTable.RuleType.IGNORE;
-//						} else if (e.getSource() == asOneCharacter) {
-//							mRuleType = RulesTable.RuleType.AS_ONE_CHAR;
 						} else {
 							mRuleType = RulesTable.RuleType.REPLACE;
 						}
@@ -306,10 +318,11 @@ abstract class WordTextAnalysis {
 			add(whatWithItLbl, new GridBagConstraintBuilder().gridXY(0, y).anchor(GridBagConstraints.LINE_START).build());
 			y++;
 			add(ignore, new GridBagConstraintBuilder().gridXY(0, y++).insets(insets).anchor(GridBagConstraints.LINE_START).build());
-//			add(asOneCharacter, new GridBagConstraintBuilder().gridXY(0, y++).insets(insets).anchor(GridBagConstraints.LINE_START).build());
 			add(replaceWithButton, new GridBagConstraintBuilder().gridXY(0, y++).insets(insets).anchor(GridBagConstraints.LINE_START).build());
 
-			add(replaceWith, new GridBagConstraintBuilder().gridXY(0, y).insets(insets).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.LINE_START).build());
+
+			add(replaceWith, new GridBagConstraintBuilder().gridXY(0, y++).insets(insets).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.LINE_START).build());
+			add(onlyExactly, new GridBagConstraintBuilder().gridXY(0, y++).insets(insets).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.LINE_START).build());
 
 			ignore.setSelected(true);
 		}

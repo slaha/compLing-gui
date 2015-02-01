@@ -93,9 +93,8 @@ public class WordFrequencyResultsPanel<T> extends AbstractResultsPanel implement
 		//table with words occurrences
 		JTable table = new NonEditableTable(model.getTableModel());
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		table.setRowSelectionAllowed(false);
+		table.setRowSelectionAllowed(true);
 		table.setColumnSelectionAllowed(false);
-		table.setCellSelectionEnabled(true);
 		table.setAutoCreateRowSorter(true);
 		table.setBackground(Color.WHITE);
 		table.invalidate();
