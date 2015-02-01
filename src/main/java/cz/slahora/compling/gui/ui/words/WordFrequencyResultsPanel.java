@@ -81,15 +81,6 @@ public class WordFrequencyResultsPanel<T> extends AbstractResultsPanel implement
 		text.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(text);
 
-		JLabel tableHeadline;
-		if (analysisType == WordTextAnalysisType.WORD) {
-			tableHeadline = new HtmlLabelBuilder().hx(1, "Tabulka četností výskytu slov").build();
-		} else {
-			tableHeadline = new HtmlLabelBuilder().hx(1, "Výskyt slov dle délky slova").build();
-		}
-		tableHeadline.setAlignmentX(Component.LEFT_ALIGNMENT);
-		panel.add(createVerticalSpace());
-		panel.add(tableHeadline);
 		//table with words occurrences
 		JTable table = new NonEditableTable(model.getTableModel());
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -101,10 +92,27 @@ public class WordFrequencyResultsPanel<T> extends AbstractResultsPanel implement
 
 		final JTableHeader tableHeader = table.getTableHeader();
 		tableHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
-		panel.add(tableHeader);
 
 		table.setAlignmentX(Component.LEFT_ALIGNMENT);
-		panel.add(table);
+		JXCollapsiblePane tablePanel = new JXCollapsiblePane(new BorderLayout());
+		tablePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		tablePanel.setCollapsed(true);
+		tablePanel.setBackground(Color.white);
+
+		tablePanel.add(tableHeader, BorderLayout.NORTH);
+		tablePanel.add(table, BorderLayout.CENTER);
+
+		ToggleHeader tableHeadline;
+		if (analysisType == WordTextAnalysisType.WORD) {
+			tableHeadline = new ToggleHeader(tablePanel, new HtmlLabelBuilder().hx(2, "Tabulka četností výskytu slov").build().getText());
+		} else {
+			tableHeadline = new ToggleHeader(tablePanel, new HtmlLabelBuilder().hx(2, "Výskyt slov dle délky slova").build().getText());
+		}
+		tableHeadline.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		panel.add(createVerticalSpace());
+		panel.add(tableHeadline);
+		panel.add(tablePanel);
 
 		if (analysisType == WordTextAnalysisType.WORD_LENGHT) {
 
