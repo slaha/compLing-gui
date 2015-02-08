@@ -88,6 +88,9 @@ public class WordFrequencyResultsPanel<T> extends AbstractResultsPanel implement
 		table.setColumnSelectionAllowed(false);
 		table.setAutoCreateRowSorter(true);
 		table.setBackground(Color.WHITE);
+		table.getRowSorter().toggleSortOrder(1); //..sort by freq of all (or the only one if only for one text)
+		table.getRowSorter().toggleSortOrder(1); //..sort by freq of all - desc
+
 		table.invalidate();
 
 		final JTableHeader tableHeader = table.getTableHeader();
