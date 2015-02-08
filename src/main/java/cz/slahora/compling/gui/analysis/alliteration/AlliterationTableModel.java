@@ -73,6 +73,10 @@ class AlliterationTableModel  extends AbstractTableModel {
 	private static final int PROBABILITY_INDEX = OCCURRENCES_INDEX + 1;
 	private static final int KA_INDEX = PROBABILITY_INDEX + 1;
 
+	public void clear() {
+		rows.clear();
+	}
+
 	public class Row {
 
 		private final boolean containsAlliteration;
