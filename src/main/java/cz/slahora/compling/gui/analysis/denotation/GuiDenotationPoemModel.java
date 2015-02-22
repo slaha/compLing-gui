@@ -11,7 +11,10 @@ import cz.slahora.compling.gui.model.PipeArrayList;
 import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.utils.CsvParserUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GuiDenotationPoemModel implements Csv<GuiDenotationPoemModel> {
 
@@ -187,10 +190,6 @@ public class GuiDenotationPoemModel implements Csv<GuiDenotationPoemModel> {
 					denotation.removeElement(thisNumber, elements.get(0));
 				}
 
-				if (holder.word.isIgnored()) {
-					continue;
-				}
-
 				for (int element : holder.denotationElements) {
 					denotation.addNewElementTo(thisNumber, element);
 				}
@@ -201,16 +200,6 @@ public class GuiDenotationPoemModel implements Csv<GuiDenotationPoemModel> {
 					}
 				}
 			}
-		}
-
-		private int countElements(Collection<Integer> denotationElements) {
-
-			final HashSet<Integer> elementNumbers = new HashSet<Integer>();
-			for (Integer element : denotationElements) {
-				elementNumbers.add(element);
-			}
-
-			return denotationElements.size() - 1;
 		}
 
 		int verseInStrophe = -1;

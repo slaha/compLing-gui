@@ -338,7 +338,7 @@ public class DenotationAnalysis {
 			for (WordPanel wordPanel : wordPanels.valueCollection()) {
 				final DenotationWord word = wordPanel.word.getDenotationWord();
 
-				if (!word.isIgnored() && !word.isJoined() && !word.isInSpike()) {
+				if (!word.isIgnored() && !word.isJoined() && !word.areAllSpikesAssigned()) {
 					return false;
 				}
 			}
@@ -588,6 +588,7 @@ public class DenotationAnalysis {
 						parent.refreshSpikes(spike.getNumber());
 					}
 				}
+				parent.onElementAssigned();
 				parent.refresh(WordPanel.this);
 			}
 
