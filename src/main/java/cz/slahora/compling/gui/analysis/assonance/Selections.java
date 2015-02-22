@@ -3,10 +3,7 @@ package cz.slahora.compling.gui.analysis.assonance;
 import cz.compling.CompLing;
 import cz.slahora.compling.gui.model.WorkingText;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Selections {
 
@@ -44,6 +41,10 @@ public class Selections {
 		if (selection == null) {
 			return false;
 		}
+		return removeFrom(selection, workingText);
+	}
+
+	private boolean removeFrom(Selection selection, WorkingText workingText) {
 		return selection.removeText(workingText) != null;
 	}
 
@@ -54,6 +55,21 @@ public class Selections {
 	public Selection getGroup(String groupName) {
 		return selections.get(groupName);
 
+	}
+
+	public List<WorkingText> removeGroup(String group) {
+		final Selection selection = selections.remove(group);
+		if (selection == null) {
+			return Collections.emptyList();
+		}
+		List<WorkingText> list = new ArrayList<WorkingText>();
+		final List<WorkingText> workingTexts = new ArrayList<WorkingText>(selection.texts.keySet());
+		for (WorkingText text : workingTexts) {
+			if (removeFrom(selection, text)) {
+				list.add(text);
+			}
+		}
+		return list;
 	}
 
 	static class Selection implements Iterable<Map.Entry<WorkingText, CompLing>> {

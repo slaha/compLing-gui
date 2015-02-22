@@ -34,7 +34,11 @@ abstract class ResultsTableModel extends AbstractTableModel implements Iterable<
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		return table[rowIndex][columnIndex];
+
+		if (columnIndex < table[rowIndex].length) {
+			return table[rowIndex][columnIndex];
+		}
+		return null;
 	}
 
 	@Override

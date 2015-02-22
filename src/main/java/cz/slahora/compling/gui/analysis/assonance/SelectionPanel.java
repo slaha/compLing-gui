@@ -11,10 +11,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 class SelectionPanel implements ActionListener {
 
@@ -115,6 +113,7 @@ class SelectionPanel implements ActionListener {
 		allPane.add(buttonsPane, cons2);
 
 		dialog = new JDialog((Frame)null, true);
+		dialog.setTitle("Asonance - rozdělení textů do skupin");
 		dialog.setContentPane(allPane);
 		dialog.setResizable(true);
 		dialog.pack();
@@ -138,6 +137,14 @@ class SelectionPanel implements ActionListener {
 
 				JPanel panel = new JPanel(new WrapLayout(WrapLayout.LEFT));
 				panel.setBorder(BorderFactory.createTitledBorder(name));
+				JPopupMenu menu = new JPopupMenu();
+				JMenuItem delete = new JMenuItem("Smazat", IconUtils.getIcon(IconUtils.Icon.REMOVE));
+				delete.putClientProperty(ACTION, "remove_group");
+				delete.putClientProperty("panel", panel);
+				delete.putClientProperty("name", name);
+				delete.addActionListener(this);
+				menu.add(delete);
+				panel.setComponentPopupMenu(menu);
 				right.putClientProperty(name, panel);
 				right.add(panel, RIGHT_PANEL_CONSTRAINTS);
 				right.revalidate();
@@ -173,17 +180,7 @@ class SelectionPanel implements ActionListener {
 				return;
 			}
 			if (selections.removeFrom(group, workingText)) {
-				left.add(source, LEFT_PANEL_BUTTON_CONSTRAINTS);
-				left.revalidate();
-				left.repaint();
-
-				JPanel groupPanel = (JPanel) right.getClientProperty(group);
-				groupPanel.remove(source);
-				groupPanel.revalidate();
-				groupPanel.repaint();
-
-				source.putClientProperty(ACTION, "add_to_group");
-				source.putClientProperty(GROUP, null);
+				onTextRemoved(source, group);
 			}
 
 		} else if ("ok".equals(action)) {
@@ -191,7 +188,38 @@ class SelectionPanel implements ActionListener {
 			dialog.setVisible(false);
 		} else if ("cancel".equals(action)) {
 			dialog.setVisible(false);
-		}
+		} else if ("remove_group".equals(action)) {
+			final String name = (String) source.getClientProperty("name");
+			if (StringUtils.isNotEmpty(name)) {
+				final List<WorkingText> list = selections.removeGroup(name);
+				JPanel panel = (JPanel) source.getClientProperty("panel");
+				final int componentCount = panel.getComponentCount();
+				for (int i = 0; i < componentCount; i++) {
+					JComponent button = (JComponent) panel.getComponent(0);
+					WorkingText workingText = (WorkingText) button.getClientProperty("text");
+					if (list.contains(workingText)) {
+						onTextRemoved(button, name);
+					}
+				}
+				right.remove(panel);
+				right.revalidate();
+				right.repaint();
 
+			}
+		}
+	}
+
+	private void onTextRemoved(JComponent source, String group) {
+		left.add(source, LEFT_PANEL_BUTTON_CONSTRAINTS);
+		left.revalidate();
+		left.repaint();
+
+		JPanel groupPanel = (JPanel) right.getClientProperty(group);
+		groupPanel.remove(source);
+		groupPanel.revalidate();
+		groupPanel.repaint();
+
+		source.putClientProperty(ACTION, "add_to_group");
+		source.putClientProperty(GROUP, null);
 	}
 }

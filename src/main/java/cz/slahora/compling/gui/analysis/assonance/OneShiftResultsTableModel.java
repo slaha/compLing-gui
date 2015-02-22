@@ -52,7 +52,7 @@ public class OneShiftResultsTableModel extends ResultsTableModel {
 	}
 
 	private static int getMaxGroupSize(OneShiftModel model, String[] groupNames) {
-		int maxGroupSize = -1;
+		int maxGroupSize = 0;
 
 		for (final String groupName : groupNames) {
 			int groupSize = model.getGroup(groupName).getSize();

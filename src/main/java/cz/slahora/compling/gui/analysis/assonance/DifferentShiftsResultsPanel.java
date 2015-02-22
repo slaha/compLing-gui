@@ -44,6 +44,10 @@ class DifferentShiftsResultsPanel extends AbsAssonanceResultsPanel implements Re
 		resultsTableModel = createResultsTableModel(poemNames, maxStep);
 		JTable resultsTable = createResultsTable(resultsTableModel);
 
+		JLabel topHeadline = new HtmlLabelBuilder().hx(1, "Asonance pro posun o 1 až %d vokálů", model.getLowestMaxStep()).build();
+
+		panel.add(topHeadline, c);
+
 		JXCollapsiblePane resultsPanel = new JXCollapsiblePane();
 		resultsPanel.setLayout(new GridBagLayout());
 		resultsPanel.setCollapsed(true);
