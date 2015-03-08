@@ -2,6 +2,7 @@ package cz.slahora.compling.gui.analysis.denotation;
 
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
 import cz.compling.model.denotation.Coincidence;
+import cz.compling.model.denotation.DenotationMath;
 import cz.compling.model.denotation.GuiPoemAsSpikeNumbers;
 import cz.compling.model.denotation.Spike;
 import cz.slahora.compling.gui.analysis.ToggleHeader;
@@ -11,6 +12,7 @@ import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.ui.MultipleLinesLabel;
 import cz.slahora.compling.gui.utils.*;
 import org.apache.commons.lang.text.StrBuilder;
+import org.graphstream.algorithm.ConnectedComponents;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
@@ -245,98 +247,12 @@ public class GuiDenotationResults {
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
-
-		JLabel alphaLabel = new JLabel("Hladina významnosti α");
-		final JSpinner alphaSpinner = new JSpinner(new SpinnerNumberModel(0.1d, 0d, 1d, 0.01));
-		alphaSpinner.setEditor(new JSpinner.NumberEditor(alphaSpinner, "0.000"));
-		JPanel alphaPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-		alphaPanel.add(
-			alphaLabel
-		);
-		alphaPanel.add(
-			alphaSpinner
-		);
-
-		final JCheckBox autoLayoutCheckBox = new JCheckBox("Povolit automatické rozmístění grafu");
-		autoLayoutCheckBox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (graphViewer != null) {
-					if (autoLayoutCheckBox.isSelected()) {
-						graphViewer.enableAutoLayout();
-					} else {
-						graphViewer.disableAutoLayout();
-					}
-				}
-			}
-		});
-
-		JButton saveGraphButton = new JButton("Uložit jako obrázek PNG");
-
-		JPanel graphSettingPanel = new JPanel(new BorderLayout());
-		graphSettingPanel.setBorder(new EmptyBorder(10, 20, 10,20));
-		graphSettingPanel.add(alphaPanel, BorderLayout.NORTH);
-		graphSettingPanel.add(autoLayoutCheckBox, BorderLayout.CENTER);
-		graphSettingPanel.add(saveGraphButton, BorderLayout.SOUTH);
-
-		panel.add(
-			graphSettingPanel,
-			new GridBagConstraintBuilder().gridXY(0, y++).build()
-		);
-
-		final JPanel graphPanel = new JPanel();
-		graphPanel.setLayout(new BorderLayout());
-		graphPanel.setPreferredSize(new Dimension(100, 900));
-
-		saveGraphButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-				final BufferedImage image = ScreenImage.createImage(graphPanel);
-
-				File lastDir = LastDirectory.getInstance().getLastDirectory();
-				final File imageFile = FileChooserUtils.getFileToSave(lastDir, panel, "png");
-				if (imageFile == null) {
-					return;
-				}
-				try{
-					if (imageFile.createNewFile()) {
-						ImageIO.write(image, "png", imageFile);
-					} else {
-						throw new IOException("Cannot create file " + imageFile);
-					}
-				}catch(Exception ex){
-					JOptionPane.showMessageDialog(panel, "Nepovedlo se uložit graf", "Chyba", JOptionPane.ERROR_MESSAGE);
-					ex.printStackTrace();
-				}
-			}
-		});
-
+		final JPanel graphPanel = new GraphPanel();
 
 		panel.add(
 			graphPanel,
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.BOTH).weightX(1).weightY(1).anchor(GridBagConstraints.NORTH).build()
 		);
-
-		ChangeListener alphaChangeListener = new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-
-				graphViewer = null;
-				autoLayoutCheckBox.setSelected(true);
-
-				final double alpha = (Double)alphaSpinner.getModel().getValue();
-				graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()), alpha);
-				graphViewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
-				graphViewer.enableAutoLayout();
-				final View view = graphViewer.addDefaultView(false);
-				graphPanel.removeAll();
-				graphPanel.add(view, BorderLayout.CENTER);
-				graphPanel.validate();
-			}
-		};
-		alphaSpinner.addChangeListener(alphaChangeListener);
-		alphaChangeListener.stateChanged(new ChangeEvent(alphaSpinner));
 
 		//..last panel for align another components to the top
 		JPanel dummyPanel = new JPanel();
@@ -361,7 +277,7 @@ public class GuiDenotationResults {
 
 	private Graph createGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor, final double alpha) {
 		Graph graph = new DefaultGraph("Graf koincidence na hladině významnosti α=" + alpha);
-		graph.addAttribute("ui.stylesheet", GraphUtils.STYLESHEET);
+		graph.addAttribute("ui.stylesheet", GraphUtils.getStyleSheet());
 		graph.addAttribute("ui.quality");
 		graph.addAttribute("ui.antialias");
 
@@ -385,6 +301,7 @@ public class GuiDenotationResults {
 				}
 			}
 		}
+
 		return graph;
 	}
 
@@ -756,5 +673,142 @@ public class GuiDenotationResults {
 
 		MouseListener getListenerFor(final Spike spike, final JPanel panel);
 
+	}
+
+	private class GraphPanel extends JPanel implements ActionListener, ChangeListener {
+
+		private final JCheckBox autoLayoutCheckBox;
+		private final JSpinner alphaSpinner;
+		private final JPanel graphPanel;
+		private final GraphInfoPanel infoPanel;
+
+		public GraphPanel() {
+			setLayout(new GridBagLayout());
+			setPreferredSize(new Dimension(100, 900));
+
+			JLabel alphaLabel = new JLabel("Hladina významnosti α");
+			alphaSpinner = new JSpinner(new SpinnerNumberModel(0.1d, 0d, 1d, 0.01));
+			alphaSpinner.setEditor(new JSpinner.NumberEditor(alphaSpinner, "0.000"));
+			alphaSpinner.addChangeListener(this);
+
+
+			JPanel alphaPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+			alphaPanel.add(
+				alphaLabel
+			);
+			alphaPanel.add(
+				alphaSpinner
+			);
+
+			autoLayoutCheckBox = new JCheckBox("Povolit automatické rozmístění grafu");
+			autoLayoutCheckBox.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					if (graphViewer != null) {
+						if (autoLayoutCheckBox.isSelected()) {
+							graphViewer.enableAutoLayout();
+						} else {
+							graphViewer.disableAutoLayout();
+						}
+					}
+				}
+			});
+
+			JButton saveGraphButton = new JButton("Uložit jako obrázek PNG");
+			saveGraphButton.addActionListener(this);
+
+			JPanel graphSettingPanel = new JPanel(new BorderLayout());
+			graphSettingPanel.setBorder(new EmptyBorder(10, 20, 10,20));
+			graphSettingPanel.add(alphaPanel, BorderLayout.NORTH);
+			graphSettingPanel.add(autoLayoutCheckBox, BorderLayout.CENTER);
+			graphSettingPanel.add(saveGraphButton, BorderLayout.SOUTH);
+
+			GridBagConstraints c = new GridBagConstraintBuilder().gridXY(0, 0).anchor(GridBagConstraints.CENTER).build();
+			add(graphSettingPanel, c);
+			c = new GridBagConstraintBuilder().gridXY(0, 1).weightX(1).weightY(1).fill(GridBagConstraints.BOTH).build();
+			graphPanel = new JPanel(new BorderLayout());
+			getPanel().setBackground(Color.white);
+			add(graphPanel, c);
+
+			infoPanel = new GraphInfoPanel();
+			add(infoPanel, new GridBagConstraintBuilder().gridXY(0, 2).weightX(1).fill(GridBagConstraints.HORIZONTAL).build());
+
+			stateChanged(new ChangeEvent(alphaSpinner));
+		}
+		@Override
+		public void actionPerformed(ActionEvent e) {
+
+			final BufferedImage image = ScreenImage.createImage(this);
+
+			File lastDir = LastDirectory.getInstance().getLastDirectory();
+			final File imageFile = FileChooserUtils.getFileToSave(lastDir, panel, "png");
+			if (imageFile == null) {
+				return;
+			}
+			try{
+				if (imageFile.createNewFile()) {
+					ImageIO.write(image, "png", imageFile);
+				} else {
+					throw new IOException("Cannot create file " + imageFile);
+				}
+			}catch(Exception ex){
+				JOptionPane.showMessageDialog(panel, "Nepovedlo se uložit graf", "Chyba", JOptionPane.ERROR_MESSAGE);
+				ex.printStackTrace();
+			}
+		}
+
+		@Override
+		public void stateChanged(ChangeEvent e) {
+
+			graphViewer = null;
+			autoLayoutCheckBox.setSelected(true);
+
+			final double alpha = (Double)alphaSpinner.getModel().getValue();
+			graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()), alpha);
+			onGraphChanged(graph, alpha);
+
+		}
+
+		private void onGraphChanged(Graph graph, double alpha) {
+			graphViewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
+			graphViewer.enableAutoLayout();
+			final View view = graphViewer.addDefaultView(false);
+			graphPanel.removeAll();
+			graphPanel.add(view, BorderLayout.CENTER);
+			graphPanel.validate();
+			infoPanel.onGraphChanged(graph, alpha);
+		}
+	}
+
+	private class GraphInfoPanel extends JPanel {
+
+		private final MultipleLinesLabel componentsCount;
+		private final RelativeCoherenceLevelPanel relativeCoherenceLevelPanel;
+
+		private final DenotationMath math = new DenotationMath();
+
+		public GraphInfoPanel() {
+			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
+			componentsCount = new MultipleLinesLabel();
+			relativeCoherenceLevelPanel = new RelativeCoherenceLevelPanel();
+			add(componentsCount);
+			add(relativeCoherenceLevelPanel);
+		}
+
+		public void onGraphChanged(Graph graph, double alpha) {
+			StringBuilder builder = new StringBuilder();
+			final int nodeCount = graph.getNodeCount();
+			final int edgeCount = graph.getEdgeCount();
+			final ConnectedComponents connectedComponents = new ConnectedComponents(graph);
+			final int _componentsCount = connectedComponents.getConnectedComponentsCount();
+
+			builder.append("Počet vrcholů v grafu je ").append(nodeCount);
+			builder.append('\n').append("Počet hran v grafu je ").append(edgeCount);
+			builder.append('\n').append("Počet komponent v grafu je ").append(_componentsCount);
+
+			componentsCount.setText(builder.toString());
+			relativeCoherenceLevelPanel.set(alpha, nodeCount, _componentsCount, math.computeRelativeConnectionRate(nodeCount, _componentsCount));
+		}
 	}
 }

@@ -11,6 +11,9 @@ public class Settings extends JDialog {
 	private JButton buttonOK;
 	private JButton buttonCancel;
 	private JSpinner fontSizeSpinner;
+	private JSpinner graphNodeSize;
+	private JSpinner graphFontSize;
+	private JSpinner graphStrokeWidth;
 	private SettingsManager settingsManager;
 
 	public Settings(MainWindowController controller) {
@@ -22,6 +25,10 @@ public class Settings extends JDialog {
 		settingsManager = SettingsManager.getInstance();
 
 		fontSizeSpinner.setModel(new SpinnerNumberModel(settingsManager.getFontSize(), 0.5d, 10d, 0.1d));
+
+		graphNodeSize.setModel(new SpinnerNumberModel(settingsManager.getGraphNodeSize(), 5, 100, 1));
+		graphFontSize.setModel(new SpinnerNumberModel(settingsManager.getGraphNodeTextSize(), 5, 100, 1));
+		graphStrokeWidth.setModel(new SpinnerNumberModel(settingsManager.getGraphStrokeWidth(), 1, 20, 1));
 
 		buttonOK.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -51,12 +58,19 @@ public class Settings extends JDialog {
 
 	private void onOK() {
 
-		final Object value = fontSizeSpinner.getValue();
-		if (value instanceof Number) {
-			settingsManager.writeFontSize(((Number) value).doubleValue());
+		Number value = (Number) fontSizeSpinner.getValue();
+		if (settingsManager.writeFontSize(value.doubleValue())) {
 			controller.settingsChanged();
 		}
 
+		value = (Number) graphNodeSize.getValue();
+		settingsManager.writeGraphNodeSize(value.intValue());
+
+		value = (Number) graphFontSize.getValue();
+		settingsManager.writeGraphNodeTextSize(value.intValue());
+
+		value = (Number) graphStrokeWidth.getValue();
+		settingsManager.writeGraphStrokeWidth(value.intValue());
 
 		dispose();
 	}

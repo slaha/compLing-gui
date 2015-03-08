@@ -13,7 +13,7 @@
         <dependency>
             <groupId>cz.compling</groupId>
             <artifactId>compLing</artifactId>
-            <version>0.99.2-SNAPSHOT</version>
+            <version>0.99.3-SNAPSHOT</version>
         </dependency>
 
         <!--Localisation-->
