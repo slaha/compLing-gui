@@ -9,6 +9,7 @@ import cz.slahora.compling.gui.analysis.ToggleHeader;
 import cz.slahora.compling.gui.analysis.assonance.NonEditableTable;
 import cz.slahora.compling.gui.model.LastDirectory;
 import cz.slahora.compling.gui.model.WorkingText;
+import cz.slahora.compling.gui.settings.SettingsManager;
 import cz.slahora.compling.gui.ui.MultipleLinesLabel;
 import cz.slahora.compling.gui.utils.*;
 import org.apache.commons.lang.text.StrBuilder;
@@ -19,6 +20,8 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.ui.swingViewer.View;
 import org.graphstream.ui.swingViewer.Viewer;
+import org.graphstream.ui.swingViewer.ViewerListener;
+import org.graphstream.ui.swingViewer.ViewerPipe;
 import org.javatuples.Pair;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXTable;
@@ -54,7 +57,7 @@ public class GuiDenotationResults {
 	private final GuiDenotationResultsModel model;
 	private final JPanel panel;
 	private Viewer graphViewer;
-	private Graph graph;
+
 
 	public GuiDenotationResults(WorkingText text, IDenotation denotation) {
 		this.text = text;
@@ -277,7 +280,7 @@ public class GuiDenotationResults {
 
 	private Graph createGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor, final double alpha) {
 		Graph graph = new DefaultGraph("Graf koincidence na hladině významnosti α=" + alpha);
-		graph.addAttribute("ui.stylesheet", GraphUtils.getStyleSheet());
+		graph.addAttribute("ui.stylesheet", GraphStyle.getStyleSheet());
 		graph.addAttribute("ui.quality");
 		graph.addAttribute("ui.antialias");
 
@@ -286,6 +289,8 @@ public class GuiDenotationResults {
 			Node node = graph.addNode(s);
 			node.addAttribute("ui.label", s);
 		}
+
+		double graphNodeMultiplier = Math.max(1d, SettingsManager.getInstance().getGraphNodeSizeMultiplier());
 
 		for (Map.Entry<Spike, List<Coincidence>> entry : coincidenceFor.entrySet()) {
 			final String one = String.valueOf(entry.getKey().getNumber());
@@ -296,12 +301,30 @@ public class GuiDenotationResults {
 					final String id2 = another + '_' + one;
 					if (graph.getEdge(id) == null && graph.getEdge(id2) == null) {
 						final Edge edge = graph.addEdge(id, one, another);
-						edge.setAttribute("layout.weight", 3.5d);
+						edge.setAttribute("layout.weight", 4d * graphNodeMultiplier);
 					}
 				}
 			}
 		}
-
+//
+//		final ConnectedComponents connectedComponents = new ConnectedComponents(graph);
+//		connectedComponents.compute();
+//		connectedComponents.setCountAttribute("component");
+//		int connected = connectedComponents.getConnectedComponentsCount();
+//		System.out.println("connected="+connected);
+//
+//		SpriteManager spriteManager = new SpriteManager(graph);
+//
+//		for (ConnectedComponents.ConnectedComponent component : connectedComponents) {
+//			String componentId = String.valueOf(component.id + 1);
+//			System.out.println("componentId=" + componentId);
+//			final Node next = component.getEachNode().iterator().next();
+//			final Sprite sprite = spriteManager.addSprite(componentId);
+//			sprite.setPosition(2, 1, 0);
+//			sprite.addAttribute("ui.label", componentId);
+//			sprite.attachToNode(next.getId());
+//
+//		}
 		return graph;
 	}
 
@@ -681,6 +704,7 @@ public class GuiDenotationResults {
 		private final JSpinner alphaSpinner;
 		private final JPanel graphPanel;
 		private final GraphInfoPanel infoPanel;
+		private GraphViewerListener listener;
 
 		public GraphPanel() {
 			setLayout(new GridBagLayout());
@@ -764,7 +788,7 @@ public class GuiDenotationResults {
 			autoLayoutCheckBox.setSelected(true);
 
 			final double alpha = (Double)alphaSpinner.getModel().getValue();
-			graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()), alpha);
+			Graph graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()), alpha);
 			onGraphChanged(graph, alpha);
 
 		}
@@ -772,11 +796,65 @@ public class GuiDenotationResults {
 		private void onGraphChanged(Graph graph, double alpha) {
 			graphViewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_SWING_THREAD);
 			graphViewer.enableAutoLayout();
+
 			final View view = graphViewer.addDefaultView(false);
+			ViewerPipe fromViewer = graphViewer.newViewerPipe();
+			if (listener != null) {
+				listener.viewClosed("");
+			}
+
+			listener = new GraphViewerListener(fromViewer);
+			fromViewer.addSink(graph);
+			fromViewer.removeElementSink(graph);
+			fromViewer.addViewerListener(listener);
+
+			final ConnectedComponents connectedComponents = new ConnectedComponents(graph);
+			connectedComponents.compute();
+			connectedComponents.setCountAttribute("component");
+
+			int nodeSize = GraphStyle.getGraphNodeSize();
+			int nodeTextSize = GraphStyle.getGraphNodeTextSize();
+			view.setForeLayoutRenderer(new ForeLayoutRenderer(connectedComponents, nodeSize, nodeTextSize));
 			graphPanel.removeAll();
 			graphPanel.add(view, BorderLayout.CENTER);
 			graphPanel.validate();
 			infoPanel.onGraphChanged(graph, alpha);
+		}
+
+		private class GraphViewerListener implements ViewerListener {
+
+			private final ViewerPipe fromViewer;
+			private boolean loop = true;
+
+			public GraphViewerListener(final ViewerPipe fromViewer) {
+				this.fromViewer = fromViewer;
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						while (loop) {
+							fromViewer.pump();
+							try {
+								Thread.sleep(250);
+							} catch (InterruptedException ignored) {}
+						}
+
+					}
+				}).start();
+			}
+
+			@Override
+			public void viewClosed(String s) {
+				System.out.println("viewClosed on '" + s + '\'');
+				loop = false;
+			}
+
+			@Override
+			public void buttonPushed(String s) {
+			}
+
+			@Override
+			public void buttonReleased(String s) {
+			}
 		}
 	}
 
@@ -784,16 +862,23 @@ public class GuiDenotationResults {
 
 		private final MultipleLinesLabel componentsCount;
 		private final RelativeCoherenceLevelPanel relativeCoherenceLevelPanel;
+		private final RelativeCyclomaticNumberPanel relativeCyclomaticNumberPanel;
+		private final NodeDegreePanel nodeDegreePanel;
 
 		private final DenotationMath math = new DenotationMath();
 
 		public GraphInfoPanel() {
 			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+			setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 			componentsCount = new MultipleLinesLabel();
 			relativeCoherenceLevelPanel = new RelativeCoherenceLevelPanel();
+			relativeCyclomaticNumberPanel = new RelativeCyclomaticNumberPanel();
+			nodeDegreePanel = new NodeDegreePanel();
 			add(componentsCount);
 			add(relativeCoherenceLevelPanel);
+			add(relativeCyclomaticNumberPanel);
+			add(nodeDegreePanel);
 		}
 
 		public void onGraphChanged(Graph graph, double alpha) {
@@ -809,6 +894,8 @@ public class GuiDenotationResults {
 
 			componentsCount.setText(builder.toString());
 			relativeCoherenceLevelPanel.set(alpha, nodeCount, _componentsCount, math.computeRelativeConnectionRate(nodeCount, _componentsCount));
+			relativeCyclomaticNumberPanel.set(alpha, edgeCount, nodeCount, _componentsCount, math.computeRelativeCyclomaticNumber(nodeCount, _componentsCount, edgeCount));
+			nodeDegreePanel.set(edgeCount, nodeCount, math.computeConnotativeConcentration(nodeCount, edgeCount));
 		}
 	}
 }

@@ -12,29 +12,26 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.text.DecimalFormat;
-import java.util.Observable;
-import java.util.Observer;
 
-class RelativeCoherenceLevelPanel extends JPanel implements Observer {
+class NodeDegreePanel extends JPanel {
 
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.###");
 
-	private final JLabel alphaLabel;
 	private final JLabel nominator;
 	private final JLabel denominator;
 	private final JLabel resultLabel;
 
-	public RelativeCoherenceLevelPanel() {
+	public NodeDegreePanel() {
 		setLayout(new FlowLayout(FlowLayout.LEFT));
 
-		final JLabel kappa = new JLabel("κ");
-		Font font = kappa.getFont().deriveFont(15f);
+		final JLabel mi = new JLabel("μ");
+		Font font = mi.getFont().deriveFont(15f);
 		font = font.deriveFont(Font.BOLD);
 
-		kappa.setFont(font.deriveFont(Font.ITALIC).deriveFont(20f));
-		add(kappa);
+		mi.setFont(font.deriveFont(Font.ITALIC).deriveFont(20f));
+		add(mi);
 
-		alphaLabel = new JLabel();
+		JLabel alphaLabel = new JLabel();
 
 		JLabel rel = new JLabel("rel");
 		rel.setFont(getFont().deriveFont(Font.ITALIC));
@@ -81,19 +78,12 @@ class RelativeCoherenceLevelPanel extends JPanel implements Observer {
 		add(resultLabel);
 	}
 
-	public void set(double alpha, int nodeCount, int componentsCount, double result) {
-		final String alphaText = DECIMAL_FORMAT.format(alpha);
-		alphaLabel.setText('(' + alphaText + ')');
+	public void set(int edgesCount, int nodeCount, double result) {
 
-		nominator.setText(nodeCount + " − " + componentsCount);
-		denominator.setText(nodeCount + " − 1");
+		nominator.setText("2 × " + edgesCount);
+		denominator.setText(nodeCount + " × (" + nodeCount + " − 1)");
 
 		resultLabel.setText(DECIMAL_FORMAT.format(result));
-
-	}
-
-	@Override
-	public void update(Observable o, Object arg) {
 
 	}
 }

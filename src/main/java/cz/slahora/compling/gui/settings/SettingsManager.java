@@ -50,6 +50,10 @@ public class SettingsManager {
 		return prefs.getInt(GRAPH_NODE_SIZE, DEFAULT_NODE_SIZE);
 	}
 
+	public double getGraphNodeSizeMultiplier() {
+		return getGraphNodeSize() / DEFAULT_NODE_SIZE;
+	}
+
 	public void writeGraphNodeTextSize(int graphNodeTextSize) {
 		prefs.putInt(GRAPH_NODE_TEXT_SIZE, graphNodeTextSize);
 	}
@@ -67,4 +71,5 @@ public class SettingsManager {
 	public int getGraphStrokeWidth() {
 		return prefs.getInt(GRAPH_STROKE_WIDTH, DEFAULT_STROKE_WIDTH);
 	}
+
 }

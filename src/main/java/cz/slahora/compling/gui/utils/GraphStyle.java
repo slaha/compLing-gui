@@ -2,11 +2,20 @@ package cz.slahora.compling.gui.utils;
 
 import cz.slahora.compling.gui.settings.SettingsManager;
 
-public class GraphUtils {
+public class GraphStyle {
+
+	public static int getGraphNodeSize() {
+		return SettingsManager.getInstance().getGraphNodeSize();
+	}
+
+	public static int getGraphNodeTextSize() {
+		return SettingsManager.getInstance().getGraphNodeTextSize();
+	}
 
 	public static String getStyleSheet() {
-		int nodeSize = SettingsManager.getInstance().getGraphNodeSize();
-		int fontSize = SettingsManager.getInstance().getGraphNodeTextSize();
+
+		int nodeSize = getGraphNodeSize();
+		int fontSize = getGraphNodeTextSize();
 		int strokeWidth = SettingsManager.getInstance().getGraphStrokeWidth();
 
 		return "node {" + System.lineSeparator() +
