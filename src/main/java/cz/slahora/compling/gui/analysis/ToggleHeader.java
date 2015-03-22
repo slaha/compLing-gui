@@ -43,11 +43,11 @@ public class ToggleHeader extends JButton implements ActionListener {
 		setAlignmentX(LEFT);
 		setText(text);
 		setBackground(Color.white);
-		setIcon(IconUtils.getIcon(IconUtils.Icon.RIGHT));
+		setIcon(IconUtils.getIcon(panel.isCollapsed() ? IconUtils.Icon.RIGHT : IconUtils.Icon.DOWN));
 		setIconTextGap(10);
 		addActionListener(this);
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		setToolTipText(EXPAND);
+		setToolTipText(panel.isCollapsed() ? EXPAND : COLLAPSE);
 	}
 
 	@Override

@@ -2,10 +2,7 @@ package cz.slahora.compling.gui.analysis.denotation;
 
 import org.graphstream.graph.Node;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ComponentInfoModel implements Comparable<ComponentInfoModel> {
 
@@ -65,10 +62,17 @@ public class ComponentInfoModel implements Comparable<ComponentInfoModel> {
 
 	int getComponentDistancesSum() {
 		int distanceSum = 0;
-		for (List<Distance> distanceList : distances.values()) {
-			for (Distance distance :distanceList){
-				distanceSum += distance.distance;
-			}
+		for (Node node : distances.keySet()) {
+			distanceSum += getNodeDistancesSum(node);
+		}
+		return distanceSum;
+	}
+
+	int getNodeDistancesSum(Node node) {
+		final List<Distance> distanceList = distances.get(node);
+		int distanceSum = 0;
+		for (Distance distance :distanceList){
+			distanceSum += distance.distance;
 		}
 		return distanceSum;
 	}
@@ -110,6 +114,10 @@ public class ComponentInfoModel implements Comparable<ComponentInfoModel> {
 			distances = new ArrayList<Distance>();
 			this.distances.put(node, distances);
 		}
+	}
+
+	public Collection<Node> getNodes() {
+		return distances.keySet();
 	}
 
 	private class Distance {
