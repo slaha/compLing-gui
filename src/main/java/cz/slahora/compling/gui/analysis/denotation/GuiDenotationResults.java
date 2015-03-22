@@ -13,6 +13,7 @@ import cz.slahora.compling.gui.settings.SettingsManager;
 import cz.slahora.compling.gui.ui.MultipleLinesLabel;
 import cz.slahora.compling.gui.utils.*;
 import org.apache.commons.lang.text.StrBuilder;
+import org.graphstream.algorithm.APSP;
 import org.graphstream.algorithm.ConnectedComponents;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
@@ -39,6 +40,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+
+import static java.awt.GridBagConstraints.BOTH;
+import static java.awt.GridBagConstraints.HORIZONTAL;
 
 /**
  *
@@ -247,14 +251,14 @@ public class GuiDenotationResults {
 		);
 		panel.add(
 			new HtmlLabelBuilder().hx(2, "Graf").build(),
-			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).build()
 		);
 
 		final JPanel graphPanel = new GraphPanel();
 
 		panel.add(
 			graphPanel,
-			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.BOTH).weightX(1).weightY(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y++).fill(HORIZONTAL).weightX(1).build()
 		);
 
 		//..last panel for align another components to the top
@@ -262,7 +266,7 @@ public class GuiDenotationResults {
 		dummyPanel.setBackground(Color.WHITE);
 		panel.add(
 			dummyPanel,
-			new GridBagConstraintBuilder().gridXY(0, y).fill(GridBagConstraints.BOTH).weightX(1).weightY(1).anchor(GridBagConstraints.NORTH).build()
+			new GridBagConstraintBuilder().gridXY(0, y).fill(BOTH).weightX(1).weightY(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 
@@ -646,7 +650,7 @@ public class GuiDenotationResults {
 
 				spikePanel.add(
 					spikeContent,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.BOTH).weightX(1).weightY(1).gridXY(1, 0).build()
+					new GridBagConstraintBuilder().fill(BOTH).weightX(1).weightY(1).gridXY(1, 0).build()
 				);
 
 				add(
@@ -673,7 +677,7 @@ public class GuiDenotationResults {
 
 				spikePanel.add(
 					spikeContent,
-					new GridBagConstraintBuilder().fill(GridBagConstraints.BOTH).weightX(1).weightY(1).gridXY(1, 0).build()
+					new GridBagConstraintBuilder().fill(BOTH).weightX(1).weightY(1).gridXY(1, 0).build()
 				);
 
 				add(
@@ -704,11 +708,11 @@ public class GuiDenotationResults {
 		private final JSpinner alphaSpinner;
 		private final JPanel graphPanel;
 		private final GraphInfoPanel infoPanel;
+		private final VertexInfoPanel vertexInfoPanel;
 		private GraphViewerListener listener;
 
 		public GraphPanel() {
 			setLayout(new GridBagLayout());
-			setPreferredSize(new Dimension(100, 900));
 
 			JLabel alphaLabel = new JLabel("Hladina významnosti α");
 			alphaSpinner = new JSpinner(new SpinnerNumberModel(0.1d, 0d, 1d, 0.01));
@@ -749,13 +753,17 @@ public class GuiDenotationResults {
 
 			GridBagConstraints c = new GridBagConstraintBuilder().gridXY(0, 0).anchor(GridBagConstraints.CENTER).build();
 			add(graphSettingPanel, c);
-			c = new GridBagConstraintBuilder().gridXY(0, 1).weightX(1).weightY(1).fill(GridBagConstraints.BOTH).build();
+			c = new GridBagConstraintBuilder().gridXY(0, 1).weightX(1).weightY(1).fill(BOTH).build();
 			graphPanel = new JPanel(new BorderLayout());
-			getPanel().setBackground(Color.white);
+			graphPanel.setPreferredSize(new Dimension(1000, 750));
+			graphPanel.setBackground(Color.white);
 			add(graphPanel, c);
 
 			infoPanel = new GraphInfoPanel();
-			add(infoPanel, new GridBagConstraintBuilder().gridXY(0, 2).weightX(1).fill(GridBagConstraints.HORIZONTAL).build());
+			add(infoPanel, new GridBagConstraintBuilder().gridXY(0, 2).weightX(1).weightY(1).fill(BOTH).build());
+
+			vertexInfoPanel = new VertexInfoPanel();
+			add(vertexInfoPanel, new GridBagConstraintBuilder().gridXY(0, 3).weightX(1).weightY(1).fill(BOTH).build());
 
 			stateChanged(new ChangeEvent(alphaSpinner));
 		}
@@ -817,8 +825,11 @@ public class GuiDenotationResults {
 			view.setForeLayoutRenderer(new ForeLayoutRenderer(connectedComponents, nodeSize, nodeTextSize));
 			graphPanel.removeAll();
 			graphPanel.add(view, BorderLayout.CENTER);
-			graphPanel.validate();
-			infoPanel.onGraphChanged(graph, alpha);
+			infoPanel.onGraphChanged(graph, connectedComponents, alpha);
+			vertexInfoPanel.onGraphChanged(graph, connectedComponents, alpha);
+
+			validate();
+			repaint();
 		}
 
 		private class GraphViewerListener implements ViewerListener {
@@ -864,28 +875,35 @@ public class GuiDenotationResults {
 		private final RelativeCoherenceLevelPanel relativeCoherenceLevelPanel;
 		private final RelativeCyclomaticNumberPanel relativeCyclomaticNumberPanel;
 		private final NodeDegreePanel nodeDegreePanel;
+		private final NodeDegreeTable nodeDegreeTable;
+		private final VertexInfoPanel vertexInfoPanel;
 
 		private final DenotationMath math = new DenotationMath();
 
 		public GraphInfoPanel() {
-			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+			setLayout(new GridBagLayout());
 			setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 			componentsCount = new MultipleLinesLabel();
 			relativeCoherenceLevelPanel = new RelativeCoherenceLevelPanel();
 			relativeCyclomaticNumberPanel = new RelativeCyclomaticNumberPanel();
 			nodeDegreePanel = new NodeDegreePanel();
-			add(componentsCount);
-			add(relativeCoherenceLevelPanel);
-			add(relativeCyclomaticNumberPanel);
-			add(nodeDegreePanel);
+			nodeDegreeTable = new NodeDegreeTable();
+			vertexInfoPanel = new VertexInfoPanel();
+			int y = 0;
+			add(componentsCount, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(HORIZONTAL).build());
+			add(relativeCoherenceLevelPanel, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(HORIZONTAL).build());
+			add(relativeCyclomaticNumberPanel, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(HORIZONTAL).build());
+			add(nodeDegreePanel, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(HORIZONTAL).build());
+			add(nodeDegreeTable.getTableHeader(), new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(HORIZONTAL).build());
+			add(nodeDegreeTable, new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).fill(HORIZONTAL).build());
+			add(vertexInfoPanel, new GridBagConstraintBuilder().gridXY(0, y).weightX(1).weightY(1).fill(BOTH).build());
 		}
 
-		public void onGraphChanged(Graph graph, double alpha) {
+		public void onGraphChanged(Graph graph, ConnectedComponents connectedComponents, double alpha) {
 			StringBuilder builder = new StringBuilder();
 			final int nodeCount = graph.getNodeCount();
 			final int edgeCount = graph.getEdgeCount();
-			final ConnectedComponents connectedComponents = new ConnectedComponents(graph);
 			final int _componentsCount = connectedComponents.getConnectedComponentsCount();
 
 			builder.append("Počet vrcholů v grafu je ").append(nodeCount);
@@ -896,6 +914,17 @@ public class GuiDenotationResults {
 			relativeCoherenceLevelPanel.set(alpha, nodeCount, _componentsCount, math.computeRelativeConnectionRate(nodeCount, _componentsCount));
 			relativeCyclomaticNumberPanel.set(alpha, edgeCount, nodeCount, _componentsCount, math.computeRelativeCyclomaticNumber(nodeCount, _componentsCount, edgeCount));
 			nodeDegreePanel.set(edgeCount, nodeCount, math.computeConnotativeConcentration(nodeCount, edgeCount));
+
+			NodeDegreesModel nodeDegreesModel = new NodeDegreesModel();
+			for (Node node : graph) {
+				nodeDegreesModel.put(node);
+			}
+			nodeDegreeTable.setModel(nodeDegreesModel);
+
+			APSP apsp = new APSP(graph);
+			apsp.setDirected(false); // undirected graph
+			apsp.compute(); // the method that actually computes shortest paths
+
 		}
 	}
 }
