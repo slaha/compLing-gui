@@ -61,6 +61,7 @@ public class GuiDenotationResults {
 	private final GuiDenotationResultsModel model;
 	private final JPanel panel;
 	private Viewer graphViewer;
+	private GraphType graphType;
 
 
 	public GuiDenotationResults(WorkingText text, IDenotation denotation) {
@@ -281,9 +282,27 @@ public class GuiDenotationResults {
 
 		return map;
 	}
+	private Map<Spike, List<Coincidence>> createDeterministicMap(List<Spike> allSpikes) {
+		Map<Spike, List<Coincidence>> map = new HashMap<Spike, List<Coincidence>>();
 
-	private Graph createGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor, final double alpha) {
+		for (Spike spike : allSpikes) {
+			map.put(spike, model.getDeterministicFor(spike.getNumber()));
+		}
+
+		return map;
+	}
+
+	private Graph createDeterministicGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor, final double alpha) {
+		Graph graph = new DefaultGraph("Deterministicko-pravděpodobnostní graf pro hladinu významnosti α=" + alpha);
+		return fillGraph(graph, allSpikes, coincidenceFor, alpha);
+	}
+
+	private Graph createCoincidenceGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor, final double alpha) {
 		Graph graph = new DefaultGraph("Graf koincidence na hladině významnosti α=" + alpha);
+		return fillGraph(graph, allSpikes, coincidenceFor, alpha);
+	}
+
+	private Graph fillGraph(Graph graph, List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor, final double alpha) {
 		graph.addAttribute("ui.stylesheet", GraphStyle.getStyleSheet());
 		graph.addAttribute("ui.quality");
 		graph.addAttribute("ui.antialias");
@@ -310,25 +329,7 @@ public class GuiDenotationResults {
 				}
 			}
 		}
-//
-//		final ConnectedComponents connectedComponents = new ConnectedComponents(graph);
-//		connectedComponents.compute();
-//		connectedComponents.setCountAttribute("component");
-//		int connected = connectedComponents.getConnectedComponentsCount();
-//		System.out.println("connected="+connected);
-//
-//		SpriteManager spriteManager = new SpriteManager(graph);
-//
-//		for (ConnectedComponents.ConnectedComponent component : connectedComponents) {
-//			String componentId = String.valueOf(component.id + 1);
-//			System.out.println("componentId=" + componentId);
-//			final Node next = component.getEachNode().iterator().next();
-//			final Sprite sprite = spriteManager.addSprite(componentId);
-//			sprite.setPosition(2, 1, 0);
-//			sprite.addAttribute("ui.label", componentId);
-//			sprite.attachToNode(next.getId());
-//
-//		}
+
 		return graph;
 	}
 
@@ -427,8 +428,8 @@ public class GuiDenotationResults {
 
 			//...topikalnosť
 			coreTopikalnostPanel = new SpikeDetailsCollapsiblePanel();
-			coreTopikalnostPanel.setLayout(new GridBagLayout());
 			coreTopikalnostPanel.setCollapsed(collapseTopikalnostCore);
+			coreTopikalnostPanel.setLayout(new GridBagLayout());
 			coreTopikalnostPanel.addSpikes(computeTopikalnost(), null);
 
 			toggleHeader = new ToggleHeader(coreTopikalnostPanel, new HtmlLabelBuilder().hx(3, "Topikálnost jádrových hřebů").build().getText());
@@ -440,6 +441,7 @@ public class GuiDenotationResults {
 				coreTopikalnostPanel,
 				new GridBagConstraintBuilder().anchor(GridBagConstraints.NORTHWEST).gridXY(1, 2).build()
 			);
+
 
 			String spikeLbl = core.size() == 1 ? "hřeb" : core.size() < 5 && core.size() > 0 ? "hřeby" : "hřebů";
 			spikeLabel.setText(String.format("Jádro textu obsahuje %d %s. Kardinální číslo jádra je %d.", core.size(), spikeLbl, core.getCoreCardinalNumber()));
@@ -702,14 +704,19 @@ public class GuiDenotationResults {
 
 	}
 
-	private class GraphPanel extends JPanel implements ActionListener, ChangeListener {
+	private class GraphPanel extends JPanel implements ActionListener, ChangeListener, ItemListener {
 
 		private final JCheckBox autoLayoutCheckBox;
 		private final JSpinner alphaSpinner;
 		private final JPanel graphPanel;
 		private final GraphInfoPanel infoPanel;
 		private final VertexInfoPanel vertexInfoPanel;
+		private final JLabel graphLabel;
 		private GraphViewerListener listener;
+		private final JToggleButton coincidenceGraphToggle;
+		private final JToggleButton deterministicGraphToggle;
+
+		private final boolean ready;
 
 		public GraphPanel() {
 			setLayout(new GridBagLayout());
@@ -745,18 +752,41 @@ public class GuiDenotationResults {
 			JButton saveGraphButton = new JButton("Uložit jako obrázek PNG");
 			saveGraphButton.addActionListener(this);
 
+			coincidenceGraphToggle = new JToggleButton("Graf koincidence");
+			coincidenceGraphToggle.addItemListener(this);
+			deterministicGraphToggle = new JToggleButton("Deterministický graf");
+			deterministicGraphToggle.addItemListener(this);
+			coincidenceGraphToggle.setSelected(true);
+
+			ButtonGroup graphTypeGroup = new ButtonGroup();
+			graphTypeGroup.add(coincidenceGraphToggle);
+			graphTypeGroup.add(deterministicGraphToggle);
+
+			JPanel graphTypePanel = new JPanel(new BorderLayout());
+			graphTypePanel.add(coincidenceGraphToggle, BorderLayout.WEST);
+			graphTypePanel.add(deterministicGraphToggle, BorderLayout.EAST);
+
+			JPanel centerSettingsPanel = new JPanel(new BorderLayout());
+			centerSettingsPanel.add(graphTypePanel, BorderLayout.NORTH);
+			centerSettingsPanel.add(autoLayoutCheckBox, BorderLayout.SOUTH);
+
+
 			JPanel graphSettingPanel = new JPanel(new BorderLayout());
-			graphSettingPanel.setBorder(new EmptyBorder(10, 20, 10,20));
+			graphSettingPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
 			graphSettingPanel.add(alphaPanel, BorderLayout.NORTH);
-			graphSettingPanel.add(autoLayoutCheckBox, BorderLayout.CENTER);
+			graphSettingPanel.add(centerSettingsPanel, BorderLayout.CENTER);
 			graphSettingPanel.add(saveGraphButton, BorderLayout.SOUTH);
 
 			GridBagConstraints c = new GridBagConstraintBuilder().gridXY(0, 0).anchor(GridBagConstraints.CENTER).build();
 			add(graphSettingPanel, c);
-			c = new GridBagConstraintBuilder().gridXY(0, 1).weightX(1).weightY(1).fill(BOTH).build();
+			c = new GridBagConstraintBuilder().gridXY(0, 2).weightX(1).weightY(1).fill(BOTH).build();
 			graphPanel = new JPanel(new BorderLayout());
 			graphPanel.setPreferredSize(new Dimension(1000, 750));
 			graphPanel.setBackground(Color.white);
+
+			graphLabel = new JLabel();
+			graphLabel.setOpaque(true);
+			graphLabel.setBackground(Color.white);
 			add(graphPanel, c);
 
 			infoPanel = new GraphInfoPanel();
@@ -765,6 +795,7 @@ public class GuiDenotationResults {
 			vertexInfoPanel = new VertexInfoPanel();
 			add(vertexInfoPanel, new GridBagConstraintBuilder().gridXY(0, 3).weightX(1).weightY(1).fill(BOTH).build());
 
+			ready = true;
 			stateChanged(new ChangeEvent(alphaSpinner));
 		}
 		@Override
@@ -792,12 +823,7 @@ public class GuiDenotationResults {
 		@Override
 		public void stateChanged(ChangeEvent e) {
 
-			graphViewer = null;
-			autoLayoutCheckBox.setSelected(true);
-
-			final double alpha = (Double)alphaSpinner.getModel().getValue();
-			Graph graph = createGraph(model.getAllSpikes(), createCoincidenceMap(model.getAllSpikes()), alpha);
-			onGraphChanged(graph, alpha);
+			createGraph();
 
 		}
 
@@ -823,13 +849,50 @@ public class GuiDenotationResults {
 			int nodeSize = GraphStyle.getGraphNodeSize();
 			int nodeTextSize = GraphStyle.getGraphNodeTextSize();
 			view.setForeLayoutRenderer(new ForeLayoutRenderer(connectedComponents, nodeSize, nodeTextSize));
+			graphLabel.setText("<html><h2>" + graph.getId() + "</h2></html>");
 			graphPanel.removeAll();
+			graphPanel.add(graphLabel, BorderLayout.NORTH);
 			graphPanel.add(view, BorderLayout.CENTER);
 			infoPanel.onGraphChanged(graph, connectedComponents, alpha);
 			vertexInfoPanel.onGraphChanged(graph, connectedComponents, alpha);
 
 			validate();
 			repaint();
+		}
+
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				graphType = e.getSource() == coincidenceGraphToggle ? GraphType.COINCIDENCE : GraphType.DETERMINISTIC;
+
+				createGraph();
+			}
+		}
+
+		private void createGraph() {
+			if (!ready) {
+				return;
+			}
+
+			graphViewer = null;
+			autoLayoutCheckBox.setSelected(true);
+
+			final double alpha = (Double)alphaSpinner.getModel().getValue();
+			Graph graph;
+			final List<Spike> allSpikes = model.getAllSpikes();
+			switch (graphType) {
+				case DETERMINISTIC:
+					graph = createDeterministicGraph(allSpikes, createDeterministicMap(allSpikes), alpha);
+					break;
+				case COINCIDENCE:
+					graph = createCoincidenceGraph(allSpikes, createCoincidenceMap(allSpikes), alpha);
+					break;
+				default:
+					throw new IllegalStateException("Not supported graph type " + graphType);
+			}
+
+			onGraphChanged(graph, alpha);
+
 		}
 
 		private class GraphViewerListener implements ViewerListener {

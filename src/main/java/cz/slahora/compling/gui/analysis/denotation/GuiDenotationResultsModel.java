@@ -159,6 +159,10 @@ public class GuiDenotationResultsModel {
 		return denotation.getCoincidenceFor(spikeNumber);
 	}
 
+	public List<Coincidence> getDeterministicFor(int spikeNumber) {
+		return denotation.getDeterministicFor(spikeNumber);
+	}
+
 	public List<Spike> getAllSpikes() {
 		return new ArrayList<Spike>(denotation.getSpikes());
 	}
@@ -211,10 +215,6 @@ public class GuiDenotationResultsModel {
 				i += spike.getWords().size();
 			}
 			return i;
-		}
-
-		public int getCoreSize() {
-			return 0;
 		}
 	}
 }

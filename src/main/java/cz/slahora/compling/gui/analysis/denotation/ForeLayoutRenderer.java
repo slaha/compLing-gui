@@ -53,14 +53,17 @@ class ForeLayoutRenderer implements LayerRenderer {
 			double xGu = bounds.x + ((bounds.width - nameWidthGu) / 2);
 
 			int x = (int) Math.round(xGu * px2Gu + horizontalCenter);
-			int y;
-			if (bounds.y > 0) {
-				y = (int) (verticalCenter - (bounds.y * px2Gu));
-				y = (int) (y + fontSizePx + 5);
+			if (x > horizontalCenter) {
+			 	x -= nodeSizePx;
 			} else {
-				y = (int) (verticalCenter - (bounds.y * px2Gu));
+				x += nodeSizePx;
+			}
+			int y = (int) (verticalCenter - (bounds.y * px2Gu));
+			if (bounds.y > 0) {
+				y = (int) (y + fontSizePx / 4);
+			} else {
 				double pxSize = bounds.height * px2Gu;
-				y = (int) (y - pxSize - 5);
+				y = (int) (y - fontSizePx - (fontSizePx / 4));
 			}
 			graphics2D.drawString(componentName, x, y);
 		}

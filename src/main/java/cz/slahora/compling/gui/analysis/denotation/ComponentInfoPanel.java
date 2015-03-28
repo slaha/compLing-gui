@@ -48,7 +48,7 @@ public class ComponentInfoPanel extends JPanel {
 
 		if (componentsModel.nodeCount() > 1) {
 
-			message += " Diametrem komponenty d(" + name + ") = " + componentsModel.getComponentDiameter() + ". Centrem komponenty je hřeb " +
+			message += " Diametr komponenty d(" + name + ") = " + componentsModel.getComponentDiameter() + ". Centrem komponenty je hřeb " +
 				componentsModel.getComponentCenter() + '.';
 
 			final int componentDistancesSum = componentsModel.getComponentDistancesSum();

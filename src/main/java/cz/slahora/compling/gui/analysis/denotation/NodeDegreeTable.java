@@ -5,6 +5,7 @@ import org.graphstream.graph.Node;
 import org.jdesktop.swingx.JXTable;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.Arrays;
 import java.util.List;
 
 class NodeDegreeTable extends JXTable {
@@ -22,9 +23,17 @@ class NodeDegreeTable extends JXTable {
 	}
 
 	private class NodeDegreeTableModel extends AbstractTableModel {
+
+		private final int[] keys;
+
+		public NodeDegreeTableModel() {
+			keys = nodeDegreesModel.keys();
+			Arrays.sort(keys);
+		}
+
 		@Override
 		public int getRowCount() {
-			return nodeDegreesModel.size() - 1;
+			return nodeDegreesModel.size();
 		}
 
 		@Override
@@ -47,9 +56,10 @@ class NodeDegreeTable extends JXTable {
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			switch (columnIndex) {
 				case 0:
-					return rowIndex;
+					return keys[rowIndex];
 				case 1:
-					final List<Node> nodes = nodeDegreesModel.get(rowIndex);
+					int key = keys[rowIndex];
+					final List<Node> nodes = nodeDegreesModel.get(key);
 					StrBuilder strBuilder = new StrBuilder();
 					strBuilder.appendWithSeparators(nodes, ", ");
 					return strBuilder.toString();
