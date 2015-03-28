@@ -790,10 +790,10 @@ public class GuiDenotationResults {
 			add(graphPanel, c);
 
 			infoPanel = new GraphInfoPanel();
-			add(infoPanel, new GridBagConstraintBuilder().gridXY(0, 2).weightX(1).weightY(1).fill(BOTH).build());
+			add(infoPanel, new GridBagConstraintBuilder().gridXY(0, 3).weightX(1).weightY(1).fill(BOTH).build());
 
 			vertexInfoPanel = new VertexInfoPanel();
-			add(vertexInfoPanel, new GridBagConstraintBuilder().gridXY(0, 3).weightX(1).weightY(1).fill(BOTH).build());
+			add(vertexInfoPanel, new GridBagConstraintBuilder().gridXY(0, 4).weightX(1).weightY(1).fill(BOTH).build());
 
 			ready = true;
 			stateChanged(new ChangeEvent(alphaSpinner));

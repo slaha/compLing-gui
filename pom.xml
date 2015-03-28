@@ -6,14 +6,14 @@
 
     <groupId>cz.slahora.compling.gui</groupId>
     <artifactId>guiCompling</artifactId>
-    <version>0.99.3-SNAPSHOT</version>
+    <version>0.99.4-SNAPSHOT</version>
 
     <dependencies>
         <!--Compling library-->
         <dependency>
             <groupId>cz.compling</groupId>
             <artifactId>compLing</artifactId>
-            <version>0.99.3-SNAPSHOT</version>
+            <version>0.99.4-SNAPSHOT</version>
         </dependency>
 
         <!--Localisation-->
