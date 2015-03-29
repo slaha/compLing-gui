@@ -61,7 +61,7 @@
                 <properties>
                   <horizontalTextPosition value="4"/>
                   <icon value="analysis-multiple.png"/>
-                  <text value="Hromadní analýza "/>
+                  <text value="Hromadná analýza "/>
                 </properties>
               </component>
             </children>
