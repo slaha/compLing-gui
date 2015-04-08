@@ -85,8 +85,9 @@ public class CharacterFrequencyPanel extends AbstractResultsPanel implements Res
 
 		//table with character occurrences
 		JXTable table = new NonEditableTable(model.getTableModel());
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		table.setRowSelectionAllowed(false);
+		table.getRowSorter().toggleSortOrder(0); //..sort alphabetically
 		table.setColumnSelectionAllowed(false);
 		table.setCellSelectionEnabled(true);
 		table.setAutoCreateRowSorter(true);

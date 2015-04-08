@@ -27,6 +27,8 @@ public interface IWordFrequenciesModel<T> {
 
 	int getTotalWordsCount();
 
+	int getDomainSize();
+
 	TableModel getTableModel();
 
 	PieDataset getPieDataSet(int lowerBound);

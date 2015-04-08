@@ -79,7 +79,7 @@ public class WordFrequencyChartFactory<T> {
 	public ChartPanel createComparePlot() {
 		final Set<T> categories = controller.getAllCompareChartCategories();
 		String chartTitle = "Srovnání zastoupení délek slov " + categories.toString();
-		JFreeChart chart = ChartUtils.createBarChart(chartTitle, "Četnost", "Texty", controller.getBarDataSetFor(categories), PlotOrientation.VERTICAL, false, true, true, true);
+		JFreeChart chart = ChartUtils.createBarChart(chartTitle, "Texty", "Četnost", controller.getBarDataSetFor(categories), PlotOrientation.VERTICAL, false, true, true, true);
 		return ChartUtils.createPanel(chart);
 	}
 }

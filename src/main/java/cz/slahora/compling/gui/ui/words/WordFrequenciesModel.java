@@ -36,7 +36,8 @@ public class WordFrequenciesModel implements IWordFrequenciesModel<String> {
 		s.append(getBylyForm(analyzedTextsCount)).append(' ').append(analyzedTextsCount).append(' ').append(getTextForm(analyzedTextsCount)).append(":\n");
 		appendTextsAsList(s);
 
-		s.append("\nBylo nalezeno celkem ").append(getTotalWordsCount()).append(" různých slov.");
+		s.append('\n').append((analyzedTextsCount == 1 ? "Analyzovaný text obsahuje " : "Analyzované texty obsahují")).append(" celkem ").append(getTotalWordsCount()).append(" slov.");
+		s.append(" Bylo nalezeno celkem ").append(getDomainSize()).append(" různých slov.");
 
 		FrequencyWordPair mostFrequentWord = getMostFrequentWord();
 		s.append("\n\n").append("Nejčastěji se vyskytující slovo je slovo '").append(mostFrequentWord.getWords()).append("', které se vyskytlo celkem ")
@@ -85,11 +86,24 @@ public class WordFrequenciesModel implements IWordFrequenciesModel<String> {
 		return size == 1 ? "text" : size > 4 ? "textů" : "texty";
 	}
 
+	/**
+	 * Returns count of unique words
+	 */
 	@Override
-	public int getTotalWordsCount() {
+	public int getDomainSize() {
 
 		return wordsToFrequencies.keys().length;
 	}
+
+	@Override
+	public int getTotalWordsCount() {
+		int sum = 0;
+		for (Map.Entry<WorkingText, IWordFrequency> e : wordFrequencies.entrySet()) {
+			sum += e.getValue().getWordFrequency().getCountOfWords();
+		}
+		return sum;
+	}
+
 
 	@Override
 	public WordFrequencyTableModel getTableModel() {

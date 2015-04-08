@@ -15,6 +15,7 @@ import org.jfree.data.general.PieDataset;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
+import java.text.Collator;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -42,6 +43,7 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 	private final Set<String> allCharacters;
 	private final Selection<String> selectedCharacters;
 	private TObjectIntHashMap<String> sums;
+	private List<String> sumsKeys;
 	private List<String> maxOccurrences;
 	private int maxOccurrence;
 	private int allCharactersInAllTexts;
@@ -118,15 +120,15 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 		if (sums == null) {
 			doSums();
 		}
+		if (sumsKeys == null) {
+			doSumsKeys();
+		}
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-		sums.forEachEntry(new TObjectIntProcedure<String>() {
-			@Override
-			public boolean execute(String character, int sum) {
-				dataset.setValue(sum, "Četnost", character);
-				return true;
-			}
-		});
+		for (String character : sumsKeys) {
+			int sum = sums.get(character);
+			dataset.setValue(sum, "Četnost", character);
+		}
 		return dataset;
 	}
 
@@ -134,17 +136,16 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 		if (relativeFrequencies == null) {
 			doRelativeFrequencies();
 		}
+		if (sumsKeys == null) {
+			doSumsKeys();
+		}
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-		//..iterate over sums to ensure the same order as in #getAbsoluteBarDataSet
-		sums.forEachEntry(new TObjectIntProcedure<String>() {
-			@Override
-			public boolean execute(String character, int sum) {
-				double percents = relativeFrequencies.get(character) * 100d;
-				dataset.setValue(percents, "Relativní četnost", character);
-				return true;
-			}
-		});
+		//..iterate over sumsKeys to ensure the same order as in #getAbsoluteBarDataSet
+		for (String character : sumsKeys) {
+			double percents = relativeFrequencies.get(character) * 100d;
+			dataset.setValue(percents, "Relativní četnost", character);
+		}
 
 		return dataset;
 	}
@@ -188,6 +189,16 @@ public class CharacterFrequencyModel implements Csv<CharacterFrequencyModel> {
 		}
 		this.maxOccurrence = maxOccurrence;
 		this.allCharactersInAllTexts = allCharactersInAllTexts;
+	}
+
+	private void doSumsKeys() {
+		if (sums == null) {
+			doSums();
+		}
+		final List<String> keys = new ArrayList<String>(sums.keySet());
+		Collator c = Collator.getInstance(Locale.getDefault());
+		Collections.sort(keys, c);
+		sumsKeys = keys;
 	}
 
 	private void doRelativeFrequencies() {

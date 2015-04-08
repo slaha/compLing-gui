@@ -79,9 +79,9 @@ public class WordLengthFrequenciesModel implements IWordFrequenciesModel<Integer
 
 		s
 			.append("\nBylo nalezeno celkem ")
-			.append(getUniqueWordsCount())
-			.append(" různých slov o ")
 			.append(getTotalWordsCount())
+			.append(" různých slov o ")
+			.append(getDomainSize())
 			.append(" délkách.");
 
 		LengthFrequencyWordPair mostFrequentWord = getMostFrequentWord();
@@ -134,7 +134,8 @@ public class WordLengthFrequenciesModel implements IWordFrequenciesModel<Integer
 		return new LengthFrequencyWordPair(maxLengths, maxFreq, wordsWithMaxLength);
 	}
 
-	private int getUniqueWordsCount() {
+	@Override
+	public int getTotalWordsCount() {
 		Set<String> words = new HashSet<String>();
 
 		for (IWordFrequency wordFrequency : wordFrequencies.values()) {
@@ -146,8 +147,11 @@ public class WordLengthFrequenciesModel implements IWordFrequenciesModel<Integer
 		return words.size();
 	}
 
+	/**
+	 * Returns count of different lengths
+	 */
 	@Override
-	public int getTotalWordsCount() {
+	public int getDomainSize() {
 		return lengthsToFrequencies.keys().length;
 	}
 

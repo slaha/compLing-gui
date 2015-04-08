@@ -83,15 +83,13 @@ public class WordFrequencyResultsPanel<T> extends AbstractResultsPanel implement
 
 		//table with words occurrences
 		JTable table = new NonEditableTable(model.getTableModel());
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		table.setRowSelectionAllowed(true);
 		table.setColumnSelectionAllowed(false);
 		table.setAutoCreateRowSorter(true);
 		table.setBackground(Color.WHITE);
 		table.getRowSorter().toggleSortOrder(1); //..sort by freq of all (or the only one if only for one text)
 		table.getRowSorter().toggleSortOrder(1); //..sort by freq of all - desc
-
-		table.invalidate();
 
 		final JTableHeader tableHeader = table.getTableHeader();
 		tableHeader.setAlignmentX(Component.LEFT_ALIGNMENT);

@@ -55,7 +55,7 @@ abstract class WordTextAnalysis {
 			add(new JLabel("Typ analýzy"), new GridBagConstraintBuilder().gridXY(0,0).build());
 			add(type, new GridBagConstraintBuilder().gridXY(1,0).build());
 
-			caseSensitive = new JCheckBox("Ignorovat rozdílnou velikost písmen ('SloVo' bude stejné jako 'slovo'");
+			caseSensitive = new JCheckBox("Ignorovat rozdílnou velikost písmen ('SloVo' bude stejné jako    'slovo')");
 			add(caseSensitive, new GridBagConstraintBuilder().gridXY(0, 1).gridWidth(2).anchor(GridBagConstraints.LINE_START).build());
 
 			JPanel buttonsPanel = new JPanel(new GridBagLayout());
