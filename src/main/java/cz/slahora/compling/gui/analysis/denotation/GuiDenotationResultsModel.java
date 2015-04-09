@@ -41,6 +41,9 @@ public class GuiDenotationResultsModel {
 			return SPIKE_NUMBER_COMPARATOR.compare(o1, o2);
 		}
 	};
+	private Double nonContinuousIndex;
+	private Double nonIsolationIndex;
+	private Double reachabilityIndex;
 
 	public GuiDenotationResultsModel(IDenotation denotation) {
 		this.denotation = denotation;
@@ -72,7 +75,7 @@ public class GuiDenotationResultsModel {
 	public double computeTopikalnost(Spike spike) {
 		final double cardinalNumber = (double) core.getCoreCardinalNumber();
 
-		return denotation.computeTopikalnost(spike, cardinalNumber);
+		return denotation.computeTopicality(spike, cardinalNumber);
 	}
 
 	public double getTextCompactness() {
@@ -165,6 +168,30 @@ public class GuiDenotationResultsModel {
 
 	public List<Spike> getAllSpikes() {
 		return new ArrayList<Spike>(denotation.getSpikes());
+	}
+
+	public double getNonContinuousIndex() {
+		if (nonContinuousIndex == null) {
+			nonContinuousIndex = denotation.getNonContinuousIndex();
+		}
+		return nonContinuousIndex;
+	}
+
+	public double getNonIsolationIndex() {
+		if (nonIsolationIndex == null) {
+			nonIsolationIndex = denotation.getNonIsolationIndex();
+		}
+		return nonIsolationIndex;
+	}
+
+	public double getReachabilityIndex() {
+		if (getNonIsolationIndex() == Double.POSITIVE_INFINITY) {
+			return Double.POSITIVE_INFINITY;
+		}
+		if (reachabilityIndex == null) {
+			reachabilityIndex = denotation.getReachabilityIndex();
+		}
+		return reachabilityIndex;
 	}
 
 	class TextCore {

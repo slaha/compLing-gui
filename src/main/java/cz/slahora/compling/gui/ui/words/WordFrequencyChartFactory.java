@@ -1,5 +1,6 @@
 package cz.slahora.compling.gui.ui.words;
 
+import cz.slahora.compling.gui.analysis.words.WordTextAnalysisType;
 import cz.slahora.compling.gui.ui.ChartType;
 import cz.slahora.compling.gui.utils.ChartUtils;
 import org.jfree.chart.ChartPanel;
@@ -76,9 +77,21 @@ public class WordFrequencyChartFactory<T> {
 
 	}
 
-	public ChartPanel createComparePlot() {
+	public ChartPanel createComparePlot(WordTextAnalysisType analysisType) {
 		final Set<T> categories = controller.getAllCompareChartCategories();
-		String chartTitle = "Srovnání zastoupení délek slov " + categories.toString();
+		String chartTitle;
+		switch (analysisType) {
+
+			case WORD:
+				chartTitle = "Srovnání zastoupení slov " + categories.toString();
+				break;
+			case WORD_LENGHT:
+				chartTitle = "Srovnání zastoupení délek slov " + categories.toString();
+				break;
+			default:
+				throw new IllegalArgumentException("Unknown analysisType '" + analysisType + '\'');
+		}
+
 		JFreeChart chart = ChartUtils.createBarChart(chartTitle, "Texty", "Četnost", controller.getBarDataSetFor(categories), PlotOrientation.VERTICAL, false, true, true, true);
 		return ChartUtils.createPanel(chart);
 	}

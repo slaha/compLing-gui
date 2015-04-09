@@ -432,7 +432,7 @@ public class GuiDenotationResults {
 			coreTopikalnostPanel.setLayout(new GridBagLayout());
 			coreTopikalnostPanel.addSpikes(computeTopikalnost(), null);
 
-			toggleHeader = new ToggleHeader(coreTopikalnostPanel, new HtmlLabelBuilder().hx(3, "Topikálnost jádrových hřebů").build().getText());
+			toggleHeader = new ToggleHeader(coreTopikalnostPanel, new HtmlLabelBuilder().hx(3, "Tematičnost jádrových hřebů").build().getText());
 			add(
 				toggleHeader,
 				new GridBagConstraintBuilder().weightY(1).weightX(1).gridXY(0, 2).anchor(GridBagConstraints.NORTHWEST).build()
@@ -722,7 +722,7 @@ public class GuiDenotationResults {
 			setLayout(new GridBagLayout());
 
 			JLabel alphaLabel = new JLabel("Hladina významnosti α");
-			alphaSpinner = new JSpinner(new SpinnerNumberModel(0.1d, 0d, 1d, 0.01));
+			alphaSpinner = new JSpinner(new SpinnerNumberModel(0.1d, 0.001d, 1d, 0.01));
 			alphaSpinner.setEditor(new JSpinner.NumberEditor(alphaSpinner, "0.000"));
 			alphaSpinner.addChangeListener(this);
 
@@ -972,6 +972,10 @@ public class GuiDenotationResults {
 			builder.append("Počet vrcholů v grafu je ").append(nodeCount);
 			builder.append('\n').append("Počet hran v grafu je ").append(edgeCount);
 			builder.append('\n').append("Počet komponent v grafu je ").append(_componentsCount);
+			builder.append('\n')
+				.append('\n').append("Index nespojitosti je ").append(model.getNonContinuousIndex());
+			builder.append('\n').append("Index neizolovanosti je ").append(model.getNonIsolationIndex());
+			builder.append('\n').append("Index dosáhnutelnosti je ").append(model.getReachabilityIndex());
 
 			componentsCount.setText(builder.toString());
 			relativeCoherenceLevelPanel.set(alpha, nodeCount, _componentsCount, math.computeRelativeConnectionRate(nodeCount, _componentsCount));

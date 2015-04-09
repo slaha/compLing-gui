@@ -328,7 +328,7 @@ public class WordFrequencyResultsPanel<T> extends AbstractResultsPanel implement
 	}
 
 	private void refreshPlot() {
-		ChartPanel plot = chartFactory.createComparePlot();
+		ChartPanel plot = chartFactory.createComparePlot(analysisType);
 		ChartPanelWrapper wrap =  new ChartPanelWrapper(plot).addPlot();
 		compareChartComponent = changeChartPanel(compareChartComponent, compareChartParent, wrap);
 	}
@@ -494,7 +494,7 @@ public class WordFrequencyResultsPanel<T> extends AbstractResultsPanel implement
 
 		@Override
 		public WordFrequencyChartFactory<String> createChartFactory(IWordFrequenciesModel<String> model) {
-			return new WordFrequencyChartFactory<String>(model, "Zastoupení jednotlivých slov");
+			return new WordFrequencyChartFactory<String>(model, "Zastoužpení jednotlivých slov");
 		}
 	}
 
