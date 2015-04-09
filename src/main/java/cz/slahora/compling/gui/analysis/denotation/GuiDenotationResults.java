@@ -38,6 +38,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 
@@ -934,6 +935,7 @@ public class GuiDenotationResults {
 
 	private class GraphInfoPanel extends JPanel {
 
+		private final DecimalFormat DF = new DecimalFormat("0.###");
 		private final MultipleLinesLabel componentsCount;
 		private final RelativeCoherenceLevelPanel relativeCoherenceLevelPanel;
 		private final RelativeCyclomaticNumberPanel relativeCyclomaticNumberPanel;
@@ -973,9 +975,11 @@ public class GuiDenotationResults {
 			builder.append('\n').append("Počet hran v grafu je ").append(edgeCount);
 			builder.append('\n').append("Počet komponent v grafu je ").append(_componentsCount);
 			builder.append('\n')
-				.append('\n').append("Index nespojitosti je ").append(model.getNonContinuousIndex());
-			builder.append('\n').append("Index neizolovanosti je ").append(model.getNonIsolationIndex());
-			builder.append('\n').append("Index dosáhnutelnosti je ").append(model.getReachabilityIndex());
+				.append('\n').append("Index nespojitosti je ").append(DF.format(model.getNonContinuousIndex()));
+			final double nonIsolationIndex = model.getNonIsolationIndex();
+			builder.append('\n').append("Index neizolovanosti je ").append(nonIsolationIndex == Double.POSITIVE_INFINITY ? '∞' : DF.format(nonIsolationIndex));
+			final double reachabilityIndex = model.getReachabilityIndex();
+			builder.append('\n').append("Index dosáhnutelnosti je ").append(reachabilityIndex == Double.POSITIVE_INFINITY ? '∞' : DF.format(reachabilityIndex));
 
 			componentsCount.setText(builder.toString());
 			relativeCoherenceLevelPanel.set(alpha, nodeCount, _componentsCount, math.computeRelativeConnectionRate(nodeCount, _componentsCount));
