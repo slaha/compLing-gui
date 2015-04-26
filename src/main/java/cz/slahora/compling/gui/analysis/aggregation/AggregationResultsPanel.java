@@ -46,11 +46,18 @@ class AggregationResultsPanel extends AbstractResultsPanel implements ResultsPan
 
 		addToPanel(headline);
 
-		JLabel text = new HtmlLabelBuilder().p("Koeficient determinace D = %f", model.getCoefficientD())
-			.build();
+		final double coefficientD = model.getCoefficientD();
+		if (Double.isNaN(coefficientD)) {
+			JLabel text;
+			String s = model.getCountOfTexts() == 1 ? "Text je příliš krátký." : "Texty jsou příliš krátké.";
+			text =  new HtmlLabelBuilder().p(s + " Agregaci nebylo možné provést.")
+				.build();
 
-		text.setBorder(new EmptyBorder(30, 0, 30, 0));
-		addToPanel(text);
+			text.setBorder(new EmptyBorder(30, 0, 30, 0));
+			addToPanel(text);
+		}
+
+
 
 		JXTable aggregationTable = new NonEditableTable(new AggregationTableModel(model));
 		aggregationTable.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -61,6 +68,14 @@ class AggregationResultsPanel extends AbstractResultsPanel implements ResultsPan
 		aggregationTable.setDefaultRenderer(String.class, new FirstColumnTableCellRenderer());
 		aggregationTable.setDefaultRenderer(Number.class, new NumberColumnTableCellRenderer());
 		addToPanel(aggregationTable);
+
+		JLabel equation = new HtmlLabelBuilder().p("Aproximační funkce S = %.4f × L <sup>−%.4f</sup>", model.getApproxA(), model.getApproxB()).build();
+
+		equation.setBorder(new EmptyBorder(30, 0, 10, 0));
+		addToPanel(equation);
+
+		JLabel text = new HtmlLabelBuilder().p("Koeficient determinace D = %f", coefficientD).build();
+		addToPanel(text);
 
 		JFreeChart chart = createChart(model);
 		final ChartPanel chartPanel = new ChartPanel(chart) {

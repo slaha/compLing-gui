@@ -136,4 +136,14 @@ class AggregationModelSingleText implements AggregationModel {
 
 		return d;
 	}
+
+	@Override
+	public double getApproxA() {
+		return math.getApproxA(AGGREGATION_N);
+	}
+
+	@Override
+	public double getApproxB() {
+		return math.getApproxB(AGGREGATION_N);
+	}
 }

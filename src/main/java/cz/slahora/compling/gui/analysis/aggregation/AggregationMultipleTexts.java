@@ -21,7 +21,6 @@ public class AggregationMultipleTexts implements MultipleTextsAnalysis {
 	@Override
 	public void analyse(JPanel mainPanel, ResultsHandler handler, Map<WorkingText, CompLing> texts) {
 		final WorkingText workingText = MapUtils.getFirstKey(texts);
-		final CompLing compLing = texts.get(workingText);
 
 		this.name = new StrBuilder().appendWithSeparators(texts.keySet(), ", ").build();
 

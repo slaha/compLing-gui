@@ -23,4 +23,7 @@ interface AggregationModel {
 	double getMinChartValue();
 
 	CsvData getCsvData();
+
+	double getApproxA();
+	double getApproxB();
 }
