@@ -130,7 +130,7 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 				if (element.getSpike().getNumber() == spike.getNumber()) {
 					String s;
 					if (StringUtils.isEmpty(element.getText())) {
-						s = dw.toString();
+						s = dw.getWords().toString();
 					} else {
 						s = element.getText();
 					}
@@ -158,7 +158,7 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 					if (w.isInSpike(spike)) {
 
 						final DenotationElement elementInSpike = w.getElementInSpike(spike);
-						String text = elementInSpike.getText() == null ? w.toString() : elementInSpike.getText();
+						String text = elementInSpike.getText() == null ? w.getWords().toString() : elementInSpike.getText();
 						spikeWordsBundles.add(new GuiSpikeWordsBundle(w.getNumber(), elementInSpike.getNumber(), text));
 					}
 				}

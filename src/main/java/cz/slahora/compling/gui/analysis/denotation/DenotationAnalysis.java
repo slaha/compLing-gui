@@ -625,6 +625,9 @@ public class DenotationAnalysis {
 								if (spike.getNumber() % SPIKES_PER_MENU == 0) {
 									index--;
 								}
+								if (index >= spikesSubMenus.length) {
+									index = spikesSubMenus.length - 1;
+								}
 								spikesSubMenus[index].add(spikeItem);
 							}
 						}
