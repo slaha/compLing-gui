@@ -12,6 +12,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -164,6 +166,11 @@ class OneShiftResultsPanel extends AbsAssonanceResultsPanel implements ResultsPa
 
 		t.setTableHeader(header);
 		t.setRowHeight((int) (t.getRowHeight() * 1.4));
+
+		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(t.getModel());
+		sorter.setComparator(0, TEXT_WITH_NUMBER_COMPARATOR);
+		t.setRowSorter(sorter);
+
 		header.setDefaultRenderer(new HeaderCellRenderer(t));
 
 		t.getColumnModel().getColumn(0).setCellRenderer(new FirstColumnRenderer());

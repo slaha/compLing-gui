@@ -19,6 +19,10 @@ class DifferentShiftsModel {
 	private ScheffeTest scheffe;
 	private KruskalWallisTest kruskalWallis;
 
+	enum TestingState {
+		POSSIBLE, TOO_LITTLE_TEXTS, TOO_SMALL_STEP
+	}
+
 	public DifferentShiftsModel(Map<WorkingText, CompLing> texts, String[] vocals, int maxSteps) {
 		this.maxSteps = maxSteps;
 		assonances = new LinkedHashMap<WorkingText, Assonance>(texts.size());
@@ -28,6 +32,7 @@ class DifferentShiftsModel {
 			final Assonance assonance = poemAnalysis.assonance(vocals).getAssonance();
 			assonances.put(e.getKey(), assonance);
 		}
+
 	}
 
 	public WorkingText[] getPoemNames() {
@@ -58,16 +63,16 @@ class DifferentShiftsModel {
 		return Math.min(maxSteps, lowestMaxStep);
 	}
 
-	public boolean isTestingPossible() {
+	public TestingState isTestingPossible() {
 		if (assonances.size() < 2) {
-			return false;
+			return TestingState.TOO_LITTLE_TEXTS;
 		}
 		for (Assonance a : assonances.values()) {
 			if (a.getMaxStep() <= 6) {
-				return false;
+				return TestingState.TOO_SMALL_STEP;
 			}
 		}
-		return true;
+		return TestingState.POSSIBLE;
 	}
 
 	public BartlettResult getBartlettResult(double alpha) {
@@ -82,14 +87,15 @@ class DifferentShiftsModel {
 
 	private TestData getTestData() {
 		if (this.testData == null) {
-			double[][] values = new double[maxSteps][assonances.size()];
+			double[][] values = new double[getLowestMaxStep()][assonances.size()];
 
 			final Collection<Assonance> entries = assonances.values();
 			List<Assonance> aList = new ArrayList<Assonance>(entries);
 
 			for (int poem = 0; poem < aList.size(); poem++) {
 				Assonance assonance = aList.get(poem);
-				for (int shift = 0; shift < maxSteps; shift++) {
+				int maximum = Math.min(getLowestMaxStep(), assonance.getMaxStep());
+				for (int shift = 0; shift < maximum; shift++) {
 					values[shift][poem] = assonance.getAssonanceFor(shift + 1);
 				}
 			}

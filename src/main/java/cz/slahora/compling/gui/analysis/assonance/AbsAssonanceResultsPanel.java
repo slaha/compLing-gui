@@ -5,22 +5,65 @@ import cz.slahora.compling.gui.ui.AbstractResultsPanel;
 import cz.slahora.compling.gui.utils.HtmlLabelBuilder;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.table.*;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 
 	private static final Color LIGHT_GRAY = new Color(232, 232, 232);
 	protected static final NumberFormat DECIMAL_FORMAT = new DecimalFormat("#,##0.####");
+	protected static final Comparator<String> TEXT_WITH_NUMBER_COMPARATOR = new Comparator<String>() {
+		@Override
+		public int compare(String o1, String o2) {
+
+			int o1NmbrIndex = getFirstNumberIndex(o1);
+			int o2NmbrIndex = getFirstNumberIndex(o2);
+
+			final String o1BeforeNmbr = o1.substring(0, o1NmbrIndex);
+			final String o2BeforeNmbr = o2.substring(0, o2NmbrIndex);
+
+			final int cmp = o1BeforeNmbr.compareTo(o2BeforeNmbr);
+			if (cmp == 0) {
+				//..same part before numbers
+				int o1Number = getNumberFrom(o1);
+				int o2Number = getNumberFrom(o2);
+				return o1Number - o2Number;
+			}
+			return cmp;
+		}
+
+		int getFirstNumberIndex(String s) {
+			char[] charArray = s.toCharArray();
+			for (int i = 0; i < charArray.length; i++) {
+				char c = charArray[i];
+				if (Character.isDigit(c)) {
+					return i;
+				}
+			}
+			return s.length();
+		}
+		int getNumberFrom(String s) {
+			String nmbr = "";
+			for (char c : s.toCharArray()) {
+				if (Character.isDigit(c)) {
+					nmbr += c;
+				}
+			}
+			if (nmbr.length() == 0) {
+				return 0;
+			}
+			return Integer.parseInt(nmbr);
+		}
+	};
 
 	private double alpha;
 
@@ -59,6 +102,11 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 				return d;
 			}
 		};
+
+		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(jTable.getModel());
+		sorter.setComparator(0, TEXT_WITH_NUMBER_COMPARATOR);
+		jTable.setRowSorter(sorter);
+
 		header.setDefaultRenderer(new HeaderCellRenderer(jTable));
 		jTable.setTableHeader(header);
 		jTable.setRowHeight((int) (jTable.getRowHeight() * 1.4));
@@ -85,6 +133,7 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 		}
 
 		if (lbl != null) {
+			lbl.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
 			components.add(lbl);
 		}
 
@@ -111,6 +160,7 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 		components.add(anovaTable);
 
 		JLabel fLabel = new HtmlLabelBuilder().text("F").sub("k - 1, n - k").text("(α) = F").sub(anovaResult.getSaDegreesOfFreedom() + ", " + anovaResult.getSeDegreesOfFreedom()).text("(" + alpha + ") = " + DECIMAL_FORMAT.format(anovaResult.getCriticalValue())).build();
+		fLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 5, 0));
 		components.add(fLabel);
 
 		JLabel lbl;
@@ -128,6 +178,7 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 		}
 
 		if (lbl != null) {
+
 			components.add(lbl);
 		}
 
@@ -148,7 +199,10 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 		final JTable jTable = new NonEditableTable(values, headline);
 
 		final List<ScheffeTest.Difference> differences = scheffeResult.getDifferences();
-		TableCellRenderer scheffeRenderer = new ScheffeRenderer(differences);
+		for (ScheffeTest.Difference d : differences) {
+			values[d.getRowIndex()][d.getColumnIndex() + 1] = values[d.getRowIndex()][d.getColumnIndex()+1] + " *";
+		}
+		TableCellRenderer scheffeRenderer = new ScheffeRenderer();
 		for (int i = 1; i < length; i++) {
 			jTable.getColumnModel().getColumn(i).setCellRenderer(scheffeRenderer);
 		}
@@ -162,12 +216,19 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 				return d;
 			}
 		};
+
 		header.setDefaultRenderer(new HeaderCellRenderer(jTable));
 		jTable.setTableHeader(header);
 		jTable.setRowHeight((int) (jTable.getRowHeight() * 1.4));
 
 		JLabel scheffeResultsTableHeadline = new HtmlLabelBuilder().hx(2, "Schéffeho metoda").build();
 
+		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(jTable.getModel());
+		sorter.setComparator(0, TEXT_WITH_NUMBER_COMPARATOR);
+		for (int i = 1; i < jTable.getColumnCount(); i++) {
+			sorter.setSortable(i, false);
+		}
+		jTable.setRowSorter(sorter);
 
 		components.add(scheffeResultsTableHeadline);
 		components.add(jTable.getTableHeader());
@@ -274,6 +335,9 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 		jTable.getColumnModel().getColumn(0).setCellRenderer(new FirstColumnRenderer());
 		jTable.setTableHeader(header);
 		jTable.setRowHeight((int) (jTable.getRowHeight() * 1.4));
+		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(jTable.getModel());
+		sorter.setComparator(0, TEXT_WITH_NUMBER_COMPARATOR);
+		jTable.setRowSorter(sorter);
 		header.setDefaultRenderer(new HeaderCellRenderer(jTable));
 
 		return jTable;
@@ -354,23 +418,30 @@ abstract class AbsAssonanceResultsPanel extends AbstractResultsPanel {
 
 	protected class ScheffeRenderer extends DecimalFormatRenderer {
 
-		private final List<ScheffeTest.Difference> differences;
 
-		public ScheffeRenderer(List<ScheffeTest.Difference> differences) {
+		public ScheffeRenderer() {
 			super();
-			this.differences = differences;
+		}
+
+		protected Object formatValue(Object _value) {
+			String value = _value.toString();
+			boolean withStar = value.contains(" *");
+			value = value.replace(" *", "");
+			try {
+				String v = DECIMAL_FORMAT.format(new BigDecimal(value));
+				if ("0".equals(v)) {
+					return "–";
+				}
+				return withStar ? (v + " *") : v;
+			} catch (IllegalArgumentException e) {
+				System.err.println("Not a number " + value);
+			}
+			return value;
 		}
 
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
-			value = super.formatValue(value);
-
-			for (ScheffeTest.Difference d : differences) {
-				if (d.getColumnIndex() == (column - 1) && d.getRowIndex() == row) {
-					value = value + " *";
-					break;
-				}
-			}
+			value = formatValue(value);
 
 			return getSuperTableCellRendererComponent(
 				table, value, isSelected, hasFocus, row, column );
