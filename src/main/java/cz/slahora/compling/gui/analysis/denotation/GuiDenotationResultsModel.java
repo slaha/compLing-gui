@@ -24,21 +24,21 @@ public class GuiDenotationResultsModel {
 	private final IDenotation denotation;
 	private final TextCore core;
 
-	private final Comparator<Hreb> SPIKE_NUMBER_COMPARATOR = new Comparator<Hreb>() {
+	private final Comparator<Hreb> HREB_NUMBER_COMPARATOR = new Comparator<Hreb>() {
 		@Override
 		public int compare(Hreb o1, Hreb o2) {
 			return o1.getNumber() - o2.getNumber();
 		}
 	};
 
-	private final Comparator<Hreb> SPIKE_DIFFUSION_COMPARATOR = new Comparator<Hreb>() {
+	private final Comparator<Hreb> HREB_DIFFUSION_COMPARATOR = new Comparator<Hreb>() {
 		@Override
 		public int compare(Hreb o1, Hreb o2) {
 			double d = getDiffusionFor(o1.getNumber()) - getDiffusionFor(o2.getNumber());
 			if (d != 0) {
 				return d < 0 ? -1 : 1;
 			}
-			return SPIKE_NUMBER_COMPARATOR.compare(o1, o2);
+			return HREB_NUMBER_COMPARATOR.compare(o1, o2);
 		}
 	};
 	private Double nonContinuousIndex;
@@ -112,7 +112,7 @@ public class GuiDenotationResultsModel {
 			}
 		}
 
-		Collections.sort(hrebs, SPIKE_DIFFUSION_COMPARATOR);
+		Collections.sort(hrebs, HREB_DIFFUSION_COMPARATOR);
 
 		return hrebs;
 	}
@@ -147,7 +147,7 @@ public class GuiDenotationResultsModel {
 		Collections.sort(list, new Comparator<Pair<Hreb, Double>>() {
 			@Override
 			public int compare(Pair<Hreb, Double> o1, Pair<Hreb, Double> o2) {
-				return SPIKE_DIFFUSION_COMPARATOR.compare(o1.getValue0(), o2.getValue0());
+				return HREB_DIFFUSION_COMPARATOR.compare(o1.getValue0(), o2.getValue0());
 			}
 		});
 
@@ -223,12 +223,12 @@ public class GuiDenotationResultsModel {
 		}
 
 		public List<Hreb> getCore() {
-			Collections.sort(core, SPIKE_NUMBER_COMPARATOR);
+			Collections.sort(core, HREB_NUMBER_COMPARATOR);
 			return core;
 		}
 
 		public List<Hreb> getNotInCore() {
-			Collections.sort(outsideCore, SPIKE_NUMBER_COMPARATOR);
+			Collections.sort(outsideCore, HREB_NUMBER_COMPARATOR);
 			return outsideCore;
 		}
 

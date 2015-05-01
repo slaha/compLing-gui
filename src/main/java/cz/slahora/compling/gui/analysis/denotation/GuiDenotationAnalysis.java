@@ -50,9 +50,9 @@ import java.util.Map;
  */
 public class GuiDenotationAnalysis {
 
-	public static final int SPIKE_NUMBER_COLUMN = 0;
-	public static final int SPIKE_SIZE_COLUMN = 1;
-	public static final int SPIKE_WORDS_COLUMN = 2;
+	public static final int HREB_NUMBER_COLUMN = 0;
+	public static final int HREB_SIZE_COLUMN = 1;
+	public static final int HREB_WORDS_COLUMN = 2;
 
 	public static class DenotationPanel extends JPanel implements ActionListener {
 
@@ -450,12 +450,12 @@ public class GuiDenotationAnalysis {
 
 		private class WordPanelPopup extends JPopupMenu implements ActionListener {
 
-			public static final int SPIKES_PER_MENU = 20;
+			public static final int HREBS_PER_MENU = 20;
 
-			public static final String SPIKES_ADD_SUBMENU = "hrebs_add_submenu";
-			public static final String SPIKES_DUPLICATE_SUBMENU = "hrebs_duplicate_submenu";
-			public static final String SPIKES_REMOVE_SUBMENU = "hrebs_remove_submenu";
-			public static final String SPIKE_KEY = "hreb";
+			public static final String HREBS_ADD_SUBMENU = "hrebs_add_submenu";
+			public static final String HREBS_DUPLICATE_SUBMENU = "hrebs_duplicate_submenu";
+			public static final String HREBS_REMOVE_SUBMENU = "hrebs_remove_submenu";
+			public static final String HREB_KEY = "hreb";
 
 			private final IDenotation denotation;
 			private final JMenuItem ignore, addElement, removeElement, join, split;
@@ -542,9 +542,9 @@ public class GuiDenotationAnalysis {
 
 				} else if (source instanceof JMenuItem) {
 					JMenuItem menuItem = (JMenuItem) source;
-					if (SPIKES_ADD_SUBMENU.equals(menuItem.getName())) {
+					if (HREBS_ADD_SUBMENU.equals(menuItem.getName())) {
 
-						Hreb hreb = (Hreb) menuItem.getClientProperty(SPIKE_KEY);
+						Hreb hreb = (Hreb) menuItem.getClientProperty(HREB_KEY);
 						DenotationElement hrebNumber = word.getDenotationWord().getFreeElement();
 
 						//..check if the word is already in any other hreb. If so, ask for divide
@@ -570,17 +570,17 @@ public class GuiDenotationAnalysis {
 						parent.onElementAssigned();
 						parent.refreshHrebs(hreb.getNumber());
 
-					} else if (SPIKES_DUPLICATE_SUBMENU.equals(menuItem.getName())) {
+					} else if (HREBS_DUPLICATE_SUBMENU.equals(menuItem.getName())) {
 
-						Hreb hreb = (Hreb) menuItem.getClientProperty(SPIKE_KEY);
+						Hreb hreb = (Hreb) menuItem.getClientProperty(HREB_KEY);
 						DenotationElement duplicate = word.duplicate(word.getHighestDenotationElement());
 
 						hreb.addWord(word.getDenotationWord(), duplicate.getText(), duplicate.getNumber());
 						duplicate.onAddToHreb(hreb);
 						parent.refreshHrebs(hreb.getNumber());
 
-					} else if (SPIKES_REMOVE_SUBMENU.equals(menuItem.getName())) {
-						Hreb hreb = (Hreb) menuItem.getClientProperty(SPIKE_KEY);
+					} else if (HREBS_REMOVE_SUBMENU.equals(menuItem.getName())) {
+						Hreb hreb = (Hreb) menuItem.getClientProperty(HREB_KEY);
 						hreb.remove(word.getDenotationWord());
 						parent.onElementAssigned();
 						parent.refreshHrebs(hreb.getNumber());
@@ -606,21 +606,21 @@ public class GuiDenotationAnalysis {
 						String menuItemName;
 						if (word.getDenotationWord().hasFreeElement()) {
 							menuItemMessage = "Přidat do hřebu č. ";
-							menuItemName = SPIKES_ADD_SUBMENU;
+							menuItemName = HREBS_ADD_SUBMENU;
 						} else {
 							menuItemMessage = "Duplikovat do hřebu č. ";
-							menuItemName = SPIKES_DUPLICATE_SUBMENU;
+							menuItemName = HREBS_DUPLICATE_SUBMENU;
 						}
 
 						for (Hreb hreb : denotation.getHrebs()) {
 							if (!word.getDenotationWord().isInHreb(hreb)) {
 								JMenuItem hrebItem = new JMenuItem(menuItemMessage + hreb.getNumber());
 								hrebItem.setName(menuItemName);
-								hrebItem.putClientProperty(SPIKE_KEY, hreb);
+								hrebItem.putClientProperty(HREB_KEY, hreb);
 								hrebItem.addActionListener(this);
-								int index = hreb.getNumber() / SPIKES_PER_MENU;
+								int index = hreb.getNumber() / HREBS_PER_MENU;
 								//..we need to decrement index. But only if there is no not-full menu
-								if (hreb.getNumber() % SPIKES_PER_MENU == 0) {
+								if (hreb.getNumber() % HREBS_PER_MENU == 0) {
 									index--;
 								}
 								if (index >= hrebsSubMenus.length) {
@@ -661,8 +661,8 @@ public class GuiDenotationAnalysis {
 					for (Hreb hreb : denotation.getHrebs()) {
 						if (word.getDenotationWord().isInHreb(hreb)) {
 							JMenuItem hrebItem = new JMenuItem("Odebrat z hřebu č. " + hreb.getNumber());
-							hrebItem.setName(SPIKES_REMOVE_SUBMENU);
-							hrebItem.putClientProperty(SPIKE_KEY, hreb);
+							hrebItem.setName(HREBS_REMOVE_SUBMENU);
+							hrebItem.putClientProperty(HREB_KEY, hreb);
 							hrebItem.addActionListener(this);
 							hrebsRemoveMenu.add(hrebItem);
 						}
@@ -675,14 +675,14 @@ public class GuiDenotationAnalysis {
 
 			private JMenu[] createHrebsSubmenus() {
 				final int hrebsCount = countOfHrebsForWord();
-				final int lastMenuItems = hrebsCount % SPIKES_PER_MENU;
+				final int lastMenuItems = hrebsCount % HREBS_PER_MENU;
 				//..count of hrebs / hrebs in one submenu + one menu if hrebs count is not divided by hrebsPerMenu
-				final int menusCount = hrebsCount / SPIKES_PER_MENU + ((lastMenuItems > 0) ? 1 : 0);
+				final int menusCount = hrebsCount / HREBS_PER_MENU + ((lastMenuItems > 0) ? 1 : 0);
 				JMenu[] menus = new JMenu[menusCount];
 				for (int i = 0; i < menus.length; i++) {
 					int l, h;
-					l = i * SPIKES_PER_MENU + 1;
-					h = l + SPIKES_PER_MENU - 1;
+					l = i * HREBS_PER_MENU + 1;
+					h = l + HREBS_PER_MENU - 1;
 					menus[i] = new JMenu("Hřeby č. " + l + " až " + h);
 				}
 
@@ -779,7 +779,7 @@ public class GuiDenotationAnalysis {
 
 				@Override
 				public TableCellRenderer getCellRenderer(int row, int column) {
-					if (column != SPIKE_WORDS_COLUMN) {
+					if (column != HREB_WORDS_COLUMN) {
 						return new SingleLineCellRenderer(_rowHeight);
 					}
 					return new MultilineCellRenderer(_rowHeight);
@@ -794,7 +794,7 @@ public class GuiDenotationAnalysis {
 
 			table.getModel().addTableModelListener(new TableModelListener() {
 				public void tableChanged(TableModelEvent e) {
-					ColumnsAutoSizer.sizeColumnsToFit(table, 10, SPIKE_WORDS_COLUMN);
+					ColumnsAutoSizer.sizeColumnsToFit(table, 10, HREB_WORDS_COLUMN);
 				}
 			});
 
@@ -810,7 +810,7 @@ public class GuiDenotationAnalysis {
 			builder = new GridBagConstraintBuilder().gridXY(0, 1).fill(GridBagConstraints.BOTH).anchor(GridBagConstraints.NORTHWEST).weightX(1).weightY(1);
 			add(new JScrollPane(table), builder.copy().build());
 
-			ColumnsAutoSizer.sizeColumnsToFit(table, 10, SPIKE_WORDS_COLUMN);
+			ColumnsAutoSizer.sizeColumnsToFit(table, 10, HREB_WORDS_COLUMN);
 
 
 		}
@@ -951,7 +951,7 @@ public class GuiDenotationAnalysis {
 
 		@Override
 		public int getColumnCount() {
-			return Math.max(Math.max(SPIKE_NUMBER_COLUMN, SPIKE_SIZE_COLUMN), SPIKE_WORDS_COLUMN) + 1;
+			return Math.max(Math.max(HREB_NUMBER_COLUMN, HREB_SIZE_COLUMN), HREB_WORDS_COLUMN) + 1;
 		}
 
 		@Override
@@ -961,11 +961,11 @@ public class GuiDenotationAnalysis {
 				return null;
 			}
 			switch (columnIndex) {
-				case SPIKE_NUMBER_COLUMN:
+				case HREB_NUMBER_COLUMN:
 					return hreb.getNumber();
-				case SPIKE_SIZE_COLUMN:
+				case HREB_SIZE_COLUMN:
 					return hreb.getWords().size();
-				case SPIKE_WORDS_COLUMN:
+				case HREB_WORDS_COLUMN:
 					return model.toStringForHreb(hreb);
 				default:
 					return null;
@@ -975,11 +975,11 @@ public class GuiDenotationAnalysis {
 		@Override
 		public String getColumnName(int column) {
 			switch (column) {
-				case SPIKE_NUMBER_COLUMN:
+				case HREB_NUMBER_COLUMN:
 					return "Číslo hřebu";
-				case SPIKE_SIZE_COLUMN:
+				case HREB_SIZE_COLUMN:
 					return "Velikost hřebu";
-				case SPIKE_WORDS_COLUMN:
+				case HREB_WORDS_COLUMN:
 					return "Slova ve hřebu";
 				default:
 					return null;
@@ -989,10 +989,10 @@ public class GuiDenotationAnalysis {
 		@Override
 		public Class<?> getColumnClass(int column) {
 			switch (column) {
-				case SPIKE_NUMBER_COLUMN:
-				case SPIKE_SIZE_COLUMN:
+				case HREB_NUMBER_COLUMN:
+				case HREB_SIZE_COLUMN:
 					return Integer.class;
-				case SPIKE_WORDS_COLUMN:
+				case HREB_WORDS_COLUMN:
 					return String.class;
 				default:
 					return Object.class;
