@@ -3,7 +3,7 @@ package cz.slahora.compling.gui.analysis.denotation;
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
 import cz.compling.model.denotation.DenotationElement;
 import cz.compling.model.denotation.DenotationWord;
-import cz.compling.model.denotation.Spike;
+import cz.compling.model.denotation.Hreb;
 import cz.slahora.compling.gui.analysis.CsvExporter;
 import cz.slahora.compling.gui.model.Csv;
 import cz.slahora.compling.gui.model.CsvData;
@@ -48,7 +48,7 @@ import java.util.Map;
  * <dd> 6.4.14 12:05</dd>
  * </dl>
  */
-public class DenotationAnalysis {
+public class GuiDenotationAnalysis {
 
 	public static final int SPIKE_NUMBER_COLUMN = 0;
 	public static final int SPIKE_SIZE_COLUMN = 1;
@@ -69,7 +69,7 @@ public class DenotationAnalysis {
 		private final ImportExportHandler importExportHandler;
 
 		private GuiDenotationModel model;
-		private DenotationSpikesPanel denotationSpikesPanel;
+		private DenotationHrebsPanel denotationHrebsPanel;
 		private DenotationPoemPanel denotationPoemPanel;
 		private JSplitPane middlePanel;
 
@@ -123,8 +123,8 @@ public class DenotationAnalysis {
 			}
 
 			denotationPoemPanel = new DenotationPoemPanel(model, this);
-			denotationSpikesPanel = new DenotationSpikesPanel(model.getSpikesModel(), this);
-			middlePanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationSpikesPanel));
+			denotationHrebsPanel = new DenotationHrebsPanel(model.getHrebsModel(), this);
+			middlePanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(denotationPoemPanel), new JScrollPane(denotationHrebsPanel));
 			middlePanel.setContinuousLayout(true);
 
 			GridBagConstraints gbc = new GridBagConstraintBuilder().gridXY(0, 1).fill(GridBagConstraints.BOTH).weightX(1).weightY(1).build();
@@ -140,7 +140,7 @@ public class DenotationAnalysis {
 					location += 50;
 					middlePanel.setDividerLocation(location);
 					denotationPoemPanel.refresh(-1); //..refresh all
-					denotationSpikesPanel.refresh();
+					denotationHrebsPanel.refresh();
 				}
 			});
 
@@ -172,16 +172,16 @@ public class DenotationAnalysis {
 			return model.getDenotation();
 		}
 
-		public void refreshSpikes(int number) {
-			denotationSpikesPanel.refresh(number);
+		public void refreshHrebs(int number) {
+			denotationHrebsPanel.refresh(number);
 		}
 
 		public void refreshPoems(int number) {
 			denotationPoemPanel.refresh(number);
 		}
 
-		public boolean isAnySpikeInTheTable() {
-			return denotationSpikesPanel.isAnySpikeInTheTable();
+		public boolean isAnyHrebInTheTable() {
+			return denotationHrebsPanel.isAnyHrebInTheTable();
 		}
 
 		public void save() {
@@ -193,7 +193,7 @@ public class DenotationAnalysis {
 		}
 
 		public void onElementAssigned() {
-			doneBtn.setEnabled(denotationPoemPanel.hasEveryWordSpike());
+			doneBtn.setEnabled(denotationPoemPanel.hasEveryWordHreb());
 		}
 	}
 
@@ -260,7 +260,6 @@ public class DenotationAnalysis {
 		private final TIntObjectMap<WordPanel> wordPanels;
 
 		private final DenotationPanel denotationPanel;
-		private final GuiDenotationSpikesModel spikesModel;
 
 		public DenotationPoemPanel(GuiDenotationModel denotationModel, DenotationPanel denotationPanel) {
 			super(new GridBagLayout());
@@ -268,7 +267,6 @@ public class DenotationAnalysis {
 			setBackground(Color.white);
 
 			this.denotationPanel = denotationPanel;
-			this.spikesModel = denotationModel.getSpikesModel();
 			GuiDenotationPoemModel poemModel = denotationModel.getPoemModel();
 
 			this.wordPanels = new TIntObjectHashMap<WordPanel>();
@@ -330,15 +328,15 @@ public class DenotationAnalysis {
 
 		}
 
-		public void refreshSpikes(int number) {
-			denotationPanel.refreshSpikes(number);
+		public void refreshHrebs(int number) {
+			denotationPanel.refreshHrebs(number);
 		}
 
-		public boolean hasEveryWordSpike() {
+		public boolean hasEveryWordHreb() {
 			for (WordPanel wordPanel : wordPanels.valueCollection()) {
 				final DenotationWord word = wordPanel.word.getDenotationWord();
 
-				if (!word.isIgnored() && !word.isJoined() && !word.areAllSpikesAssigned()) {
+				if (!word.isIgnored() && !word.isJoined() && !word.areAllHrebsAssigned()) {
 					return false;
 				}
 			}
@@ -430,8 +428,8 @@ public class DenotationAnalysis {
 			setBorder(new EmptyBorder(word.getDenotationWord().isJoined() ? IGNORED_INSETS: INSETS));
 			setVisible(!word.getDenotationWord().isJoined());
 			changeFont(false);
-			if (word.getDenotationWord().isInSpike()) {
-				setToolTipText("Patří do hřebu č. " + word.getDenotationWord().getSpikes());
+			if (word.getDenotationWord().isInHreb()) {
+				setToolTipText("Patří do hřebu č. " + word.getDenotationWord().getHrebs());
 			} else {
 				setToolTipText(null);
 			}
@@ -454,14 +452,14 @@ public class DenotationAnalysis {
 
 			public static final int SPIKES_PER_MENU = 20;
 
-			public static final String SPIKES_ADD_SUBMENU = "spikes_add_submenu";
-			public static final String SPIKES_DUPLICATE_SUBMENU = "spikes_duplicate_submenu";
-			public static final String SPIKES_REMOVE_SUBMENU = "spikes_remove_submenu";
-			public static final String SPIKE_KEY = "spike";
+			public static final String SPIKES_ADD_SUBMENU = "hrebs_add_submenu";
+			public static final String SPIKES_DUPLICATE_SUBMENU = "hrebs_duplicate_submenu";
+			public static final String SPIKES_REMOVE_SUBMENU = "hrebs_remove_submenu";
+			public static final String SPIKE_KEY = "hreb";
 
 			private final IDenotation denotation;
 			private final JMenuItem ignore, addElement, removeElement, join, split;
-			private final JMenu spikesAddMenu, spikesDuplicateMenu, spikesRemoveMenu;
+			private final JMenu hrebsAddMenu, hrebsDuplicateMenu, hrebsRemoveMenu;
 
 			private WordPanelPopup(IDenotation denotation) {
 				this.denotation = denotation;
@@ -472,9 +470,9 @@ public class DenotationAnalysis {
 				join = new JMenuItem("Sloučit s " + (word.getNextWordToJoin() != null ? word.getNextWordToJoin().getWords() : ""));
 				split = new JMenuItem("Oddělit " + (word.hasJoinedWords() ? word.getLastJoinedWord() :""));
 
-				spikesAddMenu = new JMenu("Přidat do hřebu");
-				spikesDuplicateMenu = new JMenu("Přidat do jiného hřebu");
-				spikesRemoveMenu = new JMenu("Odebrat z hřebu");
+				hrebsAddMenu = new JMenu("Přidat do hřebu");
+				hrebsDuplicateMenu = new JMenu("Přidat do jiného hřebu");
+				hrebsRemoveMenu = new JMenu("Odebrat z hřebu");
 
 				ignore.addActionListener(this);
 				addElement.addActionListener(this);
@@ -488,7 +486,7 @@ public class DenotationAnalysis {
 						onWordIgnored();
 						onElementChanged();
 						onWordJoined();
-						loadSpikes();
+						loadHrebs();
 					}
 
 					@Override
@@ -506,14 +504,14 @@ public class DenotationAnalysis {
 				Object source = e.getSource();
 				if (source == ignore) {
 					final boolean isIgnoredNow = word.getDenotationWord().isIgnored();
-					if (!isIgnoredNow && word.getDenotationWord().isInSpike()) {
-						if (!MessagesUtils.notifyIsInSpike(parent, word)) {
+					if (!isIgnoredNow && word.getDenotationWord().isInHreb()) {
+						if (!MessagesUtils.notifyIsInHreb(parent, word)) {
 							return;
 						} else {
 							for (DenotationElement element : word.getDenotationWord().getDenotationElements()) {
-								final Spike spike = element.getSpike();
-								if (spike != null) {
-									spike.remove(word.getDenotationWord());
+								final Hreb hreb = element.getHreb();
+								if (hreb != null) {
+									hreb.remove(word.getDenotationWord());
 								}
 
 							}
@@ -528,7 +526,7 @@ public class DenotationAnalysis {
 
 				} else if (source == removeElement) {
 					final DenotationElement highestNumber = word.getHighestDenotationElement();
-					if (highestNumber.isInSpike()) {
+					if (highestNumber.isInHreb()) {
 						if (!MessagesUtils.notifyIsInElement(parent, highestNumber)) {
 							return;
 						}
@@ -546,12 +544,12 @@ public class DenotationAnalysis {
 					JMenuItem menuItem = (JMenuItem) source;
 					if (SPIKES_ADD_SUBMENU.equals(menuItem.getName())) {
 
-						Spike spike = (Spike) menuItem.getClientProperty(SPIKE_KEY);
-						DenotationElement spikeNumber = word.getDenotationWord().getFreeElement();
+						Hreb hreb = (Hreb) menuItem.getClientProperty(SPIKE_KEY);
+						DenotationElement hrebNumber = word.getDenotationWord().getFreeElement();
 
-						//..check if the word is already in any other spike. If so, ask for divide
+						//..check if the word is already in any other hreb. If so, ask for divide
 						if (word.getDenotationWord().getDenotationElements().size() > 1
-							&& word.getDenotationWord().isInSpike()) {
+							&& word.getDenotationWord().isInHreb()) {
 
 							String input = null;
 							do {
@@ -561,49 +559,49 @@ public class DenotationAnalysis {
 								//..canceled
 								return;
 							}
-							spike.addWord(word.getDenotationWord(), input);
+							hreb.addWord(word.getDenotationWord(), input);
 
 						}
 						else {
 
-							spike.addWord(word.getDenotationWord(), null);
-							spikeNumber.onAddToSpike(spike);
+							hreb.addWord(word.getDenotationWord(), null);
+							hrebNumber.onAddToHreb(hreb);
 						}
 						parent.onElementAssigned();
-						parent.refreshSpikes(spike.getNumber());
+						parent.refreshHrebs(hreb.getNumber());
 
 					} else if (SPIKES_DUPLICATE_SUBMENU.equals(menuItem.getName())) {
 
-						Spike spike = (Spike) menuItem.getClientProperty(SPIKE_KEY);
+						Hreb hreb = (Hreb) menuItem.getClientProperty(SPIKE_KEY);
 						DenotationElement duplicate = word.duplicate(word.getHighestDenotationElement());
 
-						spike.addWord(word.getDenotationWord(), duplicate.getText(), duplicate.getNumber());
-						duplicate.onAddToSpike(spike);
-						parent.refreshSpikes(spike.getNumber());
+						hreb.addWord(word.getDenotationWord(), duplicate.getText(), duplicate.getNumber());
+						duplicate.onAddToHreb(hreb);
+						parent.refreshHrebs(hreb.getNumber());
 
 					} else if (SPIKES_REMOVE_SUBMENU.equals(menuItem.getName())) {
-						Spike spike = (Spike) menuItem.getClientProperty(SPIKE_KEY);
-						spike.remove(word.getDenotationWord());
+						Hreb hreb = (Hreb) menuItem.getClientProperty(SPIKE_KEY);
+						hreb.remove(word.getDenotationWord());
 						parent.onElementAssigned();
-						parent.refreshSpikes(spike.getNumber());
+						parent.refreshHrebs(hreb.getNumber());
 					}
 				}
 				parent.onElementAssigned();
 				parent.refresh(WordPanel.this);
 			}
 
-			private void loadSpikes() {
-				spikesAddMenu.removeAll();
-				spikesDuplicateMenu.removeAll();
-				spikesRemoveMenu.removeAll();
+			private void loadHrebs() {
+				hrebsAddMenu.removeAll();
+				hrebsDuplicateMenu.removeAll();
+				hrebsRemoveMenu.removeAll();
 				int menuPosition = 0;
 
-				final int spikesCount = denotation.getSpikes().size();
-				if (spikesCount > 0 && !word.getDenotationWord().isIgnored()) {
+				final int hrebsCount = denotation.getHrebs().size();
+				if (hrebsCount > 0 && !word.getDenotationWord().isIgnored()) {
 
-					JMenu[] spikesSubMenus = createSpikesSubmenus();
+					JMenu[] hrebsSubMenus = createHrebsSubmenus();
 
-					if (spikesSubMenus.length > 0) {
+					if (hrebsSubMenus.length > 0) {
 						String menuItemMessage;
 						String menuItemName;
 						if (word.getDenotationWord().hasFreeElement()) {
@@ -614,35 +612,35 @@ public class DenotationAnalysis {
 							menuItemName = SPIKES_DUPLICATE_SUBMENU;
 						}
 
-						for (Spike spike : denotation.getSpikes()) {
-							if (!word.getDenotationWord().isInSpike(spike)) {
-								JMenuItem spikeItem = new JMenuItem(menuItemMessage + spike.getNumber());
-								spikeItem.setName(menuItemName);
-								spikeItem.putClientProperty(SPIKE_KEY, spike);
-								spikeItem.addActionListener(this);
-								int index = spike.getNumber() / SPIKES_PER_MENU;
+						for (Hreb hreb : denotation.getHrebs()) {
+							if (!word.getDenotationWord().isInHreb(hreb)) {
+								JMenuItem hrebItem = new JMenuItem(menuItemMessage + hreb.getNumber());
+								hrebItem.setName(menuItemName);
+								hrebItem.putClientProperty(SPIKE_KEY, hreb);
+								hrebItem.addActionListener(this);
+								int index = hreb.getNumber() / SPIKES_PER_MENU;
 								//..we need to decrement index. But only if there is no not-full menu
-								if (spike.getNumber() % SPIKES_PER_MENU == 0) {
+								if (hreb.getNumber() % SPIKES_PER_MENU == 0) {
 									index--;
 								}
-								if (index >= spikesSubMenus.length) {
-									index = spikesSubMenus.length - 1;
+								if (index >= hrebsSubMenus.length) {
+									index = hrebsSubMenus.length - 1;
 								}
-								spikesSubMenus[index].add(spikeItem);
+								hrebsSubMenus[index].add(hrebItem);
 							}
 						}
 
 						final JMenu toAdd, toRemove;
 						if (word.getDenotationWord().hasFreeElement()) {
-							toAdd = spikesAddMenu;
-							toRemove = spikesDuplicateMenu;
+							toAdd = hrebsAddMenu;
+							toRemove = hrebsDuplicateMenu;
 						} else {
-							toAdd = spikesDuplicateMenu;
-							toRemove = spikesAddMenu;
+							toAdd = hrebsDuplicateMenu;
+							toRemove = hrebsAddMenu;
 						}
-						for (JMenu spikesSubMenu : spikesSubMenus) {
-							if (spikesSubMenu.getMenuComponentCount() > 0) {
-								toAdd.add(spikesSubMenu);
+						for (JMenu hrebsSubMenu : hrebsSubMenus) {
+							if (hrebsSubMenu.getMenuComponentCount() > 0) {
+								toAdd.add(hrebsSubMenu);
 							}
 						}
 
@@ -650,36 +648,36 @@ public class DenotationAnalysis {
 						remove(toRemove);
 
 					} else {
-						//..no spike available
-						remove(spikesAddMenu);
-						remove(spikesDuplicateMenu);
+						//..no hreb available
+						remove(hrebsAddMenu);
+						remove(hrebsDuplicateMenu);
 					}
 				} else {
-					remove(spikesAddMenu);
-					remove(spikesDuplicateMenu);
-					remove(spikesRemoveMenu);
+					remove(hrebsAddMenu);
+					remove(hrebsDuplicateMenu);
+					remove(hrebsRemoveMenu);
 				}
-				if (spikesCount > 0 && !word.getDenotationWord().isIgnored() && word.getDenotationWord().isInSpike()) {
-					for (Spike spike : denotation.getSpikes()) {
-						if (word.getDenotationWord().isInSpike(spike)) {
-							JMenuItem spikeItem = new JMenuItem("Odebrat z hřebu č. " + spike.getNumber());
-							spikeItem.setName(SPIKES_REMOVE_SUBMENU);
-							spikeItem.putClientProperty(SPIKE_KEY, spike);
-							spikeItem.addActionListener(this);
-							spikesRemoveMenu.add(spikeItem);
+				if (hrebsCount > 0 && !word.getDenotationWord().isIgnored() && word.getDenotationWord().isInHreb()) {
+					for (Hreb hreb : denotation.getHrebs()) {
+						if (word.getDenotationWord().isInHreb(hreb)) {
+							JMenuItem hrebItem = new JMenuItem("Odebrat z hřebu č. " + hreb.getNumber());
+							hrebItem.setName(SPIKES_REMOVE_SUBMENU);
+							hrebItem.putClientProperty(SPIKE_KEY, hreb);
+							hrebItem.addActionListener(this);
+							hrebsRemoveMenu.add(hrebItem);
 						}
 					}
-					add(spikesRemoveMenu, menuPosition);
+					add(hrebsRemoveMenu, menuPosition);
 				} else {
-					remove(spikesRemoveMenu);
+					remove(hrebsRemoveMenu);
 				}
 			}
 
-			private JMenu[] createSpikesSubmenus() {
-				final int spikesCount = countOfSpikesForWord();
-				final int lastMenuItems = spikesCount % SPIKES_PER_MENU;
-				//..count of spikes / spikes in one submenu + one menu if spikes count is not divided by spikesPerMenu
-				final int menusCount = spikesCount / SPIKES_PER_MENU + ((lastMenuItems > 0) ? 1 : 0);
+			private JMenu[] createHrebsSubmenus() {
+				final int hrebsCount = countOfHrebsForWord();
+				final int lastMenuItems = hrebsCount % SPIKES_PER_MENU;
+				//..count of hrebs / hrebs in one submenu + one menu if hrebs count is not divided by hrebsPerMenu
+				final int menusCount = hrebsCount / SPIKES_PER_MENU + ((lastMenuItems > 0) ? 1 : 0);
 				JMenu[] menus = new JMenu[menusCount];
 				for (int i = 0; i < menus.length; i++) {
 					int l, h;
@@ -691,10 +689,10 @@ public class DenotationAnalysis {
 				return menus;
 			}
 
-			private int countOfSpikesForWord() {
+			private int countOfHrebsForWord() {
 				int count = 0;
-				for (Spike spike : denotation.getSpikes()) {
-					if (!word.getDenotationWord().isInSpike(spike)) {
+				for (Hreb hreb : denotation.getHrebs()) {
+					if (!word.getDenotationWord().isInHreb(hreb)) {
 						count++;
 					}
 				}
@@ -745,21 +743,21 @@ public class DenotationAnalysis {
 		}
 	}
 
-	private static class DenotationSpikesPanel extends JPanel implements ActionListener {
-		private final GuiDenotationSpikesModel model;
-		private final DenotationSpikesTableModel tableModel;
+	private static class DenotationHrebsPanel extends JPanel implements ActionListener {
+		private final GuiDenotationHrebsModel model;
+		private final DenotationHrebsTableModel tableModel;
 
 		private final JButton addBtn;
 		private final JButton removeBtn;
 		private final JTable table;
 		private final DenotationPanel panel;
 
-		public DenotationSpikesPanel(GuiDenotationSpikesModel model, DenotationPanel denotationPanel) {
+		public DenotationHrebsPanel(GuiDenotationHrebsModel model, DenotationPanel denotationPanel) {
 			super(new GridBagLayout());
 
 			this.panel = denotationPanel;
 			this.model = model;
-			this.tableModel = new DenotationSpikesTableModel(model);
+			this.tableModel = new DenotationHrebsTableModel(model);
 
 			JToolBar toolBar = new JToolBar(JToolBar.HORIZONTAL);
 			toolBar.setFloatable(false);
@@ -821,11 +819,11 @@ public class DenotationAnalysis {
 		public void actionPerformed(ActionEvent e) {
 			final Object source = e.getSource();
 			if (source == addBtn) {
-				model.createNewSpike();
+				model.createNewHreb();
 			} else if (source == removeBtn) {
 				Object selected = table.getValueAt(table.getSelectedRow(), 0);
 				if (selected != null) {
-					int lowestWordNumber = model.removeSpike(Integer.parseInt(selected.toString()));
+					int lowestWordNumber = model.removeHreb(Integer.parseInt(selected.toString()));
 					panel.refreshPoems(lowestWordNumber);
 				}
 			}
@@ -833,13 +831,13 @@ public class DenotationAnalysis {
 		}
 
 		public void refresh(int number) {
-			int row = findRowForSpike(number);
+			int row = findRowForHreb(number);
 			if (row >= 0) {
 				tableModel.fireTableRowsUpdated(row, row);
 			}
 		}
 
-		private int findRowForSpike(int number) {
+		private int findRowForHreb(int number) {
 			for (int row = 0; row < table.getRowCount(); row++) {
 				Object valueAt = table.getValueAt(row, 0);
 				if (valueAt != null) {
@@ -849,15 +847,15 @@ public class DenotationAnalysis {
 					}
 				}
 			}
-			throw new IllegalStateException("No Spike with number " + number + " found in the table");
+			throw new IllegalStateException("No Hreb with number " + number + " found in the table");
 		}
 
 		public void refresh() {
 			tableModel.fireTableDataChanged();
 		}
 
-		public boolean isAnySpikeInTheTable() {
-			return !model.isAnySpikeInTheTable();
+		public boolean isAnyHrebInTheTable() {
+			return model.isAnyHrebInTheTable();
 		}
 
 		private static class MultilineCellRenderer extends JTextArea implements TableCellRenderer {
@@ -938,17 +936,17 @@ public class DenotationAnalysis {
 		}
 	}
 
-	private static class DenotationSpikesTableModel extends AbstractTableModel {
+	private static class DenotationHrebsTableModel extends AbstractTableModel {
 
-		private final GuiDenotationSpikesModel model;
+		private final GuiDenotationHrebsModel model;
 
-		public DenotationSpikesTableModel(GuiDenotationSpikesModel model) {
+		public DenotationHrebsTableModel(GuiDenotationHrebsModel model) {
 			this.model = model;
 		}
 
 		@Override
 		public int getRowCount() {
-			return model.getSpikesCount();
+			return model.getHrebsCount();
 		}
 
 		@Override
@@ -958,17 +956,17 @@ public class DenotationAnalysis {
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
-			Spike spike = model.getSpikeOnRow(rowIndex);
-			if (spike == null) {
+			Hreb hreb = model.getHrebOnRow(rowIndex);
+			if (hreb == null) {
 				return null;
 			}
 			switch (columnIndex) {
 				case SPIKE_NUMBER_COLUMN:
-					return spike.getNumber();
+					return hreb.getNumber();
 				case SPIKE_SIZE_COLUMN:
-					return spike.getWords().size();
+					return hreb.getWords().size();
 				case SPIKE_WORDS_COLUMN:
-					return model.toStringForSpike(spike);
+					return model.toStringForHreb(hreb);
 				default:
 					return null;
 			}
@@ -1008,16 +1006,16 @@ public class DenotationAnalysis {
 
 		private static boolean notifyIsInElement(Component parent, DenotationElement element) {
 			final int yesNo = JOptionPane.showConfirmDialog(parent,
-				"Denotační element " + element + " je ve hřebu č. " + element.getSpike() + ". Budete-li pokračovat, bude z tohoto hřebu odstraněn.\n\nChcete pokračovat?",
+				"Denotační element " + element + " je ve hřebu č. " + element.getHreb() + ". Budete-li pokračovat, bude z tohoto hřebu odstraněn.\n\nChcete pokračovat?",
 				"Odstranit denotační element?",
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.QUESTION_MESSAGE);
 			return yesNo == JOptionPane.YES_OPTION;
 		}
 
-		private static  boolean notifyIsInSpike(Component parent, GuiDenotationWord word) {
+		private static  boolean notifyIsInHreb(Component parent, GuiDenotationWord word) {
 			final int yesNo = JOptionPane.showConfirmDialog(parent,
-				"Slovo '" + word + "' je ve hřebech č. " + word.getDenotationWord().getSpikes() + ". Budete-li pokračovat, bude z těchto hřebů odstraněno.\n\nChcete pokračovat?",
+				"Slovo '" + word + "' je ve hřebech č. " + word.getDenotationWord().getHrebs() + ". Budete-li pokračovat, bude z těchto hřebů odstraněno.\n\nChcete pokračovat?",
 				"Odstranit slovo ze hřebů?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 			return yesNo == JOptionPane.YES_OPTION;
 		}

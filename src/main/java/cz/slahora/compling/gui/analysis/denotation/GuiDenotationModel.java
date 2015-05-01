@@ -19,19 +19,19 @@ import cz.slahora.compling.gui.model.WorkingText;
 public class GuiDenotationModel implements Csv<GuiDenotationModel> {
 
 	private final GuiDenotationPoemModel poemModel;
-	private final GuiDenotationSpikesModel spikesModel;
+	private final GuiDenotationHrebsModel hrebsModel;
 
 	public GuiDenotationModel(WorkingText text) {
 		this.poemModel = new GuiDenotationPoemModel(text);
-		this.spikesModel = new GuiDenotationSpikesModel(poemModel.getDenotation());
+		this.hrebsModel = new GuiDenotationHrebsModel(poemModel.getDenotation());
 	}
 
 	public GuiDenotationPoemModel getPoemModel() {
 		return poemModel;
 	}
 
-	public GuiDenotationSpikesModel getSpikesModel() {
-		return spikesModel;
+	public GuiDenotationHrebsModel getHrebsModel() {
+		return hrebsModel;
 	}
 
 	@Override
@@ -40,9 +40,9 @@ public class GuiDenotationModel implements Csv<GuiDenotationModel> {
 			@Override
 			public CsvData saveToCsv(GuiDenotationModel object, Object... params) {
 				CsvData poemCsvData = object.poemModel.getCsvSaver().saveToCsv(object.poemModel, params);
-				CsvData spikesCsvData = object.spikesModel.getCsvSaver().saveToCsv(object.spikesModel, params);
+				CsvData hrebsCsvData = object.hrebsModel.getCsvSaver().saveToCsv(object.hrebsModel, params);
 
-				return new CsvData(poemCsvData, spikesCsvData);
+				return new CsvData(poemCsvData, hrebsCsvData);
 			}
 		};
 	}
@@ -64,8 +64,8 @@ public class GuiDenotationModel implements Csv<GuiDenotationModel> {
 				CsvData sectionPoem = new CsvData(csv.getSection(0));
 				objectToLoad.getPoemModel().getCsvLoader().loadFromCsv(sectionPoem, objectToLoad.getPoemModel(), params);
 
-				CsvData sectionSpikes = new CsvData(csv.getSection(1));
-				objectToLoad.getSpikesModel().getCsvLoader().loadFromCsv(sectionSpikes, objectToLoad.getSpikesModel(), objectToLoad.getSpikesModel(), objectToLoad.getPoemModel());
+				CsvData sectionHrebs = new CsvData(csv.getSection(1));
+				objectToLoad.getHrebsModel().getCsvLoader().loadFromCsv(sectionHrebs, objectToLoad.getHrebsModel(), objectToLoad.getHrebsModel(), objectToLoad.getPoemModel());
 			}
 		};
 	}

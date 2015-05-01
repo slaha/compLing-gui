@@ -4,7 +4,7 @@ import cz.compling.CompLing;
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
 import cz.compling.model.denotation.DenotationElement;
 import cz.compling.model.denotation.DenotationWord;
-import cz.compling.model.denotation.Spike;
+import cz.compling.model.denotation.Hreb;
 import cz.slahora.compling.gui.analysis.Results;
 import cz.slahora.compling.gui.analysis.ResultsHandler;
 import cz.slahora.compling.gui.analysis.SingleTextAnalysis;
@@ -36,7 +36,7 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 	JFrame frame;
 	private final DenotationSingleTextAnalysisResults results = new DenotationSingleTextAnalysisResults();
 	private WorkingText text;
-	private DenotationAnalysis.DenotationPanel denotationPanel;
+	private GuiDenotationAnalysis.DenotationPanel denotationPanel;
 
 	@Override
 	public void analyse(JPanel mainPanel, final ResultsHandler handler, Map<WorkingText, CompLing> texts) {
@@ -45,7 +45,7 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 
 	    frame = new JFrame("Denotační analýza");
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		denotationPanel = new DenotationAnalysis.DenotationPanel(this, frame, text);
+		denotationPanel = new GuiDenotationAnalysis.DenotationPanel(this, frame, text);
 		frame.setContentPane(denotationPanel);
 
 		frame.pack();
@@ -56,7 +56,7 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 
 			@Override
 			public void windowClosing(WindowEvent e) {
-				if (denotationPanel.isAnySpikeInTheTable()) {
+				if (denotationPanel.isAnyHrebInTheTable()) {
 					final int confirmDialog = showConfirmExitDialog(frame);
 
 					switch (confirmDialog) {
@@ -102,7 +102,7 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 		results.analysisComplete = true;
 		results.text = text;
 		results.denotation = denotationPanel.getDenotation();
-		results.guiDenotationResults = new GuiDenotationResults(text, results.denotation);
+		results.guiDenotationResults = new GuiDenotationResults(results.denotation);
 		frame.dispose();
 	}
 
@@ -142,22 +142,22 @@ public class DenotationSingleTextAnalysis implements SingleTextAnalysis {
 					s.addHeader("Rozsah hřebu");
 					s.addHeader("Hřeb");
 
-					for (Spike spike : model.getAllSpikes()) {
+					for (Hreb hreb : model.getAllHrebs()) {
 						s.startNewLine();
-						s.addData(spike.getNumber());
-						s.addData(spike.getWords().size());
-						s.addData(spikeToString(spike));
+						s.addData(hreb.getNumber());
+						s.addData(hreb.getWords().size());
+						s.addData(hrebToString(hreb));
 					}
 					return data;
 				}
 
-				private String spikeToString(Spike s) {
+				private String hrebToString(Hreb s) {
 					StringBuilder sb = new StringBuilder("[");
 
 					for (DenotationWord dw : s.getWords()) {
 
 						for (DenotationElement el : dw.getDenotationElements()) {
-							if (el.getSpike().getNumber() == s.getNumber()) {
+							if (el.getHreb().getNumber() == s.getNumber()) {
 								String normalized =  normalize(el.getText());
 								sb.append(normalized).append(' ');
 								sb.append(el.getNumber()).append(", ");

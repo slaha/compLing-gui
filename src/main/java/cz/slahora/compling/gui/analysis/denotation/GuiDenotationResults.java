@@ -3,12 +3,11 @@ package cz.slahora.compling.gui.analysis.denotation;
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
 import cz.compling.model.denotation.Coincidence;
 import cz.compling.model.denotation.DenotationMath;
-import cz.compling.model.denotation.GuiPoemAsSpikeNumbers;
-import cz.compling.model.denotation.Spike;
+import cz.compling.model.denotation.Hreb;
+import cz.compling.model.denotation.PoemAsHrebNumbers;
 import cz.slahora.compling.gui.analysis.ToggleHeader;
 import cz.slahora.compling.gui.analysis.assonance.NonEditableTable;
 import cz.slahora.compling.gui.model.LastDirectory;
-import cz.slahora.compling.gui.model.WorkingText;
 import cz.slahora.compling.gui.settings.SettingsManager;
 import cz.slahora.compling.gui.ui.MultipleLinesLabel;
 import cz.slahora.compling.gui.utils.*;
@@ -58,15 +57,13 @@ import static java.awt.GridBagConstraints.HORIZONTAL;
  */
 public class GuiDenotationResults {
 
-	private final WorkingText text;
 	private final GuiDenotationResultsModel model;
 	private final JPanel panel;
 	private Viewer graphViewer;
 	private GraphType graphType;
 
 
-	public GuiDenotationResults(WorkingText text, IDenotation denotation) {
-		this.text = text;
+	public GuiDenotationResults(IDenotation denotation) {
 		this.model = new GuiDenotationResultsModel(denotation);
 		this.panel = new JPanel(new GridBagLayout());
 
@@ -91,23 +88,23 @@ public class GuiDenotationResults {
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
-		JXCollapsiblePane diffusionSpikes = new JXCollapsiblePane();
-		diffusionSpikes.setBackground(Color.WHITE);
-		diffusionSpikes.setLayout(new GridBagLayout());
-		diffusionSpikes.setCollapsed(true);
+		JXCollapsiblePane diffusionHrebs = new JXCollapsiblePane();
+		diffusionHrebs.setBackground(Color.WHITE);
+		diffusionHrebs.setLayout(new GridBagLayout());
+		diffusionHrebs.setCollapsed(true);
 
-		final List<Pair<Spike, Double>> diffusions = model.getDiffusionForAll();
+		final List<Pair<Hreb, Double>> diffusions = model.getDiffusionForAll();
 		final int rowsPerColumn = diffusions.size() / 5;
 		final int biggerColumns = diffusions.size() % 5;
 
 		int row = 0;
 		int column = 0;
-		for (Pair<Spike, Double> pair : diffusions) {
+		for (Pair<Hreb, Double> pair : diffusions) {
 			JPanel p = new JPanel();
 			p.add(new HtmlLabelBuilder().b(String.valueOf(pair.getValue0().getNumber())).build());
 			p.add(new JLabel(String.format("%.2f", pair.getValue1())));
 
-			diffusionSpikes.add(p,
+			diffusionHrebs.add(p,
 				new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).weightX(1).gridXY(column, row).build()
 			);
 			row++;
@@ -124,7 +121,7 @@ public class GuiDenotationResults {
 			}
 		}
 
-		ToggleHeader toggle = new ToggleHeader(diffusionSpikes,
+		ToggleHeader toggle = new ToggleHeader(diffusionHrebs,
 			new HtmlLabelBuilder().hx(2, "Difuznost hřebů").build().getText());
 
 		panel.add(
@@ -132,26 +129,26 @@ public class GuiDenotationResults {
 			new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).anchor(GridBagConstraints.WEST).build()
 		);
 		panel.add(
-			diffusionSpikes,
+			diffusionHrebs,
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
-		JXCollapsiblePane positionSpikes = new JXCollapsiblePane();
-		positionSpikes.setLayout(new GridBagLayout());
-		positionSpikes.setCollapsed(true);
-		for (int spike = 1; spike <= model.getSpikesCount(); spike++) {
-			positionSpikes.add(new PositionSpikePanel(spike, model.getPositionSpike(spike)),
-				new GridBagConstraintBuilder().gridXY(0, spike).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
+		JXCollapsiblePane positionHrebs = new JXCollapsiblePane();
+		positionHrebs.setLayout(new GridBagLayout());
+		positionHrebs.setCollapsed(true);
+		for (int hreb = 1; hreb <= model.getHrebsCount(); hreb++) {
+			positionHrebs.add(new PositionHrebPanel(hreb, model.getPositionHreb(hreb)),
+				new GridBagConstraintBuilder().gridXY(0, hreb).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 			);
 		}
-		toggle = new ToggleHeader(positionSpikes, new HtmlLabelBuilder().hx(2, "Poziční hřeby").build().getText());
+		toggle = new ToggleHeader(positionHrebs, new HtmlLabelBuilder().hx(2, "Poziční hřeby").build().getText());
 
 		panel.add(
 			toggle,
 			new GridBagConstraintBuilder().gridXY(0, y++).weightX(1).anchor(GridBagConstraints.WEST).build()
 		);
 		panel.add(
-			positionSpikes,
+			positionHrebs,
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
@@ -160,24 +157,24 @@ public class GuiDenotationResults {
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
-		final GuiDenotationResultsModel.TextCore core = model.getTextCoreSpikes();
-		JLabel spikeLabel = new JLabel();
+		final GuiDenotationResultsModel.TextCore core = model.getTextCoreHrebs();
+		JLabel hrebLabel = new JLabel();
 		panel.add(
-			spikeLabel,
+			hrebLabel,
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 		JPanel textCorePanel = new JPanel(new GridBagLayout());
 		textCorePanel.setBackground(Color.white);
-		CoreSpikePanel coreSpikePanel = new CoreSpikePanel(core, spikeLabel);
+		CoreHrebPanel coreHrebPanel = new CoreHrebPanel(core, hrebLabel);
 		panel.add(
-			coreSpikePanel,
+			coreHrebPanel,
 			new GridBagConstraintBuilder().gridXY(0, y++).fill(GridBagConstraints.HORIZONTAL).weightX(1).anchor(GridBagConstraints.NORTH).build()
 		);
 
 
-		ExtendedCorePanel extendedCore = new ExtendedCorePanel(model.findCoreWithMaxDiffusion(), model.getSpikesInExtendedCore());
-		coreSpikePanel.addObserver(extendedCore);
+		ExtendedCorePanel extendedCore = new ExtendedCorePanel(model.findCoreWithMaxDiffusion(), model.getHrebsInExtendedCore());
+		coreHrebPanel.addObserver(extendedCore);
 		toggle = new ToggleHeader(extendedCore, new HtmlLabelBuilder().hx(2, "Rozšířené jádro textu").build().getText());
 		panel.add(
 			toggle,
@@ -193,21 +190,21 @@ public class GuiDenotationResults {
 		coincidencePanel.setCollapsed(true);
 
 
-		CoincidencePanel poemAsSpikeNumbersPanel = new CoincidencePanel(model.getPoemAsSpikeNumbers());
-		poemAsSpikeNumbersPanel.setBackground(Color.WHITE);
-		toggle = new ToggleHeader(poemAsSpikeNumbersPanel, new HtmlLabelBuilder().hx(3, "Báseň jako pořadová čísla hřebů").build().getText());
-		JPanel poemAsSpikeNumbersPanelWrapper = new JPanel(new BorderLayout());
-		poemAsSpikeNumbersPanelWrapper.setBackground(Color.white);
+		CoincidencePanel poemAsHrebNumbersPanel = new CoincidencePanel(model.getPoemAsHrebNumbers());
+		poemAsHrebNumbersPanel.setBackground(Color.WHITE);
+		toggle = new ToggleHeader(poemAsHrebNumbersPanel, new HtmlLabelBuilder().hx(3, "Báseň jako pořadová čísla hřebů").build().getText());
+		JPanel poemAsHrebNumbersPanelWrapper = new JPanel(new BorderLayout());
+		poemAsHrebNumbersPanelWrapper.setBackground(Color.white);
 
-		poemAsSpikeNumbersPanelWrapper.add(toggle, BorderLayout.NORTH);
-		poemAsSpikeNumbersPanelWrapper.add(poemAsSpikeNumbersPanel, BorderLayout.SOUTH);
+		poemAsHrebNumbersPanelWrapper.add(toggle, BorderLayout.NORTH);
+		poemAsHrebNumbersPanelWrapper.add(poemAsHrebNumbersPanel, BorderLayout.SOUTH);
 
-		coincidencePanel.add(poemAsSpikeNumbersPanelWrapper, BorderLayout.NORTH);
+		coincidencePanel.add(poemAsHrebNumbersPanelWrapper, BorderLayout.NORTH);
 
 		final JPanel coincidenceTableParentPanel = new JPanel();
 		coincidenceTableParentPanel.setBackground(Color.white);
 
-		SpinnerModel coincidenceSpinnerModel = new SpinnerNumberModel(1, 1, model.getSpikesCount(), 1);
+		SpinnerModel coincidenceSpinnerModel = new SpinnerNumberModel(1, 1, model.getHrebsCount(), 1);
 		final JSpinner coincidenceSpinner = new JSpinner(coincidenceSpinnerModel);
 		final ChangeListener listener = new ChangeListener() {
 			@Override
@@ -274,53 +271,53 @@ public class GuiDenotationResults {
 
 	}
 
-	private Map<Spike, List<Coincidence>> createCoincidenceMap(List<Spike> allSpikes) {
-		Map<Spike, List<Coincidence>> map = new HashMap<Spike, List<Coincidence>>();
+	private Map<Hreb, List<Coincidence>> createCoincidenceMap(List<Hreb> allHrebs) {
+		Map<Hreb, List<Coincidence>> map = new HashMap<Hreb, List<Coincidence>>();
 
-		for (Spike spike : allSpikes) {
-			map.put(spike, model.getCoincidenceFor(spike.getNumber()));
+		for (Hreb hreb : allHrebs) {
+			map.put(hreb, model.getCoincidenceFor(hreb.getNumber()));
 		}
 
 		return map;
 	}
-	private Map<Spike, List<Coincidence>> createDeterministicMap(List<Spike> allSpikes) {
-		Map<Spike, List<Coincidence>> map = new HashMap<Spike, List<Coincidence>>();
+	private Map<Hreb, List<Coincidence>> createDeterministicMap(List<Hreb> allHrebs) {
+		Map<Hreb, List<Coincidence>> map = new HashMap<Hreb, List<Coincidence>>();
 
-		for (Spike spike : allSpikes) {
-			map.put(spike, model.getDeterministicFor(spike.getNumber()));
+		for (Hreb hreb : allHrebs) {
+			map.put(hreb, model.getDeterministicFor(hreb.getNumber()));
 		}
 
 		return map;
 	}
 
-	private Graph createDeterministicGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor, final double alpha) {
+	private Graph createDeterministicGraph(List<Hreb> allHrebs, Map<Hreb, List<Coincidence>> coincidenceFor, final double alpha) {
 		Graph graph = new DefaultGraph("Deterministicko-pravděpodobnostní graf pro hladinu významnosti α=" + alpha);
-		return fillGraph(graph, allSpikes, coincidenceFor, alpha);
+		return fillGraph(graph, allHrebs, coincidenceFor, alpha);
 	}
 
-	private Graph createCoincidenceGraph(List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor, final double alpha) {
+	private Graph createCoincidenceGraph(List<Hreb> allHrebs, Map<Hreb, List<Coincidence>> coincidenceFor, final double alpha) {
 		Graph graph = new DefaultGraph("Graf koincidence na hladině významnosti α=" + alpha);
-		return fillGraph(graph, allSpikes, coincidenceFor, alpha);
+		return fillGraph(graph, allHrebs, coincidenceFor, alpha);
 	}
 
-	private Graph fillGraph(Graph graph, List<Spike> allSpikes, Map<Spike, List<Coincidence>> coincidenceFor, final double alpha) {
+	private Graph fillGraph(Graph graph, List<Hreb> allHrebs, Map<Hreb, List<Coincidence>> coincidenceFor, final double alpha) {
 		graph.addAttribute("ui.stylesheet", GraphStyle.getStyleSheet());
 		graph.addAttribute("ui.quality");
 		graph.addAttribute("ui.antialias");
 
-		for (Spike spike : allSpikes) {
-			final String s = String.valueOf(spike.getNumber());
+		for (Hreb hreb : allHrebs) {
+			final String s = String.valueOf(hreb.getNumber());
 			Node node = graph.addNode(s);
 			node.addAttribute("ui.label", s);
 		}
 
 		double graphNodeMultiplier = Math.max(1d, SettingsManager.getInstance().getGraphNodeSizeMultiplier());
 
-		for (Map.Entry<Spike, List<Coincidence>> entry : coincidenceFor.entrySet()) {
+		for (Map.Entry<Hreb, List<Coincidence>> entry : coincidenceFor.entrySet()) {
 			final String one = String.valueOf(entry.getKey().getNumber());
 			for (Coincidence coincidence : entry.getValue()) {
 				if (coincidence.probability <= alpha) {
-					final String another = String.valueOf(coincidence.anotherSpike.getNumber());
+					final String another = String.valueOf(coincidence.anotherHreb.getNumber());
 					final String id = one + '_' + another;
 					final String id2 = another + '_' + one;
 					if (graph.getEdge(id) == null && graph.getEdge(id2) == null) {
@@ -342,12 +339,12 @@ public class GuiDenotationResults {
 		return model;
 	}
 
-	private class PositionSpikePanel extends JPanel {
-		public PositionSpikePanel(int spikeNumber, List<Integer> wordNumbers) {
+	private class PositionHrebPanel extends JPanel {
+		public PositionHrebPanel(int hrebNumber, List<Integer> wordNumbers) {
 			super(new GridBagLayout());
 
 			add(
-				new HtmlLabelBuilder().hx(3, "Poziční hřeb č. " + spikeNumber).build(),
+				new HtmlLabelBuilder().hx(3, "Poziční hřeb č. " + hrebNumber).build(),
 				new GridBagConstraintBuilder().fill(GridBagConstraints.HORIZONTAL).gridXY(0, 0).insets(new Insets(0, 0, 0, 25)).build()
 			);
 			StrBuilder builder = new StrBuilder();
@@ -361,19 +358,19 @@ public class GuiDenotationResults {
 		}
 	}
 
-	private class CoreSpikePanel extends JPanel implements SpikeDetailsCollapsiblePanelMouseListener {
+	private class CoreHrebPanel extends JPanel implements HrebDetailsCollapsiblePanelMouseListener {
 		private final GuiDenotationResultsModel.TextCore core;
-		final JLabel spikeLabel;
-		private SpikeDetailsCollapsiblePanel outsideCorePanel;
-		private SpikeDetailsCollapsiblePanel corePanel;
-		private SpikeDetailsCollapsiblePanel coreTopikalnostPanel;
+		final JLabel hrebLabel;
+		private HrebDetailsCollapsiblePanel outsideCorePanel;
+		private HrebDetailsCollapsiblePanel corePanel;
+		private HrebDetailsCollapsiblePanel coreTopikalnostPanel;
 		private final Observable observable;
 
-		public CoreSpikePanel(GuiDenotationResultsModel.TextCore core, JLabel spikeLabel) {
+		public CoreHrebPanel(GuiDenotationResultsModel.TextCore core, JLabel hrebLabel) {
 			super(new GridBagLayout());
 
 			this.core = core;
-			this.spikeLabel = spikeLabel;
+			this.hrebLabel = hrebLabel;
 
 			setBackground(Color.white);
 
@@ -397,9 +394,9 @@ public class GuiDenotationResults {
 			removeAll();
 
 			//..panel hřebů, které patří do jádra
-			corePanel = new SpikeDetailsCollapsiblePanel();
+			corePanel = new HrebDetailsCollapsiblePanel();
 			corePanel.setCollapsed(collapseCore);
-			corePanel.addSpikes(core.getCore(), this);
+			corePanel.addHrebs(core.getCore(), this);
 			ToggleHeader toggleHeader = new ToggleHeader(corePanel, new HtmlLabelBuilder().hx(3, "Jádro textu").build().getText());
 			add(
 				toggleHeader,
@@ -412,10 +409,10 @@ public class GuiDenotationResults {
 			);
 
 			//..panel hřebů, které jsou mimo jádro
-			outsideCorePanel = new SpikeDetailsCollapsiblePanel();
+			outsideCorePanel = new HrebDetailsCollapsiblePanel();
 			outsideCorePanel.setCollapsed(collapseOutsideCore);
 			outsideCorePanel.setLayout(new GridBagLayout());
-			outsideCorePanel.addSpikes(core.getNotInCore(), this);
+			outsideCorePanel.addHrebs(core.getNotInCore(), this);
 
 			toggleHeader = new ToggleHeader(outsideCorePanel, new HtmlLabelBuilder().hx(3, "Hřeby mimo jádro").build().getText());
 			add(
@@ -428,10 +425,10 @@ public class GuiDenotationResults {
 			);
 
 			//...topikalnosť
-			coreTopikalnostPanel = new SpikeDetailsCollapsiblePanel();
+			coreTopikalnostPanel = new HrebDetailsCollapsiblePanel();
 			coreTopikalnostPanel.setCollapsed(collapseTopikalnostCore);
 			coreTopikalnostPanel.setLayout(new GridBagLayout());
-			coreTopikalnostPanel.addSpikes(computeTopikalnost(), null);
+			coreTopikalnostPanel.addHrebs(computeTopikalnost(), null);
 
 			toggleHeader = new ToggleHeader(coreTopikalnostPanel, new HtmlLabelBuilder().hx(3, "Tematičnost jádrových hřebů").build().getText());
 			add(
@@ -444,15 +441,15 @@ public class GuiDenotationResults {
 			);
 
 
-			String spikeLbl = core.size() == 1 ? "hřeb" : core.size() < 5 && core.size() > 0 ? "hřeby" : "hřebů";
-			spikeLabel.setText(String.format("Jádro textu obsahuje %d %s. Kardinální číslo jádra je %d.", core.size(), spikeLbl, core.getCoreCardinalNumber()));
+			String hrebLbl = core.size() == 1 ? "hřeb" : core.size() < 5 && core.size() > 0 ? "hřeby" : "hřebů";
+			hrebLabel.setText(String.format("Jádro textu obsahuje %d %s. Kardinální číslo jádra je %d.", core.size(), hrebLbl, core.getCoreCardinalNumber()));
 		}
 
-		private Map<Spike, String> computeTopikalnost() {
-			Map<Spike, String> map = new LinkedHashMap<Spike, String>(core.getCore().size());
-			for (Spike spike : core.getCore()) {
-				double topikalnost = model.computeTopikalnost(spike);
-				map.put(spike, String.format("%.2f", topikalnost));
+		private Map<Hreb, String> computeTopikalnost() {
+			Map<Hreb, String> map = new LinkedHashMap<Hreb, String>(core.getCore().size());
+			for (Hreb hreb : core.getCore()) {
+				double topikalnost = model.computeTopikalnost(hreb);
+				map.put(hreb, String.format("%.2f", topikalnost));
 			}
 			return map;
 		}
@@ -466,18 +463,18 @@ public class GuiDenotationResults {
 		}
 
 		private void notifyObservers() {
-			observable.notifyObservers(new Pair<Spike, List<Spike>>(model.findCoreWithMaxDiffusion(), model.getSpikesInExtendedCore()));
+			observable.notifyObservers(new Pair<Hreb, List<Hreb>>(model.findCoreWithMaxDiffusion(), model.getHrebsInExtendedCore()));
 		}
 
 		@Override
-		public MouseListener getListenerFor(final Spike spike, final JPanel panel) {
+		public MouseListener getListenerFor(final Hreb hreb, final JPanel panel) {
 			return new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					if (core.isInCore(spike)) {
-						core.remove(spike);
+					if (core.isInCore(hreb)) {
+						core.remove(hreb);
 					} else {
-						core.add(spike);
+						core.add(hreb);
 					}
 					notifyObservers();
 					refresh();
@@ -501,31 +498,31 @@ public class GuiDenotationResults {
 
 	private static class ExtendedCorePanel extends JXCollapsiblePane implements Observer {
 
-		public ExtendedCorePanel(Spike maxDiffusionSpike, List<Spike> spikesInExtendedCore) {
+		public ExtendedCorePanel(Hreb maxDiffusionHreb, List<Hreb> hrebsInExtendedCore) {
 			setBackground(Color.white);
 			setCollapsed(true);
-			addDescriptions(maxDiffusionSpike);
-			fill(spikesInExtendedCore);
+			addDescriptions(maxDiffusionHreb);
+			fill(hrebsInExtendedCore);
 		}
 
-		private void addDescriptions(Spike maxDiffusionSpike) {
-			if (maxDiffusionSpike != null) {
+		private void addDescriptions(Hreb maxDiffusionHreb) {
+			if (maxDiffusionHreb != null) {
 				add(new HtmlLabelBuilder()
-						.p("Jádrový hřeb s nejvyšší difuzností je hřeb číslo %d", maxDiffusionSpike.getNumber())
-						.setToolTipText(maxDiffusionSpike.getWords().toString())
+						.p("Jádrový hřeb s nejvyšší difuzností je hřeb číslo %d", maxDiffusionHreb.getNumber())
+						.setToolTipText(maxDiffusionHreb.getWords().toString())
 						.build());
 			}
 		}
 
-		private void fill(List<Spike> spikesInExtendedCore) {
-			if (spikesInExtendedCore == null) {
+		private void fill(List<Hreb> hrebsInExtendedCore) {
+			if (hrebsInExtendedCore == null) {
 				return;
 			}
 
-			SpikeDetailsCollapsiblePanel extendedCore = new SpikeDetailsCollapsiblePanel();
+			HrebDetailsCollapsiblePanel extendedCore = new HrebDetailsCollapsiblePanel();
 			ToggleHeader toggleHeader = new ToggleHeader(extendedCore, new HtmlLabelBuilder().hx(3, "Rozšířené jádro textu").build().getText());
 
-			extendedCore.addSpikes(spikesInExtendedCore, null);
+			extendedCore.addHrebs(hrebsInExtendedCore, null);
 
 			JPanel coverPanel = new JPanel(new GridBagLayout());
 			coverPanel.setBackground(Color.white);
@@ -546,7 +543,7 @@ public class GuiDenotationResults {
 		@Override
 		public void update(Observable o, Object arg) {
 			removeAll();
-			Pair<Spike, List<Spike>> p =(Pair<Spike, List<Spike>>)arg;
+			Pair<Hreb, List<Hreb>> p =(Pair<Hreb, List<Hreb>>)arg;
 			addDescriptions(p.getValue0());
 			fill(p.getValue1());
 
@@ -557,23 +554,23 @@ public class GuiDenotationResults {
 
 		private final JPanel poemPanel;
 
-		public CoincidencePanel(GuiPoemAsSpikeNumbers poemAsSpikeNumbers) {
+		public CoincidencePanel(PoemAsHrebNumbers poemAsHrebNumbers) {
 			this.poemPanel = new JPanel();
 			poemPanel.setLayout(new BoxLayout(poemPanel, BoxLayout.Y_AXIS));
 			poemPanel.setBackground(Color.WHITE);
 			setLayout(new GridBagLayout());
 
-			fill(poemAsSpikeNumbers);
+			fill(poemAsHrebNumbers);
 			setBorder(BorderFactory.createLineBorder(getBackground(), 20));
 			add(poemPanel);
 
 			setCollapsed(true);
 		}
 
-		private void fill(GuiPoemAsSpikeNumbers poem) {
+		private void fill(PoemAsHrebNumbers poem) {
 			int lastStrophe = 1;
 
-			for (GuiPoemAsSpikeNumbers.Strophe strophe : poem.getStrophes()) {
+			for (PoemAsHrebNumbers.Strophe strophe : poem.getStrophes()) {
 				if (lastStrophe != strophe.getNumber()) {
 					JPanel betweenStrophes = new JPanel() {
 						@Override
@@ -584,8 +581,8 @@ public class GuiDenotationResults {
 					poemPanel.add(betweenStrophes);
 					lastStrophe = strophe.getNumber();
 				}
-				for (GuiPoemAsSpikeNumbers.Strophe.Verse verse : strophe.getVerses()) {
-					String verseString = new StrBuilder().appendWithSeparators(verse.getSpikes(), ", ").toString();
+				for (PoemAsHrebNumbers.Strophe.Verse verse : strophe.getVerses()) {
+					String verseString = new StrBuilder().appendWithSeparators(verse.getHrebs(), ", ").toString();
 					JLabel lbl = new JLabel(verseString);
 					poemPanel.add(lbl);
 				}
@@ -612,7 +609,7 @@ public class GuiDenotationResults {
 					final Coincidence coincidence = coincidences.get(rowIndex);
 					switch (columnIndex) {
 						case 0:
-							return coincidence.anotherSpike;
+							return coincidence.anotherHreb;
 						case 1:
 							return coincidence.coincidenceCount;
 						case 2:
@@ -628,80 +625,80 @@ public class GuiDenotationResults {
 			add(table, BorderLayout.CENTER);
 		}
 	}
-	private static class SpikeDetailsCollapsiblePanel extends JXCollapsiblePane {
+	private static class HrebDetailsCollapsiblePanel extends JXCollapsiblePane {
 
 		private static final Insets INSETS = new Insets(0, 0, 0, 25);
 
-		private SpikeDetailsCollapsiblePanel() {
+		private HrebDetailsCollapsiblePanel() {
 			setBackground(Color.white);
 		}
 
-		public void addSpikes(List<Spike> spikes, SpikeDetailsCollapsiblePanelMouseListener spikePanelListener) {
+		public void addHrebs(List<Hreb> hrebs, HrebDetailsCollapsiblePanelMouseListener hrebPanelListener) {
 			int y = 0;
-			for (Spike spike : spikes) {
-				JPanel spikePanel = createSpikePanel(spike, spikePanelListener);
-				spikePanel.setBackground(Color.white);
+			for (Hreb hreb : hrebs) {
+				JPanel hrebPanel = createHrebPanel(hreb, hrebPanelListener);
+				hrebPanel.setBackground(Color.white);
 
-				JLabel spikeNumber = new HtmlLabelBuilder().hx(3, String.valueOf(spike.getNumber())).build();
-				String content = new StrBuilder().appendWithSeparators(spike.getWords(), ", ").toString();
-				JTextArea spikeContent = new MultipleLinesLabel(content);
+				JLabel hrebNumber = new HtmlLabelBuilder().hx(3, String.valueOf(hreb.getNumber())).build();
+				String content = new StrBuilder().appendWithSeparators(hreb.getWords(), ", ").toString();
+				JTextArea hrebContent = new MultipleLinesLabel(content);
 
-				spikePanel.add(
-					spikeNumber,
+				hrebPanel.add(
+					hrebNumber,
 					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).insets(INSETS).weightY(1).gridXY(0, 0).build()
 				);
 
-				spikePanel.add(
-					spikeContent,
+				hrebPanel.add(
+					hrebContent,
 					new GridBagConstraintBuilder().fill(BOTH).weightX(1).weightY(1).gridXY(1, 0).build()
 				);
 
 				add(
-					spikePanel,
+					hrebPanel,
 					new GridBagConstraintBuilder().weightX(1).fill(GridBagConstraints.HORIZONTAL).gridXY(0, y++).build()
 				);
 			}
 		}
 
-		public void addSpikes(Map<Spike, String> spikes, SpikeDetailsCollapsiblePanelMouseListener spikePanelListener) {
+		public void addHrebs(Map<Hreb, String> hrebs, HrebDetailsCollapsiblePanelMouseListener hrebPanelListener) {
 			int y = 0;
-			for (Map.Entry<Spike, String> entry : spikes.entrySet()) {
-				JPanel spikePanel = createSpikePanel(entry.getKey(), spikePanelListener);
-				spikePanel.setBackground(Color.white);
+			for (Map.Entry<Hreb, String> entry : hrebs.entrySet()) {
+				JPanel hrebPanel = createHrebPanel(entry.getKey(), hrebPanelListener);
+				hrebPanel.setBackground(Color.white);
 
-				JLabel spikeNumber = new HtmlLabelBuilder().hx(3, String.valueOf(entry.getKey().getNumber())).build();
+				JLabel hrebNumber = new HtmlLabelBuilder().hx(3, String.valueOf(entry.getKey().getNumber())).build();
 				String content = new StrBuilder().append("<html>").append(entry.getValue()).append("</html>").toString();
-				JLabel spikeContent = new JLabel(content);
+				JLabel hrebContent = new JLabel(content);
 
-				spikePanel.add(
-					spikeNumber,
+				hrebPanel.add(
+					hrebNumber,
 					new GridBagConstraintBuilder().fill(GridBagConstraints.VERTICAL).insets(INSETS).weightY(1).gridXY(0, 0).build()
 				);
 
-				spikePanel.add(
-					spikeContent,
+				hrebPanel.add(
+					hrebContent,
 					new GridBagConstraintBuilder().fill(BOTH).weightX(1).weightY(1).gridXY(1, 0).build()
 				);
 
 				add(
-					spikePanel,
+					hrebPanel,
 					new GridBagConstraintBuilder().weightX(1).fill(GridBagConstraints.HORIZONTAL).gridXY(0, y++).build()
 				);
 			}
 		}
 
-		private JPanel createSpikePanel(final Spike spike, SpikeDetailsCollapsiblePanelMouseListener spikePanelListener) {
+		private JPanel createHrebPanel(final Hreb hreb, HrebDetailsCollapsiblePanelMouseListener hrebPanelListener) {
 			final JPanel panel = new JPanel(new GridBagLayout());
-			if (spikePanelListener != null) {
-				panel.addMouseListener(spikePanelListener.getListenerFor(spike, panel));
+			if (hrebPanelListener != null) {
+				panel.addMouseListener(hrebPanelListener.getListenerFor(hreb, panel));
 			}
 			return panel;
 		}
 	}
 
-	private static interface SpikeDetailsCollapsiblePanelMouseListener  {
+	private static interface HrebDetailsCollapsiblePanelMouseListener  {
 
-		MouseListener getListenerFor(final Spike spike, final JPanel panel);
+		MouseListener getListenerFor(final Hreb hreb, final JPanel panel);
 
 	}
 
@@ -880,13 +877,13 @@ public class GuiDenotationResults {
 
 			final double alpha = (Double)alphaSpinner.getModel().getValue();
 			Graph graph;
-			final List<Spike> allSpikes = model.getAllSpikes();
+			final List<Hreb> allHrebs = model.getAllHrebs();
 			switch (graphType) {
 				case DETERMINISTIC:
-					graph = createDeterministicGraph(allSpikes, createDeterministicMap(allSpikes), alpha);
+					graph = createDeterministicGraph(allHrebs, createDeterministicMap(allHrebs), alpha);
 					break;
 				case COINCIDENCE:
-					graph = createCoincidenceGraph(allSpikes, createCoincidenceMap(allSpikes), alpha);
+					graph = createCoincidenceGraph(allHrebs, createCoincidenceMap(allHrebs), alpha);
 					break;
 				default:
 					throw new IllegalStateException("Not supported graph type " + graphType);

@@ -9,7 +9,7 @@ package cz.slahora.compling.gui.analysis.denotation;
  * </ul>
  * into csv file
  */
-class GuiSpikeWordsBundle {
+class GuiHrebWordsBundle {
 
 	/** splitter for values - when saving */
 	public static final char SPLITTER_CHAR = '\\';
@@ -21,10 +21,10 @@ class GuiSpikeWordsBundle {
 	public final int elementNumber;
 	public final String wordAsString;
 
-	public GuiSpikeWordsBundle(int wordNumber, int elementNumber, String elementInSpike) {
+	public GuiHrebWordsBundle(int wordNumber, int elementNumber, String elementInHreb) {
 		this.wordNumber = wordNumber;
 		this.elementNumber = elementNumber;
-		this.wordAsString = elementInSpike;
+		this.wordAsString = elementInHreb;
 	}
 
 

@@ -3,7 +3,7 @@ package cz.slahora.compling.gui.analysis.denotation;
 import cz.compling.analysis.analysator.poems.denotation.IDenotation;
 import cz.compling.model.denotation.DenotationElement;
 import cz.compling.model.denotation.DenotationWord;
-import cz.compling.model.denotation.Spike;
+import cz.compling.model.denotation.Hreb;
 import cz.slahora.compling.gui.model.Csv;
 import cz.slahora.compling.gui.model.CsvData;
 import cz.slahora.compling.gui.model.PipeArrayList;
@@ -25,55 +25,55 @@ import java.util.*;
  * <dd> 12.4.14 10:38</dd>
  * </dl>
  */
-public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
+public class GuiDenotationHrebsModel implements Csv<GuiDenotationHrebsModel> {
 
 	private final IDenotation denotation;
 
-	public GuiDenotationSpikesModel(IDenotation denotation) {
+	public GuiDenotationHrebsModel(IDenotation denotation) {
 		this.denotation = denotation;
 	}
 
-	public int getSpikesCount() {
-		return denotation.getSpikes().size();
+	public int getHrebsCount() {
+		return denotation.getHrebs().size();
 	}
 
 	/**
-	 * Returns spike for {@code row}<sup>th</sup> row of table
+	 * Returns hreb for {@code row}<sup>th</sup> row of table
 	 *
-	 * @return Spike which should be displayed on {@code row}<sup>th</sup> row of table
+	 * @return Hreb which should be displayed on {@code row}<sup>th</sup> row of table
 	 */
-	public Spike getSpikeOnRow(int row) {
-		return getSpikes().get(row);
+	public Hreb getHrebOnRow(int row) {
+		return getHrebs().get(row);
 	}
 
 	/**
-	 * Remove spike with number {@code spikeNumber}.
+	 * Remove hreb with number {@code hrebNumber}.
 	 *
-	 * @param spikeNumber number of spike to remove.
+	 * @param hrebNumber number of hreb to remove.
 	 *
-	 * @return the lowest number of {@code DenotationPoemModel.DenotationWord} which was in removed spike
+	 * @return the lowest number of {@code DenotationPoemModel.DenotationWord} which was in removed hreb
 	 */
-	public int removeSpike(int spikeNumber) {
-		return denotation.removeSpike(spikeNumber);
+	public int removeHreb(int hrebNumber) {
+		return denotation.removeHreb(hrebNumber);
 	}
 
 	/**
-	 * @return all Spikes as sorted array (by Spike's number)
+	 * @return all Hrebs as sorted array (by Hreb's number)
 	 */
-	public List<Spike> getSpikes() {
-		final List<Spike> spikes = (List<Spike>) denotation.getSpikes();
-		Collections.sort(spikes, new Comparator<Spike>() {
+	public List<Hreb> getHrebs() {
+		final List<Hreb> hrebs = (List<Hreb>) denotation.getHrebs();
+		Collections.sort(hrebs, new Comparator<Hreb>() {
 			@Override
-			public int compare(Spike o1, Spike o2) {
+			public int compare(Hreb o1, Hreb o2) {
 				return o1.getNumber() - o2.getNumber();
 			}
 		});
-		return spikes;
+		return hrebs;
 	}
 
 	@Override
-	public CsvSaver<GuiDenotationSpikesModel> getCsvSaver() {
-		return new DenotationSpikesModelSaver();
+	public CsvSaver<GuiDenotationHrebsModel> getCsvSaver() {
+		return new DenotationHrebsModelSaver();
 	}
 
 	@Override
@@ -82,28 +82,28 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 	}
 
 	@Override
-	public CsvLoader<GuiDenotationSpikesModel> getCsvLoader() {
-		return new DenotationSpikesModelLoader();
+	public CsvLoader<GuiDenotationHrebsModel> getCsvLoader() {
+		return new DenotationHrebsModelLoader();
 	}
 
-	public boolean isAnySpikeInTheTable() {
-		return getSpikesCount() > 0;
+	public boolean isAnyHrebInTheTable() {
+		return getHrebsCount() > 0;
 	}
 
-	public void createNewSpike() {
-		denotation.createNewSpike();
+	public void createNewHreb() {
+		denotation.createNewHreb();
 	}
 
-	private void addSpike(Spike spike) {
-		denotation.addSpike(spike);
+	private void addHreb(Hreb hreb) {
+		denotation.addHreb(hreb);
 
 	}
 
-	public String toStringForSpike(Spike spike) {
-		if (spike.getWords().isEmpty()) {
+	public String toStringForHreb(Hreb hreb) {
+		if (hreb.getWords().isEmpty()) {
 			return "-";
 		}
-		final TIntObjectMap<String> map = getElementsInSpike(spike);
+		final TIntObjectMap<String> map = getElementsInHreb(hreb);
 		if (map.isEmpty()) {
 			return "-";
 		}
@@ -120,14 +120,14 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 		return b.toString();
 	}
 
-	private TIntObjectMap<String> getElementsInSpike(Spike spike) {
+	private TIntObjectMap<String> getElementsInHreb(Hreb hreb) {
 		TIntObjectMap<String> map = new TIntObjectHashMap<String>();
-		for (DenotationWord dw : spike.getWords()) {
+		for (DenotationWord dw : hreb.getWords()) {
 			for (DenotationElement element : dw.getDenotationElements()) {
-				if (element.getSpike() == null) {
+				if (element.getHreb() == null) {
 					continue;
 				}
-				if (element.getSpike().getNumber() == spike.getNumber()) {
+				if (element.getHreb().getNumber() == hreb.getNumber()) {
 					String s;
 					if (StringUtils.isEmpty(element.getText())) {
 						s = dw.getWords().toString();
@@ -141,28 +141,28 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 		return map;
 	}
 
-	private static class DenotationSpikesModelSaver extends CsvSaver<GuiDenotationSpikesModel> {
+	private static class DenotationHrebsModelSaver extends CsvSaver<GuiDenotationHrebsModel> {
 
 		@Override
-		public CsvData saveToCsv(GuiDenotationSpikesModel object, Object... params) {
+		public CsvData saveToCsv(GuiDenotationHrebsModel object, Object... params) {
 			CsvData data = new CsvData();
 			data.addSection();
 			final CsvData.CsvDataSection section = data.getCurrentSection();
-			section.addHeader("Spike number");
+			section.addHeader("Hreb number");
 			section.addHeader("Word number(s) [word number\\denotation element\\value]");
-			for (Spike spike : object.getSpikes()) {
+			for (Hreb hreb : object.getHrebs()) {
 				section.startNewLine();
-				section.addData(spike.getNumber());
-				PipeArrayList<GuiSpikeWordsBundle> spikeWordsBundles = new PipeArrayList<GuiSpikeWordsBundle>(spike.size());
-				for (DenotationWord w : spike.getWords()) {
-					if (w.isInSpike(spike)) {
+				section.addData(hreb.getNumber());
+				PipeArrayList<GuiHrebWordsBundle> hrebWordsBundles = new PipeArrayList<GuiHrebWordsBundle>(hreb.size());
+				for (DenotationWord w : hreb.getWords()) {
+					if (w.isInHreb(hreb)) {
 
-						final DenotationElement elementInSpike = w.getElementInSpike(spike);
-						String text = elementInSpike.getText() == null ? w.getWords().toString() : elementInSpike.getText();
-						spikeWordsBundles.add(new GuiSpikeWordsBundle(w.getNumber(), elementInSpike.getNumber(), text));
+						final DenotationElement elementInHreb = w.getElementInHreb(hreb);
+						String text = elementInHreb.getText() == null ? w.getWords().toString() : elementInHreb.getText();
+						hrebWordsBundles.add(new GuiHrebWordsBundle(w.getNumber(), elementInHreb.getNumber(), text));
 					}
 				}
-				section.addData(spikeWordsBundles);
+				section.addData(hrebWordsBundles);
 
 
 			}
@@ -171,14 +171,14 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 
 	}
 
-	private static class DenotationSpikesModelLoader extends CsvLoader<GuiDenotationSpikesModel> {
+	private static class DenotationHrebsModelLoader extends CsvLoader<GuiDenotationHrebsModel> {
 
 		/**
-		 * @param params [0]..DenotationSpikesModel; [1]..DenotationPoemModel
+		 * @param params [0]..DenotationHrebsModel; [1]..DenotationPoemModel
 		 */
 		@Override
-		public void loadFromCsv(CsvData csv, GuiDenotationSpikesModel objectToLoad, Object... params) throws CsvParserException {
-			GuiDenotationSpikesModel spikesModel = (GuiDenotationSpikesModel) params[0];
+		public void loadFromCsv(CsvData csv, GuiDenotationHrebsModel objectToLoad, Object... params) throws CsvParserException {
+			GuiDenotationHrebsModel hrebsModel = (GuiDenotationHrebsModel) params[0];
 			GuiDenotationPoemModel poemModel = (GuiDenotationPoemModel) params[1];
 			final CsvParserUtils.CollectionSplitter splitter = new CsvParserUtils.CollectionSplitter() {
 				@Override
@@ -186,16 +186,16 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 					return PipeArrayList.SPLITTER;
 				}
 			};
-			final CsvParserUtils.CollectionParser<GuiSpikeWordsBundle> parser = new CsvParserUtils.CollectionParser<GuiSpikeWordsBundle>() {
+			final CsvParserUtils.CollectionParser<GuiHrebWordsBundle> parser = new CsvParserUtils.CollectionParser<GuiHrebWordsBundle>() {
 				@Override
-				public void parse(String toParse, Collection<GuiSpikeWordsBundle> toAdd) throws CsvParserException {
+				public void parse(String toParse, Collection<GuiHrebWordsBundle> toAdd) throws CsvParserException {
 					try {
 						toParse = toParse.substring(1, toParse.length() - 1); //..remove [ and ]
-						String[] split = toParse.split(GuiSpikeWordsBundle.SPLITTER);
+						String[] split = toParse.split(GuiHrebWordsBundle.SPLITTER);
 						int wordNumber = Integer.parseInt(split[0]);
 						int elementNumber = Integer.parseInt(split[1]);
 						String word = split[2];
-						toAdd.add(new GuiSpikeWordsBundle(wordNumber, elementNumber, word));
+						toAdd.add(new GuiHrebWordsBundle(wordNumber, elementNumber, word));
 					} catch (NumberFormatException nfe) {
 						throw new CsvParserException(nfe.getMessage());
 					} catch (IndexOutOfBoundsException ioobe) {
@@ -206,14 +206,14 @@ public class GuiDenotationSpikesModel implements Csv<GuiDenotationSpikesModel> {
 			int maxNumber = 0;
 			for (List<Object> objects : csv.getCurrentSection().getDataLines()) {
 				int number = CsvParserUtils.getAsInt(objects.get(0));
-				Spike spike = new Spike(number);
-				spikesModel.addSpike(spike);
+				Hreb hreb = new Hreb(number);
+				hrebsModel.addHreb(hreb);
 
-				Collection<GuiSpikeWordsBundle> wordsNumbers = CsvParserUtils.getAsList(objects.get(1), splitter, parser);
-				for (GuiSpikeWordsBundle bundle : wordsNumbers) {
+				Collection<GuiHrebWordsBundle> wordsNumbers = CsvParserUtils.getAsList(objects.get(1), splitter, parser);
+				for (GuiHrebWordsBundle bundle : wordsNumbers) {
 
 					DenotationWord word = poemModel.getWord(bundle.wordNumber);
-					spike.addWord(word, bundle.wordAsString, bundle.elementNumber);
+					hreb.addWord(word, bundle.wordAsString, bundle.elementNumber);
 				}
 				if (maxNumber < number) {
 					maxNumber = number;

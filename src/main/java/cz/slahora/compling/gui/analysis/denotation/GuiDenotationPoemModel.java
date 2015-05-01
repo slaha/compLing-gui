@@ -22,10 +22,6 @@ public class GuiDenotationPoemModel implements Csv<GuiDenotationPoemModel> {
 	private final IDenotation denotation;
 
 	public GuiDenotationPoemModel(WorkingText text) {
-		this(text, true);
-	}
-
-	private GuiDenotationPoemModel(WorkingText text, boolean compute) {
 		this.poem = text.getCompLing().poemAnalysis().getPoem();
 		this.denotation = text.getCompLing().poemAnalysis().denotationAnalysis();
 	}
@@ -33,7 +29,6 @@ public class GuiDenotationPoemModel implements Csv<GuiDenotationPoemModel> {
 	public int getCountOfWords() {
 		return denotation.getCountOfWords();
 	}
-
 	public DenotationWord getWord(int wordNumber) {
 		return denotation.getWord(wordNumber);
 	}
